@@ -1,0 +1,51 @@
+/* Your existing CSS */
+.rolling-text-container {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.rolling-text-track {
+    display: inline-flex;
+    animation: roll linear infinite;
+}
+
+.rolling-text-item {
+    display: inline-block;
+    margin-right: 3rem;
+    /* spacing between texts */
+}
+
+.text-stroke {
+    color: transparent;
+    /* fill color */
+    -webkit-text-stroke: 1px black;
+    /* stroke width + color */
+    font-weight: 700;
+    /* optional bold for stroke effect */
+}
+
+@keyframes roll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* New CSS for right-direction scroll */
+.scroll-right {
+    animation-name: roll-right;
+}
+
+@keyframes roll-right {
+    0% {
+        transform: translateX(-50%);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
