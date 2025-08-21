@@ -5,11 +5,12 @@ import InputPassword from '@/components/ui/inputPassword';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { setCookie } from '../../lib/setCookie'; // import the util
+import { useRouter } from 'next/navigation';
 
 const LoginAction = () => {
     const [password, setPassword] = useState('')
     const [phoneNumber, setPhoneNumber] = useState('')
-
+    const router = useRouter()
     const isActive = phoneNumber.replace(/\D/g, '').length === 10 && password !== '';
 
     const handleSignIn = async () => {
@@ -38,6 +39,7 @@ const LoginAction = () => {
                 setCookie('_iil', true, { days: 7 });
 
                 toast.success('Login Success');
+                router.push('/')
             }
 
         } catch (err) {

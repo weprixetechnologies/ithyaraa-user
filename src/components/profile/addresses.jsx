@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import AddressesList from './addressesList'
 import {
     Dialog,
@@ -11,17 +11,36 @@ import {
     DialogClose
 } from "@/components/ui/dialog"
 
+import axiosInstance from '../../lib/axiosInstance'
+
 const Addresses = () => {
-    const handleSubmit = (e) => {
-        e.preventDefault(); // prevent page reload
-        alert('Submitted');
+    const [addressForm, setAddressForm] = useState({})
+    const [open, setOpen] = useState(false) // control dialog open state
+
+    const handleChange = (e, name) => {
+        setAddressForm({ ...addressForm, [name]: e.target.value });
     };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        console.log(addressForm);
+
+        try {
+            const response = await axiosInstance.post('/address/add-address', addressForm);
+            console.log("Response:", response.data);
+            alert('Address submitted successfully!');
+            setOpen(false); // close dialog on success
+        } catch (error) {
+            console.error("Error submitting address:", error);
+            alert('Failed to submit address. Please try again.');
+        }
+    };
+
 
     return (
         <div className="p-4">
             <div className="flex w-full justify-between items-center mb-10">
                 <p className='text-lg font-medium'>Your Saved Addresses</p>
-                <Dialog>
+                <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                         <button className="px-3 py-2 bg-primary-yellow font-medium rounded-lg cursor-pointer">
                             Add Address
@@ -37,7 +56,6 @@ const Addresses = () => {
                             </DialogDescription>
                         </DialogHeader>
 
-                        {/* Form starts here */}
                         <form onSubmit={handleSubmit}>
                             <div className="grid gap-4">
                                 <div className="flex flex-col">
@@ -45,43 +63,49 @@ const Addresses = () => {
                                     <input
                                         type="text"
                                         placeholder='Enter Address Line 1'
-                                        className='border border-gray-200 h-[35px] rounded-lg px-2 text-sm outline-none'
                                         required
+                                        className='border border-gray-200 h-[35px] rounded-lg px-2 text-sm outline-none'
+                                        onChange={(e) => handleChange(e, 'line1')}
                                     />
                                 </div>
                                 <div className="flex flex-col">
                                     <label className='text-xs pb-1'>Address Line 2</label>
                                     <input
+                                        type="text"
                                         placeholder='Enter Address Line 2'
                                         required
-                                        type="text"
                                         className='border border-gray-200 h-[35px] rounded-lg px-2 text-sm outline-none'
+                                        onChange={(e) => handleChange(e, 'line2')}
                                     />
                                 </div>
                                 <div className="flex flex-col">
                                     <label className='text-xs pb-1'>Landmark</label>
                                     <input
+                                        type="text"
                                         placeholder='Enter Landmark of your area'
                                         required
-                                        type="text"
                                         className='border border-gray-200 h-[35px] rounded-lg px-2 text-sm outline-none'
+                                        onChange={(e) => handleChange(e, 'landmark')}
                                     />
                                 </div>
                                 <div className="grid gap-3 grid-cols-2">
                                     <div className="flex flex-col">
                                         <label className='text-xs pb-1'>State</label>
                                         <input
-                                            placeholder='Enter State'
                                             type="text"
+                                            placeholder='Enter State'
+                                            required
                                             className='border border-gray-200 h-[35px] rounded-lg px-2 text-sm outline-none'
+                                            onChange={(e) => handleChange(e, 'state')}
                                         />
                                     </div>
                                     <div className="flex flex-col">
                                         <label className='text-xs pb-1'>City / Region / District</label>
                                         <input
-                                            placeholder='Enter City / Region / District'
                                             type="text"
+                                            placeholder='Enter City / Region / District'
                                             className='border border-gray-200 h-[35px] rounded-lg px-2 text-sm outline-none'
+                                            onChange={(e) => handleChange(e, 'city')}
                                         />
                                     </div>
                                 </div>
@@ -89,25 +113,33 @@ const Addresses = () => {
                                     <div className="flex flex-col">
                                         <label className='text-xs pb-1'>Pincode</label>
                                         <input
-                                            required
                                             type="text"
+                                            required
                                             className='border border-gray-200 h-[35px] rounded-lg px-2 text-sm outline-none'
+                                            onChange={(e) => handleChange(e, 'pincode')}
                                         />
                                     </div>
                                     <div className="flex flex-col">
                                         <label className='text-xs pb-1'>Phone Number</label>
                                         <input
                                             type="text"
+                                            required
                                             className='border border-gray-200 h-[35px] rounded-lg px-2 text-sm outline-none'
+                                            onChange={(e) => handleChange(e, 'phonenumber')}
                                         />
                                     </div>
                                 </div>
                                 <div className="grid">
-                                    <label htmlFor="" className='text-xs'>Select Address Type</label>
-                                    <select name="" required id="">
-                                        <option value="work" className='text-xs'>Work</option>
-                                        <option value="home" className='text-xs'>Home</option>
-                                        <option value="friend" className='text-xs'>Friend/Relative</option>
+                                    <label className='text-xs'>Select Address Type</label>
+                                    <select
+                                        required
+                                        className='border border-gray-200 h-[35px] rounded-lg px-2 text-sm outline-none'
+                                        onChange={(e) => handleChange(e, 'type')}
+                                    >
+                                        <option value="">Select type...</option>
+                                        <option value="work">Work</option>
+                                        <option value="home">Home</option>
+                                        <option value="friend">Friend/Relative</option>
                                     </select>
                                 </div>
                             </div>
@@ -129,7 +161,6 @@ const Addresses = () => {
                                 </button>
                             </DialogFooter>
                         </form>
-                        {/* Form ends here */}
                     </DialogContent>
                 </Dialog>
             </div>

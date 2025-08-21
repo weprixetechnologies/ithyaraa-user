@@ -19,8 +19,7 @@ const GiftCard = () => {
             <hr className='border-primary-yellow mb-4 border' />
             <div className="  ">
                 {activeTab === "redeemgiftcard" && <RedeemGiftcard />}
-                {activeTab === "recharge" && <p> COMING SOON
-                     </p>}
+                {activeTab === "recharge" && <p>COMING SOON</p>}
             </div>
             {/* </div> */}
         </div>

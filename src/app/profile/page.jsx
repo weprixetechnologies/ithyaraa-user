@@ -6,10 +6,20 @@ import { IoExitOutline } from "react-icons/io5";
 import AccountDetail from "@/components/profile/accountDetail";
 import Addresses from "@/components/profile/addresses";
 import GiftCard from "@/components/profile/giftcard";
+import { useRouter } from "next/navigation";
 
 const ProfilePage = () => {
     const [activeTab, setActiveTab] = useState("accountdetail")
+    const router = useRouter()
+    const redirectToLogin = () => {
+        console.log('[redirectToLogin] Clearing cookies and redirecting to login');
+        document.cookie = '_at=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = '_rt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'isLoggedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 
+        // Full page reload — no SPA history
+        router.push('/login')
+    };
     return (
         <div className="flex w-full justify-center">
 
@@ -64,13 +74,13 @@ const ProfilePage = () => {
                                 Apply Affiliate
                             </p>
                         </section>
-                        <section className="flex justify-between text-white border-none items-center w-full cursor-pointer bg-red-500 p-3 rounded-lg" >
+                        <button className="flex justify-between text-white border-none items-center w-full cursor-pointer bg-red-500 p-3 rounded-lg" onClick={redirectToLogin}>
                             {/* <CgProfile size={20} /> */}
                             <p className="text-[15px] text-white hover:text-gray-500 font-normal ">
                                 Logout
                             </p>
                             <IoExitOutline size={20} />
-                        </section>
+                        </button>
 
                     </div>
                 </div>
@@ -80,6 +90,7 @@ const ProfilePage = () => {
                     {activeTab === "accountdetail" && <AccountDetail />}
                     {activeTab === "addresses" && <Addresses />}
                     {activeTab === "giftcard" && <GiftCard />}
+                    {activeTab === "applyaffiliate" && <GiftCard />}
                 </div>
             </div>
         </div>
