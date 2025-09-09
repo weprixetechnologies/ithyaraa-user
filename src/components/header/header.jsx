@@ -12,6 +12,9 @@ import { CiSearch, CiHeart, CiShoppingCart } from "react-icons/ci";
 import HamburgerChildMenu from "./hamburgerChildMenu";
 import { IoPersonOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux"
+import { getCartAsync } from "@/redux/slices/cartSlice"
+
 const ShopWithUs = () => {
 
 
@@ -132,20 +135,29 @@ const Header = () => {
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false)
 
+    const dispatch = useDispatch()
+    const cartCounter = useSelector((state) => state.cart.cartCount)
+
+    console.log(cartCounter);
+
     useEffect(() => {
         setIsLoggedIn(false)
-        // Check cookies to see if user is already logged in
+
         const iil = document.cookie.split('; ').find(c => c.startsWith('_iil='))?.split('=')[1];
         const at = document.cookie.split('; ').find(c => c.startsWith('_at='))?.split('=')[1];
         const rt = document.cookie.split('; ').find(c => c.startsWith('_rt='))?.split('=')[1];
 
         if (iil === 'true' && at && rt) {
-            // If you want, redirect to home
             setIsLoggedIn(true)
         }
-        setIsLoggedIn(true)
+
 
     }, []);
+    useEffect(() => {
+        if (isLoggedIn) {
+            dispatch(getCartAsync())
+        }
+    }, [isLoggedIn])
 
     return (
         <div>

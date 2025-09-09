@@ -9,7 +9,7 @@ export function middleware(req) {
     const rtCookie = req.cookies.get("_rt")?.value;
 
     // Protected routes
-    const protectedRoutes = ["/products", "/profile"];
+    const protectedRoutes = ["/profile"];
 
     // If user is not logged in or tokens missing, redirect
     if (
@@ -24,5 +24,5 @@ export function middleware(req) {
 }
 
 export const config = {
-    matcher: ["/products/:path*", "/profile/:path*"],
+    matcher: ["/profile/:path*"],
 };

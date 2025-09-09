@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import MyProfile from './myprofile'
 import ChangePassword from './changePassword'
 
-const AccountDetail = () => {
+const AccountDetail = ({ user }) => {
     const [activeTab, setActiveTab] = useState('myprofile')
     return (
         <div className=' p-4'>
@@ -19,7 +19,7 @@ const AccountDetail = () => {
             </div>
             <hr className='border-primary-yellow mb-4' />
             <div className="  ">
-                {activeTab === "myprofile" && <MyProfile />}
+                {activeTab === "myprofile" && <MyProfile user={user} />}
                 {activeTab === "changepassword" && <ChangePassword />}
             </div>
         </div>

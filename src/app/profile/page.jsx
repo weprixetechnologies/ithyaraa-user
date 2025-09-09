@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Image from "next/image"
 import { CgProfile } from "react-icons/cg";
 import { IoExitOutline } from "react-icons/io5";
@@ -7,8 +7,11 @@ import AccountDetail from "@/components/profile/accountDetail";
 import Addresses from "@/components/profile/addresses";
 import GiftCard from "@/components/profile/giftcard";
 import { useRouter } from "next/navigation";
+import ApplyAffiliate from "@/components/profile/applyAffiliate";
+import axiosInstance from "@/lib/axiosInstance";
 
 const ProfilePage = () => {
+    const [user, setUser] = useState({})
     const [activeTab, setActiveTab] = useState("accountdetail")
     const router = useRouter()
     const redirectToLogin = () => {
@@ -20,6 +23,22 @@ const ProfilePage = () => {
         // Full page reload — no SPA history
         router.push('/login')
     };
+
+    useEffect(() => {
+        const fetchUserDetails = async () => {
+            try {
+                const res = await axiosInstance.get('/user/detail-by-user')
+                console.log(res.data);
+
+                setUser(res.data)
+            } catch (err) {
+                console.error('Error fetching user details:', err)
+            }
+        }
+
+        fetchUserDetails()
+    }, [])
+
     return (
         <div className="flex w-full justify-center">
 
@@ -87,10 +106,10 @@ const ProfilePage = () => {
 
                 {/* Tab content */}
                 <div className="  col-span-9 ">
-                    {activeTab === "accountdetail" && <AccountDetail />}
+                    {activeTab === "accountdetail" && <AccountDetail user={user} />}
                     {activeTab === "addresses" && <Addresses />}
                     {activeTab === "giftcard" && <GiftCard />}
-                    {activeTab === "applyaffiliate" && <GiftCard />}
+                    {activeTab === "applyaffiliate" && <ApplyAffiliate user={user} />}
                 </div>
             </div>
         </div>

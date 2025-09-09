@@ -17,7 +17,7 @@ const LoginAction = () => {
         if (!isActive) return;
 
         try {
-            const res = await fetch('http://192.168.1.9:3300/api/user/login', {
+            const res = await fetch('http://localhost:3300/api/user/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phonenumber: phoneNumber, password }),

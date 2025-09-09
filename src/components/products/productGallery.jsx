@@ -1,10 +1,11 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import Image from "next/image";
 import { IoChevronDownSharp, IoChevronUpSharp } from "react-icons/io5";
 
 const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
     const galleryRef = useRef(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const scrollUp = () => {
         if (galleryRef.current) galleryRef.current.scrollBy({ top: -100, behavior: "smooth" });
@@ -18,15 +19,24 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
             {/* Main Image */}
             <div className="flex-1 px-3 py-2 md:py-0">
                 <div className="relative w-full aspect-[437/540]">
+                    {/* Skeleton placeholder */}
+                    {isLoading && (
+                        <div className="absolute inset-0 bg-gray-200 rounded-lg animate-pulse" />
+                    )}
+
                     <Image
-                        src={featuredImage || "https://ithyaraa.b-cdn.net/239723c1-2c9c-40d4-811e-0138e30e5d78.JPG"}
+                        src={
+                            featuredImage ||
+                            "https://ithyaraa.b-cdn.net/239723c1-2c9c-40d4-811e-0138e30e5d78.JPG"
+                        }
                         alt="Featured Image"
                         fill
-                        className="rounded-lg"
+                        className={`rounded-lg object-cover transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"
+                            }`}
+                        onLoadingComplete={() => setIsLoading(false)}
                     />
                 </div>
             </div>
-
             {/* Desktop Vertical Gallery */}
             <div className="hidden md:flex flex-col gap-2 relative w-[80px]">
                 <button
