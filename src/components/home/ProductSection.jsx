@@ -6,10 +6,11 @@ import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import Link from 'next/link';
+import { useWishlist } from "@/contexts/WishlistContext";
 
 const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, products = [] }) => {
-    const [wishlist, setWishlist] = useState('')
     const scrollRef = useRef(null)
+    const { isInWishlist, toggleWishlist, loading } = useWishlist()
 
     // const products = [
     //     {
@@ -92,12 +93,8 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
     //     },
     // ];
 
-    const toggleWishlist = (productID) => {
-        setWishlist(prev =>
-            prev.includes(productID)
-                ? prev.filter(id => id !== productID)
-                : [...prev, productID]
-        );
+    const handleToggleWishlist = async (productID) => {
+        await toggleWishlist(productID);
     };
 
     const scrollLeft = () => {
@@ -178,15 +175,17 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
 
                                     {/* WISHLIST BUTTON (float on top) */}
                                     <button
-                                        onClick={() => toggleWishlist(i.productID)}
-                                        className="absolute top-2 right-2 z-20 rounded-full p-2 
+                                        onClick={() => handleToggleWishlist(i.productID)}
+                                        disabled={loading}
+                                        className={`absolute top-2 right-2 z-20 rounded-full p-2 
                                bg-gradient-to-b from-white to-gray-100 
                                border border-gray-200 shadow-md 
                                hover:shadow-sm active:shadow-inner 
-                               transition-all duration-200 flex justify-center items-center"
-                                        aria-label="Toggle wishlist"
+                               transition-all duration-200 flex justify-center items-center ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+                                            }`}
+                                        aria-label={isInWishlist(i.productID) ? "Remove from wishlist" : "Add to wishlist"}
                                     >
-                                        {wishlist.includes(i.productID)
+                                        {isInWishlist(i.productID)
                                             ? <FaHeart size={16} color="red" />
                                             : <FaRegHeart size={16} color="grey" />}
                                     </button>

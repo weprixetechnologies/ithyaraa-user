@@ -50,7 +50,16 @@ export const getCartAsync = createAsyncThunk(
     async () => {
         const response = await axiosInstance.post("/cart/get-cart");
         return deepParseJSON(response.data); // parses featuredImage automatically
+    }
+);
 
+export const removeCartItemAsync = createAsyncThunk(
+    "cart/removeCartItemAsync",
+    async (cartItemID) => {
+        const response = await axiosInstance.post("/cart/remove-cart", {
+            cartItemID
+        });
+        return response.data;
     }
 );
 
@@ -81,6 +90,13 @@ const cartSlice = createSlice({
                 state.cart = action.payload.items;
                 state.cartDetail = action.payload.summary
                 state.cartCount = action.payload?.items?.length || 0; // set count dynamically
+            })
+            .addCase(removeCartItemAsync.fulfilled, (state, action) => {
+                if (action.payload.success) {
+                    // Refresh cart data after successful removal
+                    // The cart will be refreshed by calling getCartAsync
+                    state.cartCount = Math.max(0, state.cartCount - 1);
+                }
             });
     },
 });

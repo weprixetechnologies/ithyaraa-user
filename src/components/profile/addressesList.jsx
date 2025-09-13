@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { MdCancel } from "react-icons/md";
 import axiosInstance from "@/lib/axiosInstance"; // Adjust path as needed
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const AddressesList = () => {
     const [addresses, setAddresses] = useState([]);
@@ -22,9 +33,6 @@ const AddressesList = () => {
     }, []);
 
     const handleDelete = async (addressID) => {
-        const confirmDelete = window.confirm('Are you sure you want to delete this address?');
-        if (!confirmDelete) return;
-
         try {
             await axiosInstance.delete(`/address/${addressID}`);
             setAddresses(prev => prev.filter(addr => addr.addressID !== addressID));
@@ -57,12 +65,32 @@ const AddressesList = () => {
                         </p>
                     )}
 
-                    <button
-                        className='absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold cursor-pointer'
-                        onClick={() => handleDelete(address.addressID)}
-                    >
-                        <MdCancel />
-                    </button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <button
+                                className='absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold cursor-pointer'
+                            >
+                                <MdCancel />
+                            </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Address</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Are you sure you want to delete this address? This action cannot be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={() => handleDelete(address.addressID)}
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                    Delete Address
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             ))}
             {addresses.length === 0 && !loading && (

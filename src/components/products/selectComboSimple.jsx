@@ -1,48 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 
-const SelectCombo = ({ products, onVariationSelect, selectedVariations = {}, selectedAttributes: externalSelectedAttributes = [], onRemoveProduct }) => {
-    const [selectedAttributes, setSelectedAttributes] = useState(() =>
-        externalSelectedAttributes.length > 0 ? externalSelectedAttributes : products.map(() => ({}))
-    );
+const SelectComboSimple = ({ products, onVariationSelect }) => {
+    const [selectedAttributes, setSelectedAttributes] = useState(() => products.map(() => ({})));
     const lastSelected = useRef({}); // to prevent duplicate calls
 
     const handleSelectAttribute = (productIndex, attrName, value) => {
         setSelectedAttributes(prev => {
             const newAttributes = [...prev];
-            // Ensure the array is long enough and initialize if needed
-            while (newAttributes.length <= productIndex) {
-                newAttributes.push({});
-            }
             newAttributes[productIndex] = { ...newAttributes[productIndex], [attrName]: value };
             return newAttributes;
         });
     };
 
     const getFilteredVariations = (variations, productIndex) => {
-        if (!variations || !Array.isArray(variations)) return [];
         return variations.filter(variation => {
             return variation.variationValues.every(attr => {
                 const [key, val] = Object.entries(attr)[0];
-                return selectedAttributes[productIndex] && selectedAttributes[productIndex][key] === val;
+                return selectedAttributes[productIndex][key] === val;
             });
         });
     };
 
     // Reset attributes if products change (avoid stale state)
     useEffect(() => {
-        const newAttributes = externalSelectedAttributes.length > 0 ? externalSelectedAttributes : products.map(() => ({}));
-
-        // Only update if the attributes are actually different
-        setSelectedAttributes(prev => {
-            if (JSON.stringify(prev) !== JSON.stringify(newAttributes)) {
-                return newAttributes;
-            }
-            return prev;
-        });
-
+        setSelectedAttributes(products.map(() => ({})));
         lastSelected.current = {};
-    }, [products, externalSelectedAttributes]);
+    }, [products]);
 
     // Trigger onVariationSelect ONLY when selectedAttributes change
     useEffect(() => {
@@ -53,7 +37,7 @@ const SelectCombo = ({ products, onVariationSelect, selectedVariations = {}, sel
                 // prevent duplicate calls if same variation already selected
                 if (lastSelected.current[p.productID] !== variationID) {
                     lastSelected.current[p.productID] = variationID;
-                    onVariationSelect(index, variationID);
+                    onVariationSelect(p.productID, variationID);
                 }
             }
         });
@@ -62,22 +46,9 @@ const SelectCombo = ({ products, onVariationSelect, selectedVariations = {}, sel
     return (
         <div className='w-full flex flex-col gap-2 rounded'>
             {products.map((p, index) => (
-                <div key={p.productID} className='w-full shadow-sm py-3 px-3 rounded-lg relative' style={{
+                <div key={p.productID} className='w-full shadow-sm py-3 px-3 rounded-lg ' style={{
                     background: 'linear-gradient(90deg, rgba(56,130,126,1) 0%, rgba(255,210,50,1) 100%)'
                 }}>
-                    {/* Remove Button */}
-                    {onRemoveProduct && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onRemoveProduct(p.productID);
-                            }}
-                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold transition-colors z-10"
-                            title="Remove product"
-                        >
-                            ×
-                        </button>
-                    )}
                     <div className="flex gap-3">
                         <div>
                             <Image
@@ -100,19 +71,12 @@ const SelectCombo = ({ products, onVariationSelect, selectedVariations = {}, sel
                                 <div className="flex gap-2 items-center mb-2">
 
                                     <p className='text-xs font-medium text-secondary-text '>Select Attributes:</p>
-                                    {getFilteredVariations(p.variations, index).map((variation, vIndex) => {
-                                        const isSelected = selectedVariations[p.productID] === variation.variationID;
-                                        return (
-                                            <div key={vIndex} className={`text-xs px-2 py-1 rounded-sm ${isSelected
-                                                ? 'bg-primary-logo-yellow text-white border-2 border-yellow-300'
-                                                : variation.variationStock > 0
-                                                    ? 'bg-green-500 text-white'
-                                                    : 'bg-red-500 text-white'
-                                                }`}>
-                                                <p>{isSelected ? 'Selected' : (variation.variationStock > 0 ? 'In Stock' : 'Not in Stock')}</p>
-                                            </div>
-                                        );
-                                    })}
+                                    {getFilteredVariations(p.variations, index).map((variation, vIndex) => (
+                                        <div key={vIndex} className={`text-xs ${variation.variationStock > 0 ? 'bg-green-500 text-white px-2 py-1 rounded-sm' : 'bg-red-500 text-white px-2 py-1 rounded-sm'}`}>
+                                            {/* <p>Variation Name: {variation.variationName}</p> */}
+                                            <p>{variation.variationStock > 0 ? 'In Stock' : 'Not in Stock'}</p>
+                                        </div>
+                                    ))}
                                 </div>
                                 {p.productAttributes.map((attr, attrIndex) => (
                                     <div key={attrIndex} className='flex gap-2 mt-1'>
@@ -121,7 +85,7 @@ const SelectCombo = ({ products, onVariationSelect, selectedVariations = {}, sel
                                             <button
                                                 key={valueIndex}
                                                 type='button'
-                                                className={`px-2 py-1 text-xs border rounded ${selectedAttributes[index] && selectedAttributes[index][attr.name] === value
+                                                className={`px-2 py-1 text-xs border rounded ${selectedAttributes[index][attr.name] === value
                                                     ? 'bg-primary-logo-yellow text-white'
                                                     : 'bg-white text-black'
                                                     }`}
@@ -146,4 +110,4 @@ const SelectCombo = ({ products, onVariationSelect, selectedVariations = {}, sel
     );
 }
 
-export default SelectCombo;
+export default SelectComboSimple;

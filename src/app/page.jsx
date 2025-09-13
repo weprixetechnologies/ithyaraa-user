@@ -1,10 +1,23 @@
 import Image from "next/image";
 import logo from "../../public/ithyaraa-logo.png";
-import Slider from "@/components/ui/imageSlider";
-import TilledMiniCategories from "@/components/ui/tilledMiniCategories";
-import RollingText from "@/components/ui/rollingText";
-import FeaturingBlock from "@/components/ui/featuringBlock";
-import ProductSection from "@/components/home/ProductSection";
+import dynamic from "next/dynamic";
+
+// Lazy load components for better performance
+const Slider = dynamic(() => import("@/components/ui/imageSlider"), {
+  loading: () => <div className="h-64 bg-gray-200 animate-pulse rounded-lg" />
+});
+const TilledMiniCategories = dynamic(() => import("@/components/ui/tilledMiniCategories"), {
+  loading: () => <div className="h-32 bg-gray-200 animate-pulse rounded-lg" />
+});
+const RollingText = dynamic(() => import("@/components/ui/rollingText"), {
+  loading: () => <div className="h-16 bg-gray-200 animate-pulse rounded-lg" />
+});
+const FeaturingBlock = dynamic(() => import("@/components/ui/featuringBlock"), {
+  loading: () => <div className="h-48 bg-gray-200 animate-pulse rounded-lg" />
+});
+const ProductSection = dynamic(() => import("@/components/home/ProductSection"), {
+  loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
+});
 
 // ISR: regenerate this page every 10 seconds
 export const revalidate = 10;

@@ -11,7 +11,7 @@ import ProductSection from "@/components/home/ProductSection";
 import Reviews from "@/components/products/reviews";
 import { useDispatch, useSelector } from "react-redux";
 import { addCartAsync, addCartComboAsync } from "@/redux/slices/cartSlice";
-import SelectCombo from "@/components/products/selectCombo";
+import SelectComboSimple from "@/components/products/selectComboSimple";
 const ProductDetail = () => {
     const { productID } = useParams();
     const [product, setProduct] = useState(null);
@@ -201,7 +201,7 @@ const ProductDetail = () => {
                             <p className="text-black font-medium text-xs md:text-sm">98 Comments</p>
                         </div>
                         <div className="py-2">
-                            <SelectCombo products={product.products} onVariationSelect={handleVariationSelect} />
+                            <SelectComboSimple products={product.products} onVariationSelect={handleVariationSelect} />
                         </div>
                         {/* Pricing */}
                         <div className="pricing flex mt-4 items-center gap-3 mb-5">

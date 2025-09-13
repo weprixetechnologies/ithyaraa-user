@@ -1,17 +1,19 @@
 "use client";
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { BsFillStarFill } from "react-icons/bs";
-import ProductGallery from "@/components/products/productGallery";
 import { toast } from "react-toastify";
-import ProductTabs from "@/components/products/tabsAccordion";
 import { CiHeart, CiRuler } from "react-icons/ci";
-import ProductSection from "@/components/home/ProductSection";
-import Reviews from "@/components/products/reviews";
 import { useDispatch, useSelector } from "react-redux";
 import { addCartAsync } from "@/redux/slices/cartSlice";
 import Loading from "@/components/ui/loading";
+
+// Lazy load heavy components for better performance
+const ProductGallery = lazy(() => import("@/components/products/productGallery"));
+const ProductTabs = lazy(() => import("@/components/products/tabsAccordion"));
+const ProductSection = lazy(() => import("@/components/home/ProductSection"));
+const Reviews = lazy(() => import("@/components/products/reviews"));
 
 const ProductDetail = () => {
     const { productID } = useParams();
@@ -79,7 +81,7 @@ const ProductDetail = () => {
                 });
 
                 setFeaturedImage(data.featuredImage?.[0]?.imgUrl || "");
-                setGalleryImages(data.featuredImage || []);
+                setGalleryImages(data.galleryImage || []);
                 setProduct(data);
                 console.log(data);
 
@@ -241,12 +243,13 @@ const ProductDetail = () => {
             <div className="md:w-[80%] md:mt-10 w-full mb-5">
                 <div className="md:grid md:grid-cols-2 md:gap-4 md:w-full flex flex-col gap-4">
                     {/* Extracted Gallery */}
-
-                    <ProductGallery
-                        featuredImage={featuredImage}
-                        setFeaturedImage={setFeaturedImage}
-                        galleryImages={galleryImages}
-                    />
+                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
+                        <ProductGallery
+                            featuredImage={featuredImage}
+                            setFeaturedImage={setFeaturedImage}
+                            galleryImages={galleryImages}
+                        />
+                    </Suspense>
 
                     {/* Product Info */}
                     <div className="product-data-tab px-3">
@@ -271,9 +274,9 @@ const ProductDetail = () => {
 
                         {/* Pricing */}
                         <div className="pricing flex mt-4 items-center gap-3">
-                            <p className="text-xl font-medium">₹{variationPrice}</p>
-                            {variationSalePrice && (
-                                <p className="text-xl font-medium line-through text-secondary-text-deep">₹{variationSalePrice}</p>
+                            <p className="text-xl font-medium">₹{variationSalePrice || variationPrice}</p>
+                            {variationSalePrice && variationSalePrice !== variationPrice && (
+                                <p className="text-xl font-medium line-through text-secondary-text-deep">₹{variationPrice}</p>
                             )}
                             {product.discountValue && (
                                 <p className="text-xl font-medium text-green-600">{product.discountValue}% Off</p>
@@ -359,26 +362,33 @@ const ProductDetail = () => {
                                 <CiRuler />  <p className="pl-1">Size Guide</p>
                             </div>
                         </div>
-                        <ProductTabs />
+                        <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
+                            <ProductTabs />
+                        </Suspense>
                     </div>
                 </div>
                 <hr className="mt-5 border-gray-200" />
                 <div className="w-full col-span-2">
-
-                    <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
+                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
+                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
+                    </Suspense>
                 </div>
                 <hr className="mt-5 mb-5 border-gray-200" />
 
                 <div className="w-full col-span-2">
-                    <Reviews />
+                    <Suspense fallback={<div className="h-64 bg-gray-200 animate-pulse rounded-lg" />}>
+                        <Reviews />
+                    </Suspense>
                 </div>
                 <div className="w-full col-span-2 mt-3">
-
-                    <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
+                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
+                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
+                    </Suspense>
                 </div>
                 <div className="w-full col-span-2">
-
-                    <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
+                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
+                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
+                    </Suspense>
                 </div>
             </div>
         </div>

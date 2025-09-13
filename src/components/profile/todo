@@ -1,0 +1,6 @@
+make a analytics api for affiliate which will calculate  total clicks, total orders, total earnings, pending earnings.
+
+total clicks = cart_items + order_items where referBy = user.uid
+total orders = order_items where referBy = user.uid
+total earnings = sum lineTotalAfter order_items where referBy = user.uid
+total pending earnings = sum lineTotalAfter order_items where referBy = user.uid & join with orderDetail and the orderStatus must not be = delivered

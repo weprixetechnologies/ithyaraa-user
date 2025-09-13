@@ -14,6 +14,7 @@ import { IoPersonOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux"
 import { getCartAsync } from "@/redux/slices/cartSlice"
+import WishlistIcon from "../ui/WishlistIcon"
 
 const ShopWithUs = () => {
 
@@ -190,7 +191,7 @@ const Header = () => {
                         </div>
                         <div className="flex gap-4 flex-row items-center">
                             <SearchNavbar />
-                            <IoMdHeartEmpty size={24} className="cursor-pointer" onClick={() => (router.push('/wishlist'))} />
+                            <WishlistIcon />
                             <LuShoppingCart size={24} className="cursor-pointer" onClick={() => (router.push('/cart'))} />
                             <IoPersonOutline size={24} className="cursor-pointer" onClick={() => (router.push('/profile'))} />
                             <div className="border-l border-black h-6"></div>
@@ -231,22 +232,22 @@ const Header = () => {
                             </li>
                             <li onMouseEnter={() => setMegaMenu({ isOpen: true, menuName: 'home' })}
                             >
-                                <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                                <Link href="/shop" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                                     Shop With Us
                                 </Link>
                             </li>
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
-                                <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                                <Link href="/shop?type=combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                                     Combo
                                 </Link>
                             </li>
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
-                                <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                                <Link href="/shop?type=combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                                     Our Combos
                                 </Link>
                             </li>
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
-                                <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                                <Link href="/shop?type=make_combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                                     Make Your Combo
                                 </Link>
                             </li>
@@ -291,7 +292,7 @@ const Header = () => {
                 {/* Right icons */}
                 <div className="icons flex flex-row items-center">
                     <CiSearch size={24} className="ml-3" />
-                    <CiHeart size={24} className="ml-3" />
+                    <WishlistIcon />
                     <CiShoppingCart size={24} className="ml-3" />
                 </div>
 

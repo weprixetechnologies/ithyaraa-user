@@ -1,14 +1,20 @@
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, Suspense, lazy } from "react"
 import Image from "next/image"
 import { CgProfile } from "react-icons/cg";
 import { IoExitOutline } from "react-icons/io5";
-import AccountDetail from "@/components/profile/accountDetail";
-import Addresses from "@/components/profile/addresses";
-import GiftCard from "@/components/profile/giftcard";
 import { useRouter } from "next/navigation";
-import ApplyAffiliate from "@/components/profile/applyAffiliate";
 import axiosInstance from "@/lib/axiosInstance";
+import Loading from "@/components/ui/loading";
+import { CardSkeleton } from "@/components/ui/skeleton";
+import OrderHistory from "@/components/profile/orderHistory";
+
+// Lazy load profile components for code splitting
+const AccountDetail = lazy(() => import("@/components/profile/accountDetail"));
+const Addresses = lazy(() => import("@/components/profile/addresses"));
+const GiftCard = lazy(() => import("@/components/profile/giftcard"));
+const ApplyAffiliate = lazy(() => import("@/components/profile/applyAffiliate"));
+const Payout = lazy(() => import("@/components/profile/payout"));
 
 const ProfilePage = () => {
     const [user, setUser] = useState({})
@@ -90,9 +96,17 @@ const ProfilePage = () => {
                         <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg ${activeTab === 'applyaffiliate' ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={() => { setActiveTab('applyaffiliate') }} >
                             <CgProfile size={20} />
                             <p className="text-[15px] font-normal pl-4">
-                                Apply Affiliate
+                                {user?.affiliate === 'approved' ? 'Affiliate Dashboard' : 'Apply Affiliate'}
                             </p>
                         </section>
+                        {user?.affiliate === 'approved' && (
+                            <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg ${activeTab === 'payout' ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={() => { setActiveTab('payout') }} >
+                                <CgProfile size={20} />
+                                <p className="text-[15px] font-normal pl-4">
+                                    Payout
+                                </p>
+                            </section>
+                        )}
                         <button className="flex justify-between text-white border-none items-center w-full cursor-pointer bg-red-500 p-3 rounded-lg" onClick={redirectToLogin}>
                             {/* <CgProfile size={20} /> */}
                             <p className="text-[15px] text-white hover:text-gray-500 font-normal ">
@@ -105,11 +119,15 @@ const ProfilePage = () => {
                 </div>
 
                 {/* Tab content */}
-                <div className="  col-span-9 ">
-                    {activeTab === "accountdetail" && <AccountDetail user={user} />}
-                    {activeTab === "addresses" && <Addresses />}
-                    {activeTab === "giftcard" && <GiftCard />}
-                    {activeTab === "applyaffiliate" && <ApplyAffiliate user={user} />}
+                <div className="col-span-9">
+                    <Suspense fallback={<CardSkeleton className="h-96" />}>
+                        {activeTab === "accountdetail" && <AccountDetail user={user} />}
+                        {activeTab === "addresses" && <Addresses />}
+                        {activeTab === "orderhistory" && <OrderHistory />}
+                        {activeTab === "giftcard" && <GiftCard />}
+                        {activeTab === "applyaffiliate" && <ApplyAffiliate user={user} />}
+                        {activeTab === "payout" && <Payout user={user} />}
+                    </Suspense>
                 </div>
             </div>
         </div>
