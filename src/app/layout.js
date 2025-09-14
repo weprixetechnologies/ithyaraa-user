@@ -4,6 +4,7 @@ import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import StoreProvider from "@/redux/provider";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"], weight: ["400", "500", "700"] });
 const roboto = Roboto({ variable: "--font-roboto", subsets: ["latin"], weight: ["400", "500", "700"] });
@@ -19,11 +20,13 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${montserrat.variable} ${roboto.variable} ${poppins.variable}`}>
       <body>
         <StoreProvider>
-          <WishlistProvider>
-            <ToastContainer />
-            <Header />
-            {children}
-          </WishlistProvider>
+          <AuthProvider>
+            <WishlistProvider>
+              <ToastContainer />
+              <Header />
+              {children}
+            </WishlistProvider>
+          </AuthProvider>
         </StoreProvider>
       </body>
     </html>

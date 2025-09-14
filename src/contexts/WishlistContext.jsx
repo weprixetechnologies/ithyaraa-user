@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import axiosInstance from '@/lib/axiosInstance';
 import { toast } from 'react-toastify';
 
@@ -15,6 +16,7 @@ export const useWishlist = () => {
 };
 
 export const WishlistProvider = ({ children }) => {
+    const pathname = usePathname();
     const [wishlistItems, setWishlistItems] = useState([]);
     const [wishlistProductIds, setWishlistProductIds] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -48,6 +50,11 @@ export const WishlistProvider = ({ children }) => {
 
     // Add product to wishlist
     const addToWishlist = async (productID) => {
+        if (!isUserAuthenticated()) {
+            toast.error('Please login to add items to wishlist');
+            return false;
+        }
+
         try {
             const { data } = await axiosInstance.post('/wishlist/add-wishlist', {
                 productID
@@ -79,6 +86,11 @@ export const WishlistProvider = ({ children }) => {
 
     // Remove product from wishlist
     const removeFromWishlist = async (productID) => {
+        if (!isUserAuthenticated()) {
+            toast.error('Please login to manage wishlist');
+            return false;
+        }
+
         try {
             const { data } = await axiosInstance.delete(`/wishlist/remove-product/${productID}`);
 
@@ -121,17 +133,36 @@ export const WishlistProvider = ({ children }) => {
         return wishlistProductIds.has(productID);
     };
 
-    // Initialize wishlist on mount
-    useEffect(() => {
-        if (!initialized) {
-            fetchWishlist().finally(() => setInitialized(true));
+    // Check if user is authenticated
+    const isUserAuthenticated = () => {
+        if (typeof window === 'undefined') return false;
+        try {
+            const iil = document.cookie.split('; ').find(c => c.startsWith('_iil='))?.split('=')[1];
+            const at = document.cookie.split('; ').find(c => c.startsWith('_at='))?.split('=')[1];
+            const rt = document.cookie.split('; ').find(c => c.startsWith('_rt='))?.split('=')[1];
+            return iil === 'true' && at && rt;
+        } catch (error) {
+            console.error('Error checking authentication:', error);
+            return false;
         }
-    }, [initialized]);
+    };
+
+    // Initialize wishlist on mount only if user is authenticated and not on login page
+    useEffect(() => {
+        if (!initialized && isUserAuthenticated() && pathname !== '/login') {
+            fetchWishlist().finally(() => setInitialized(true));
+        } else if (!isUserAuthenticated() || pathname === '/login') {
+            // If user is not authenticated or on login page, mark as initialized to prevent further attempts
+            setInitialized(true);
+        }
+    }, [pathname]);
 
     // Force refresh wishlist data
     const refreshWishlist = useCallback(async () => {
-        await fetchWishlist();
-    }, []);
+        if (isUserAuthenticated() && pathname !== '/login') {
+            await fetchWishlist();
+        }
+    }, [pathname]);
 
     const value = {
         wishlistItems,

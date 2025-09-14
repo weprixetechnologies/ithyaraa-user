@@ -137,6 +137,8 @@ const OrderHistory = () => {
 
     const getOrderStatusText = (orderStatus) => {
         switch (orderStatus?.toLowerCase()) {
+            case 'pending':
+                return 'Getting Confirmed...'
             case 'preparing':
                 return 'Preparing'
             case 'shipping':
@@ -144,7 +146,7 @@ const OrderHistory = () => {
             case 'delivered':
                 return 'Delivered'
             default:
-                return 'Confirmed'
+                return 'Error'
         }
     }
 
@@ -273,29 +275,54 @@ const OrderHistory = () => {
                         {/* Order Items */}
                         <div className="space-y-3">
                             {order.items.map((item, index) => (
-                                <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                                    <img
-                                        src={item.featuredImage?.[0]?.imgUrl || '/placeholder-product.jpg'}
-                                        alt={item.name}
-                                        className="w-16 h-16 rounded-lg object-cover border border-gray-200"
-                                    />
-                                    <div className="flex-1">
-                                        <h4 className="font-medium text-gray-900 line-clamp-1">{item.name}</h4>
-                                        {item.variationName && (
-                                            <p className="text-sm text-gray-500">Variant: {item.variationName}</p>
-                                        )}
-                                        <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-semibold text-gray-900">
-                                            {formatPrice(item.lineTotalAfter || (item.salePrice || item.regularPrice || 0) * item.quantity)}
-                                        </p>
-                                        {item.salePrice && item.regularPrice && item.salePrice < item.regularPrice && (
-                                            <p className="text-xs text-gray-500 line-through">
-                                                {formatPrice(item.regularPrice * item.quantity)}
+                                <div key={index} className="space-y-2">
+                                    {/* Main Item */}
+                                    <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                                        <img
+                                            src={item.featuredImage?.[0]?.imgUrl || '/placeholder-product.jpg'}
+                                            alt={item.name}
+                                            className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                                        />
+                                        <div className="flex-1">
+                                            <h4 className="font-medium text-gray-900 line-clamp-1">{item.name}</h4>
+                                            {item.variationName && (
+                                                <p className="text-sm text-gray-500">Variant: {item.variationName}</p>
+                                            )}
+                                            <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-semibold text-gray-900">
+                                                {formatPrice(item.lineTotalAfter || (item.salePrice || item.regularPrice || 0) * item.quantity)}
                                             </p>
-                                        )}
+                                            {item.salePrice && item.regularPrice && item.salePrice < item.regularPrice && (
+                                                <p className="text-xs text-gray-500 line-through">
+                                                    {formatPrice(item.regularPrice * item.quantity)}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
+
+                                    {/* Combo Items */}
+                                    {item.comboItems && item.comboItems.length > 0 && (
+                                        <div className="ml-4 pl-4 border-l-2 border-gray-300 space-y-2">
+                                            <p className="text-xs font-medium text-gray-600">Includes:</p>
+                                            {item.comboItems.map((comboItem, comboIndex) => (
+                                                <div key={comboIndex} className="flex items-center space-x-3 p-2 bg-white rounded border">
+                                                    <img
+                                                        src={comboItem.featuredImage?.[0]?.imgUrl || '/placeholder-product.jpg'}
+                                                        alt={comboItem.name}
+                                                        className="w-12 h-12 rounded object-cover border border-gray-200"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-gray-700">{comboItem.name}</p>
+                                                        {comboItem.variationName && (
+                                                            <p className="text-xs text-gray-500">Variant: {comboItem.variationName}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

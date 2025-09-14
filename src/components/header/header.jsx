@@ -11,7 +11,7 @@ import { HiBars3BottomLeft } from "react-icons/hi2";
 import { CiSearch, CiHeart, CiShoppingCart } from "react-icons/ci";
 import HamburgerChildMenu from "./hamburgerChildMenu";
 import { IoPersonOutline } from "react-icons/io5";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux"
 import { getCartAsync } from "@/redux/slices/cartSlice"
 import WishlistIcon from "../ui/WishlistIcon"
@@ -122,6 +122,7 @@ const HamburgerMenu = () => {
 
 const Header = () => {
     const router = useRouter()
+    const pathname = usePathname()
     const [auth, setAuth] = useState(false);
     const [user, setUser] = useState({
         name: "John Doe",
@@ -144,21 +145,24 @@ const Header = () => {
     useEffect(() => {
         setIsLoggedIn(false)
 
-        const iil = document.cookie.split('; ').find(c => c.startsWith('_iil='))?.split('=')[1];
-        const at = document.cookie.split('; ').find(c => c.startsWith('_at='))?.split('=')[1];
-        const rt = document.cookie.split('; ').find(c => c.startsWith('_rt='))?.split('=')[1];
+        try {
+            const iil = document.cookie.split('; ').find(c => c.startsWith('_iil='))?.split('=')[1];
+            const at = document.cookie.split('; ').find(c => c.startsWith('_at='))?.split('=')[1];
+            const rt = document.cookie.split('; ').find(c => c.startsWith('_rt='))?.split('=')[1];
 
-        if (iil === 'true' && at && rt) {
-            setIsLoggedIn(true)
+            if (iil === 'true' && at && rt) {
+                setIsLoggedIn(true)
+            }
+        } catch (error) {
+            console.error('Error parsing cookies in header:', error);
         }
-
 
     }, []);
     useEffect(() => {
-        if (isLoggedIn) {
+        if (isLoggedIn && pathname !== '/login') {
             dispatch(getCartAsync())
         }
-    }, [isLoggedIn])
+    }, [isLoggedIn, dispatch, pathname])
 
     return (
         <div>
@@ -253,6 +257,16 @@ const Header = () => {
                             </li>
 
 
+                            <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
+                                <Link href="/offers" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                                    Offers
+                                </Link>
+                            </li>
+                            <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
+                                <Link href="/categories" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                                    Categories
+                                </Link>
+                            </li>
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
                                 <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                                     Customise Your Own

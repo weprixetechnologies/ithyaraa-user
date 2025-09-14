@@ -5,19 +5,22 @@ import InputPassword from '@/components/ui/inputPassword';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { setCookie } from '../../lib/setCookie'; // import the util
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LoginAction = () => {
     const [password, setPassword] = useState('')
     const [phoneNumber, setPhoneNumber] = useState('')
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const { handleLoginSuccess } = useAuth()
     const isActive = phoneNumber.replace(/\D/g, '').length === 10 && password !== '';
 
     const handleSignIn = async () => {
         if (!isActive) return;
 
         try {
-            const res = await fetch('http://localhost:3300/api/user/login', {
+            const res = await fetch('http://192.168.1.9:3300/api/user/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phonenumber: phoneNumber, password }),
@@ -39,7 +42,12 @@ const LoginAction = () => {
                 setCookie('_iil', true, { days: 7 });
 
                 toast.success('Login Success');
-                router.push('/')
+
+                // Get redirect parameter from URL
+                const redirectParam = searchParams.get('redirect');
+
+                // Use auth context to handle login success and redirects
+                handleLoginSuccess(redirectParam);
             }
 
         } catch (err) {

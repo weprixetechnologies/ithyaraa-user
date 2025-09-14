@@ -65,7 +65,7 @@ const ProductDetail = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`http://localhost:3300/api/products/details/${productID}`);
+                const res = await axios.get(`http://192.168.1.9:3300/api/products/details/${productID}`);
                 let data = res.data.product;
 
                 const safeParse = (value) => {
@@ -153,7 +153,7 @@ const ProductDetail = () => {
         if (type) params.append("type", type);
 
         const res = await fetch(
-            `http://localhost:3300/api/products/all-products?${params.toString()}`
+            `http://192.168.1.9:3300/api/products/all-products?${params.toString()}`
         );
         console.log(res);
 

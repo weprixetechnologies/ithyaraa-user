@@ -38,7 +38,7 @@ const ProductDetail = () => {
         [selectedProducts, selectedAttributes]
     );
 
-    // Current product state for cart
+    // Current product state for cart (like regular combo)
     const [currentProduct, setCurrentProduct] = useState({
         quantity: 1,
         mainProductID: productID,
@@ -123,7 +123,7 @@ const ProductDetail = () => {
             return newVariations;
         });
 
-        // Update current product for cart
+        // Update current product for cart (like regular combo)
         setCurrentProduct(prev => ({
             ...prev,
             products: prev.products.filter(p => p.productID !== productID)
@@ -165,7 +165,7 @@ const ProductDetail = () => {
         });
     }, [selectedAttributes, selectedProducts]);
 
-    // Update current product when selections change
+    // Update current product when selections change (like regular combo)
     useEffect(() => {
         const products = selectedProducts.map(product => ({
             productID: product.productID,
@@ -225,6 +225,21 @@ const ProductDetail = () => {
                 toast.error("Please select products first");
                 return;
             }
+
+            // Check if all selected products have variations
+            const missingVariations = selectedProducts.filter(p => !selectedVariations[p.productID]);
+            if (missingVariations.length > 0) {
+                toast.error("Please select variations for all products");
+                return;
+            }
+
+            console.log('=== MAKE-COMBO ADD CART ===');
+            console.log('currentProduct:', currentProduct);
+            console.log('Sending to cart:', {
+                mainProductID: productID,
+                products: currentProduct.products,
+                quantity: count,
+            });
 
             await dispatch(
                 addCartComboAsync({

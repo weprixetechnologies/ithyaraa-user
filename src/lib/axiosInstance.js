@@ -1,19 +1,38 @@
 import axios from 'axios';
 import { getCookie, setCookieEasy } from './setCookie';
 import { toast } from 'react-toastify';
+import {
+    storeRedirectUrl,
+    storePendingRequest,
+    clearAllRedirectData,
+    generateRequestId,
+    shouldRetryRequest
+} from './redirectUtils';
 
-const redirectToLogin = () => {
+const redirectToLogin = (originalRequest = null) => {
     console.log('[redirectToLogin] Clearing cookies and redirecting to login');
     document.cookie = '_at=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     document.cookie = '_rt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     document.cookie = 'isLoggedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 
+    // If this was an API request, store it for retry
+    if (originalRequest && shouldRetryRequest(originalRequest)) {
+        const requestId = generateRequestId(originalRequest);
+        storePendingRequest(originalRequest, requestId);
+        console.log('[redirectToLogin] Stored pending request:', requestId);
+    }
+
+    // Store current URL for redirect after login (for API-triggered redirects)
+    const currentUrl = window.location.pathname + window.location.search;
+    storeRedirectUrl(currentUrl);
+
     // Full page reload — no SPA history
+    // The middleware will handle the redirect with proper URL parameters
     window.location.href = '/login';
 };
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:3300/api',
+    baseURL: 'http://192.168.1.9:3300/api',
     headers: { 'Content-Type': 'application/json' },
 });
 
@@ -79,7 +98,7 @@ axiosInstance.interceptors.response.use(
             if (!refreshToken) {
                 console.log('[Response interceptor] No refresh token found, redirecting to login');
                 toast.error('Session expired. Please login again.');
-                redirectToLogin();
+                redirectToLogin(originalRequest);
                 return Promise.reject(error);
             }
 
@@ -96,7 +115,7 @@ axiosInstance.interceptors.response.use(
                 if (!newAccessToken || !newRefreshToken) {
                     console.log('[Response interceptor] Refresh response missing tokens, redirecting to login');
                     toast.error('Session expired. Please login again.');
-                    redirectToLogin();
+                    redirectToLogin(originalRequest);
                     return Promise.reject(error);
                 }
 
@@ -115,7 +134,7 @@ axiosInstance.interceptors.response.use(
                 isRefreshing = false;
                 console.log('[Response interceptor] Token refresh failed, redirecting to login', refreshError);
                 toast.error('Session expired. Please login again.');
-                redirectToLogin();
+                redirectToLogin(originalRequest);
                 return Promise.reject(refreshError);
             }
         }

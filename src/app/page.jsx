@@ -30,7 +30,7 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'vari
   if (type) params.append("type", type);
 
   const res = await fetch(
-    `http://localhost:3300/api/products/all-products?${params.toString()}`
+    `http://192.168.1.9:3300/api/products/all-products?${params.toString()}`
   );
 
   if (!res.ok) {

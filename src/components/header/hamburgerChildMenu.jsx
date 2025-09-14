@@ -42,6 +42,16 @@ const hamburgerMenuItems = [
         href: "/",
         subItems: [],
     },
+    {
+        label: "Offers",
+        href: "/offers",
+        subItems: [],
+    },
+    {
+        label: "Categories",
+        href: "/categories",
+        subItems: [],
+    },
     // ...other items
 ];
 
