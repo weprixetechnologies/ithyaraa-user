@@ -1,6 +1,7 @@
 import Image from "next/image";
 import logo from "../../public/ithyaraa-logo.png";
 import dynamic from "next/dynamic";
+import HomeCategory from "@/components/categories/HomeCategory";
 
 // Lazy load components for better performance
 const Slider = dynamic(() => import("@/components/ui/imageSlider"), {
@@ -18,6 +19,9 @@ const FeaturingBlock = dynamic(() => import("@/components/ui/featuringBlock"), {
 const ProductSection = dynamic(() => import("@/components/home/ProductSection"), {
   loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
 });
+const TabbedProductSection = dynamic(() => import("@/components/home/TabbedProductSection"), {
+  loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
+});
 
 // ISR: regenerate this page every 10 seconds
 export const revalidate = 10;
@@ -30,7 +34,7 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'vari
   if (type) params.append("type", type);
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://eighty-taxes-dress.loca.lt/api'}/products/all-products?${params.toString()}`
+    `http://192.168.1.9:3300/api/products/all-products?${params.toString()}`
   );
 
   if (!res.ok) {
@@ -120,10 +124,22 @@ export default async function Home() {
         products={section_one}
       />
       <hr />
+
+
+
+
       <ProductSection
         heading="Another Section"
         subHeading="More things to explore"
         products={section_one}
+      />
+      <HomeCategory />
+      {/* Tabbed Product Section with Categories */}
+      <TabbedProductSection
+        heading="Shop by Category"
+        subHeading="Explore our amazing collection"
+        initialLimit={2}
+        loadMoreLimit={2}
       />
     </>
   );

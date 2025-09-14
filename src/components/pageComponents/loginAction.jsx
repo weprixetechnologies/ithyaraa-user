@@ -20,7 +20,7 @@ const LoginAction = () => {
         if (!isActive) return;
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://eighty-taxes-dress.loca.lt/api'}/user/login`, {
+            const res = await fetch('http://192.168.1.9:3300/api/user/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phonenumber: phoneNumber, password }),
