@@ -30,7 +30,7 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'vari
   if (type) params.append("type", type);
 
   const res = await fetch(
-    `http://192.168.1.9:3300/api/products/all-products?${params.toString()}`
+    `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://eighty-taxes-dress.loca.lt/api'}/products/all-products?${params.toString()}`
   );
 
   if (!res.ok) {

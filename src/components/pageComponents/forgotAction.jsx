@@ -62,7 +62,7 @@ const ForgotAction = () => {
         };
 
         try {
-            const res = await fetch('http://192.168.1.9:3300/api/user/forgot-password', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://eighty-taxes-dress.loca.lt/api'}/user/forgot-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -100,7 +100,7 @@ const ForgotAction = () => {
 
         try {
             const res = await fetch(
-                'http://192.168.1.9:3300/api/user/verify-otp-reset-password',
+                `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://eighty-taxes-dress.loca.lt/api'}/user/verify-otp-reset-password`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

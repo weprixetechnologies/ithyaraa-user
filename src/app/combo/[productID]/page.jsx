@@ -69,7 +69,7 @@ const ProductDetail = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`http://192.168.1.9:3300/api/combo/detail-user/${productID}`);
+                const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://eighty-taxes-dress.loca.lt/api'}/combo/detail-user/${productID}`);
                 let data = res.data.data;
                 setFeaturedImage(data.featuredImage?.[0]?.imgUrl || "");
                 setGalleryImages(data.featuredImage || []);
@@ -96,7 +96,7 @@ const ProductDetail = () => {
         if (type) params.append("type", type);
 
         const res = await fetch(
-            `http://192.168.1.9:3300/api/products/all-products?${params.toString()}`
+            `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://eighty-taxes-dress.loca.lt/api'}/products/all-products?${params.toString()}`
         );
         console.log(res);
 

@@ -32,7 +32,7 @@ const redirectToLogin = (originalRequest = null) => {
 };
 
 const axiosInstance = axios.create({
-    baseURL: 'http://192.168.1.9:3300/api',
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://eighty-taxes-dress.loca.lt/api',
     headers: { 'Content-Type': 'application/json' },
 });
 
