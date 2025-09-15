@@ -20,7 +20,7 @@ const HomeCategory = () => {
                 <p className="text-xs font-medium text-secondary-text-deep md:text-center md:text-sm">Have fun with our extended collections</p>
             </div>
 
-            <div className='grid md:grid-cols-6 gap-2 md:px-15 px-2 grid-cols-2'>
+            <div className='grid md:grid-cols-5 gap-2 md:px-15 px-2 grid-cols-2'>
 
                 {
                     categories.map((category, index) => (
