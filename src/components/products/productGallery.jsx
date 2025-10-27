@@ -26,8 +26,7 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
 
                     <Image
                         src={
-                            featuredImage ||
-                            "https://ithyaraa.b-cdn.net/239723c1-2c9c-40d4-811e-0138e30e5d78.JPG"
+                            featuredImage || "/next.svg"
                         }
                         alt="Featured Image"
                         fill
@@ -51,9 +50,9 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
                         <div
                             key={index}
                             className="flex-shrink-0 relative w-full aspect-[437/540] cursor-pointer"
-                            onClick={() => setFeaturedImage(i.imgUrl)}
+                            onClick={() => setFeaturedImage(i.imgUrl || '/next.svg')}
                         >
-                            <Image src={i.imgUrl} alt={i.imgAlt} fill className="rounded-lg" />
+                            <Image src={i.imgUrl || '/next.svg'} alt={i.imgAlt || 'Product image'} fill className="rounded-lg" />
                         </div>
                     ))}
                 </div>
@@ -72,9 +71,9 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
                     <div
                         key={index}
                         className="flex-shrink-0 relative w-[70px] aspect-[437/540] cursor-pointer"
-                        onClick={() => setFeaturedImage(i.imgUrl)}
+                        onClick={() => setFeaturedImage(i.imgUrl || '/next.svg')}
                     >
-                        <Image src={i.imgUrl} alt={i.imgAlt} fill className="rounded-lg" />
+                        <Image src={i.imgUrl || '/next.svg'} alt={i.imgAlt || 'Product image'} fill className="rounded-lg" />
 
                     </div>
                 ))}

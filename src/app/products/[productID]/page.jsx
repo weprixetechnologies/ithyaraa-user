@@ -36,6 +36,17 @@ const ProductDetail = () => {
     const [count, setCount] = useState(1);
     const [productQuantity, setProductQuantity] = useState(100)
     const [buyMore, setBuyMore] = useState([])
+    const [reviewStats, setReviewStats] = useState({
+        totalReviews: 0,
+        averageRating: 0,
+        ratingBreakdown: [
+            { rating: 5, count: 0 },
+            { rating: 4, count: 0 },
+            { rating: 3, count: 0 },
+            { rating: 2, count: 0 },
+            { rating: 1, count: 0 }
+        ]
+    });
     const dispatch = useDispatch()
     const cart = useSelector((state) => state.cart.cartCount)
     console.log(cart);
@@ -65,7 +76,7 @@ const ProductDetail = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`http://192.168.1.9:3300/api/products/details/${productID}`);
+                const res = await axios.get(`http://72.60.219.181:8800/api/products/details/${productID}`);
                 let data = res.data.product;
 
                 const safeParse = (value) => {
@@ -97,14 +108,49 @@ const ProductDetail = () => {
         fetchProduct();
     }, [productID]);
 
+    // Fetch review stats with delay to ensure other scripts load first
+    useEffect(() => {
+        if (!productID) return;
+
+        const fetchReviewStats = async () => {
+            try {
+                // Delay of 500ms to let other scripts load first
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const res = await axios.get(`http://72.60.219.181:8800/api/reviews/product/${productID}/stats`);
+                if (res.data.success) {
+                    setReviewStats(res.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching review stats:', error);
+                // Keep default stats on error
+            }
+        };
+
+        fetchReviewStats();
+    }, [productID]);
+
     // Build attribute options from variations
     useEffect(() => {
         if (!product || !product.variations) return;
         console.log(product);
 
+        const toAttributeArray = (variationValues) => {
+            try {
+                let vals = variationValues;
+                if (typeof vals === "string") vals = JSON.parse(vals);
+                if (vals && !Array.isArray(vals) && typeof vals === "object") {
+                    return Object.entries(vals).map(([k, v]) => ({ [k]: v }));
+                }
+                return Array.isArray(vals) ? vals : [];
+            } catch {
+                return [];
+            }
+        };
+
         const attributeMap = {};
         product.variations.forEach((variation) => {
-            const valuesArr = JSON.parse(variation.variationValues);
+            const valuesArr = toAttributeArray(variation.variationValues);
             valuesArr.forEach((obj) => {
                 const [attrName, attrValue] = Object.entries(obj)[0];
                 if (!attributeMap[attrName]) attributeMap[attrName] = new Set();
@@ -129,7 +175,19 @@ const ProductDetail = () => {
         if (!product || !product.variations) return;
 
         const match = product.variations.find((v) => {
-            const vals = JSON.parse(v.variationValues);
+            const toAttributeArray = (variationValues) => {
+                try {
+                    let vals = variationValues;
+                    if (typeof vals === "string") vals = JSON.parse(vals);
+                    if (vals && !Array.isArray(vals) && typeof vals === "object") {
+                        return Object.entries(vals).map(([k, v]) => ({ [k]: v }));
+                    }
+                    return Array.isArray(vals) ? vals : [];
+                } catch {
+                    return [];
+                }
+            };
+            const vals = toAttributeArray(v.variationValues);
             return vals.every((obj) => {
                 const [k, val] = Object.entries(obj)[0];
                 return newSelected[k] === val;
@@ -153,7 +211,7 @@ const ProductDetail = () => {
         if (type) params.append("type", type);
 
         const res = await fetch(
-            `http://192.168.1.9:3300/api/products/all-products?${params.toString()}`
+            `http://72.60.219.181:8800/api/products/all-products?${params.toString()}`
         );
         console.log(res);
 
@@ -264,12 +322,12 @@ const ProductDetail = () => {
                                         <BsFillStarFill key={i} className="text-primary-yellow" />
                                     ))}
                                 </div>
-                                <p className="text-primary-yellow font-medium text-xs ml-1 md:text-sm">{product.rating || 4.5}</p>
+                                <p className="text-primary-yellow font-medium text-xs ml-1 md:text-sm">{reviewStats.averageRating.toFixed(1) || '0.0'}</p>
                             </div>
 
                             <div className="w-px h-3 bg-secondary-text-deep" />
 
-                            <p className="text-black font-medium text-xs md:text-sm">98 Comments</p>
+                            <p className="text-black font-medium text-xs md:text-sm">{reviewStats.totalReviews} {reviewStats.totalReviews === 1 ? 'Review' : 'Reviews'}</p>
                         </div>
 
                         {/* Pricing */}
@@ -377,7 +435,7 @@ const ProductDetail = () => {
 
                 <div className="w-full col-span-2">
                     <Suspense fallback={<div className="h-64 bg-gray-200 animate-pulse rounded-lg" />}>
-                        <Reviews />
+                        <Reviews reviewStats={reviewStats} />
                     </Suspense>
                 </div>
                 <div className="w-full col-span-2 mt-3">

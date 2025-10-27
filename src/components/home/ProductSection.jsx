@@ -11,6 +11,8 @@ import { useWishlist } from "@/contexts/WishlistContext";
 const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, products = [] }) => {
     const scrollRef = useRef(null)
     const { isInWishlist, toggleWishlist, loading } = useWishlist()
+    console.log(products);
+
 
     // const products = [
     //     {
@@ -146,8 +148,8 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                         <div className="relative w-1/2 h-full">
                                             <Link href={`/products/${i.productID}`}>
                                                 <Image
-                                                    src={i.featuredImage[0].imgUrl}
-                                                    alt={i.name}
+                                                    src={i.featuredImage?.[0]?.imgUrl}
+                                                    alt={i.name || 'Product image'}
                                                     fill
                                                     sizes="(max-width: 768px) 40vw, 18vw"
                                                     className="object-cover"
@@ -160,8 +162,8 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                         <div className="relative w-1/2 h-full">
                                             <Link href={`/products/${i.productID}`}>
                                                 <Image
-                                                    src={i.featuredImage[1].imgUrl}
-                                                    alt={`${i.name} - alt`}
+                                                    src={i.featuredImage?.[1]?.imgUrl || i.featuredImage?.[0]?.imgUrl}
+                                                    alt={`${i.name || 'Product'} - alt`}
                                                     fill
                                                     sizes="(max-width: 768px) 40vw, 18vw"
                                                     className="object-cover"

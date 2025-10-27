@@ -32,7 +32,7 @@ const redirectToLogin = (originalRequest = null) => {
 };
 
 const axiosInstance = axios.create({
-    baseURL: 'http://192.168.1.9:3300/api',
+    baseURL: 'http://72.60.219.181:8800/api',
     headers: { 'Content-Type': 'application/json' },
 });
 

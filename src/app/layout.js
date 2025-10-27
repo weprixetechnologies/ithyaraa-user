@@ -1,5 +1,6 @@
 import { Montserrat, Roboto, Poppins } from "next/font/google";
 import Header from "@/components/header/header";
+import Footer from "@/components/footer/Footer";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import StoreProvider from "@/redux/provider";
@@ -24,7 +25,10 @@ export default function RootLayout({ children }) {
             <WishlistProvider>
               <ToastContainer />
               <Header />
-              {children}
+              <main className="min-h-screen">
+                {children}
+              </main>
+              <Footer />
             </WishlistProvider>
           </AuthProvider>
         </StoreProvider>

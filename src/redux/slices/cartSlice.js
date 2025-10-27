@@ -4,11 +4,14 @@ import axiosInstance from "@/lib/axiosInstance";
 // Add to cart
 export const addCartAsync = createAsyncThunk(
     "cart/addCartAsync",
-    async ({ productID, quantity, variationName, variationID, referBy }) => {
+    async ({ productID, quantity, variationName, variationID, referBy, customInputs }) => {
         const response = await axiosInstance.post("/cart/add-cart", {
-
             productID,
-            quantity, variationName, variationID, referBy
+            quantity,
+            variationName,
+            variationID,
+            referBy,
+            customInputs
         });
         return response.data; // available as action.payload
     }
@@ -86,7 +89,7 @@ const cartSlice = createSlice({
                 state.cart = action.payload;   // set cart to API response
             })
             .addCase(getCartAsync.fulfilled, (state, action) => {
-                console.log(action.payload.items);
+                // console.log(action.payload.items);
 
                 state.cart = action.payload.items;
                 state.cartDetail = action.payload.summary

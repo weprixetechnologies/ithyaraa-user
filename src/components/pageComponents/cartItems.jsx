@@ -45,6 +45,45 @@ const CartItems = () => {
 
     console.log(cartData);
 
+    // Check if cart is empty
+    if (!cartData || cartData.length === 0) {
+        return (
+            <div className='mt-5'>
+                <p className='font-medium text-lg mb-4'>Your Cart Items</p>
+                <div className='flex flex-col items-center justify-center py-20 px-4'>
+                    <div className='text-center'>
+                        <svg
+                            className='mx-auto h-24 w-24 text-gray-400'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                            xmlns='http://www.w3.org/2000/svg'
+                        >
+                            <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth='1'
+                                d='M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'
+                            />
+                        </svg>
+                        <h3 className='mt-6 text-lg font-medium text-gray-900'>No Cart Items Added</h3>
+                        <p className='mt-2 text-sm text-gray-500'>
+                            Your cart is empty. Start shopping to add items to your cart.
+                        </p>
+                        <div className='mt-6'>
+                            <a
+                                href='/shop'
+                                className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-yellow hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-yellow'
+                            >
+                                Shop More
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className='mt-5'>
             <p className='font-medium text-lg'>Your Cart Items</p>
@@ -104,7 +143,7 @@ const CartItems = () => {
                                     </div>
                                     <p className='text-xs mt-2'>Selected Variation</p>
                                     <div className="flex flex-row flex-wrap gap-2 mt-1">
-                                        {i.variationValues.map((v, index) =>
+                                        {i.variationValues?.map((v, index) =>
                                             Object.keys(v).map((key) => (
                                                 <span
                                                     key={index + key}
@@ -116,6 +155,22 @@ const CartItems = () => {
                                         )}
                                         <p className='text-xs px-2 py-1 bg-gray-100 rounded font-medium text-gray-700'>Quantity : {i.quantity}</p>
                                     </div>
+                                    {/* Custom Inputs Display */}
+                                    {i.custom_inputs && i.custom_inputs !== null && Object.keys(i.custom_inputs).length > 0 && (
+                                        <div className='mt-3'>
+                                            <p className='text-xs font-medium text-gray-700 mb-2'>Custom Details:</p>
+                                            <div className='flex flex-col gap-1'>
+                                                {Object.entries(i.custom_inputs).map(([key, value]) => (
+                                                    <span
+                                                        key={key}
+                                                        className="text-xs px-2 py-1 bg-blue-50 border border-blue-200 rounded text-blue-700"
+                                                    >
+                                                        {key}: {value}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                     {i.comboItems?.length > 0 && (
                                         <p className='text-xs mt-2 px-2 py-1 bg-gray-100 rounded font-medium text-gray-700'>Please Check the Below items, those are the selected combo items</p>
 

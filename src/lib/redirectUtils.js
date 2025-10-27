@@ -35,7 +35,7 @@ export const getAndClearRedirectUrl = () => {
 
             const redirectData = JSON.parse(stored);
             const now = Date.now();
-            
+
             // Check if the redirect data is expired
             if (now - redirectData.timestamp > REQUEST_TIMEOUT) {
                 console.log('[getAndClearRedirectUrl] Redirect data expired, clearing');
@@ -64,10 +64,10 @@ export const storePendingRequest = (requestConfig, requestId) => {
     if (typeof window !== 'undefined') {
         try {
             const pendingRequests = JSON.parse(sessionStorage.getItem(PENDING_REQUESTS_KEY) || '[]');
-            
+
             // Remove any existing request with the same ID
             const filteredRequests = pendingRequests.filter(req => req.id !== requestId);
-            
+
             const pendingRequest = {
                 id: requestId,
                 config: {
@@ -83,7 +83,7 @@ export const storePendingRequest = (requestConfig, requestId) => {
                 },
                 timestamp: Date.now()
             };
-            
+
             filteredRequests.push(pendingRequest);
             sessionStorage.setItem(PENDING_REQUESTS_KEY, JSON.stringify(filteredRequests));
             console.log('[storePendingRequest] Stored pending request:', requestId);
@@ -105,15 +105,15 @@ export const getAndClearPendingRequests = () => {
 
             const pendingRequests = JSON.parse(stored);
             const now = Date.now();
-            
+
             // Filter out expired requests
-            const validRequests = pendingRequests.filter(req => 
+            const validRequests = pendingRequests.filter(req =>
                 now - req.timestamp <= REQUEST_TIMEOUT
             );
-            
+
             // Clear all requests from storage
             sessionStorage.removeItem(PENDING_REQUESTS_KEY);
-            
+
             console.log('[getAndClearPendingRequests] Retrieved pending requests:', validRequests.length);
             return validRequests;
         } catch (error) {
@@ -150,7 +150,7 @@ export const isProtectedRoute = (pathname) => {
         '/checkout',
         '/make-combo'
     ];
-    
+
     return protectedRoutes.some(route => pathname.startsWith(route));
 };
 
@@ -174,7 +174,7 @@ export const generateRequestId = (config) => {
 export const shouldRetryRequest = (config) => {
     const url = config.url || '';
     const method = config.method?.toUpperCase() || 'GET';
-    
+
     // Don't retry login, refresh, or auth-related requests
     const skipPatterns = [
         '/auth/login',
@@ -184,6 +184,6 @@ export const shouldRetryRequest = (config) => {
         '/user/verify-otp',
         '/user/create-user'
     ];
-    
+
     return !skipPatterns.some(pattern => url.includes(pattern));
 };

@@ -15,6 +15,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux"
 import { getCartAsync } from "@/redux/slices/cartSlice"
 import WishlistIcon from "../ui/WishlistIcon"
+import { useAuth } from "@/contexts/AuthContext"
 
 const ShopWithUs = () => {
 
@@ -103,6 +104,8 @@ const ShopWithUs = () => {
 }
 
 const HamburgerMenu = () => {
+    const { user } = useAuth()
+
     return (
         <div className="px-3 py-5">
 
@@ -110,7 +113,7 @@ const HamburgerMenu = () => {
                 <button className="h-[30px] w-[30px] rounded-full border"></button>
                 <div className="flex flex-col items-start">
                     <p className="text-xs">Welcome Back</p>
-                    <p className="text-sm">Deepak Mutthularu</p>
+                    <p className="text-sm">{user?.name || user?.username || 'User'}</p>
                 </div>
             </div>
 
@@ -124,11 +127,6 @@ const Header = () => {
     const router = useRouter()
     const pathname = usePathname()
     const [auth, setAuth] = useState(false);
-    const [user, setUser] = useState({
-        name: "John Doe",
-        email: ""
-    });
-
     const [megaMenu, setMegaMenu] = useState({
         isOpen: false,
         menuName: ''
@@ -139,8 +137,9 @@ const Header = () => {
 
     const dispatch = useDispatch()
     const cartCounter = useSelector((state) => state.cart.cartCount)
+    const { user } = useAuth()
 
-    console.log(cartCounter);
+    // console.log(cartCounter);
 
     useEffect(() => {
         setIsLoggedIn(false)
@@ -203,7 +202,7 @@ const Header = () => {
                                 {isLoggedIn ? (
                                     <aside className="flex flex-col items-center">
                                         <p className="text-xs">Welcome Back</p>
-                                        <p className="text-sm font-semibold">{user.name}</p>
+                                        <p className="text-sm font-semibold">{user?.name || user?.username || 'User'}</p>
                                     </aside>
                                 ) : (
                                     <button className="text-sm font-medium bg-primary text-white px-4 py-2 rounded hover:bg-secondary transition-colors cursor-pointer">
@@ -256,7 +255,6 @@ const Header = () => {
                                 </Link>
                             </li>
 
-
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
                                 <Link href="/offers" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                                     Offers
@@ -268,13 +266,21 @@ const Header = () => {
                                 </Link>
                             </li>
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
-                                <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                                <Link
+                                    href="/shop?type=customproduct"
+                                    className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                                    prefetch={false}
+                                >
                                     Customise Your Own
                                 </Link>
                             </li>
 
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
-                                <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                                <Link
+                                    href="/products"
+                                    className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                                    prefetch={false}
+                                >
                                     Brands
                                 </Link>
                             </li>

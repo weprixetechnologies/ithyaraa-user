@@ -36,6 +36,8 @@ const ShopProductCard = ({ product }) => {
                 return `/combo/${id}`;
             case 'make_combo':
                 return `/make-combo/${id}`;
+            case 'customproduct':
+                return `/custom-product/${id}`;
             default:
                 return `/products/${id}`;
         }
