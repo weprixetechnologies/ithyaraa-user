@@ -11,13 +11,15 @@
  * @param {string} options.sameSite - SameSite policy (default: 'strict')
  */
 export const setCookie = (name, value, options = {}) => {
-    const { days, path = '/', secure, sameSite = 'strict' } = options;
+    const { days, path = '/', secure, sameSite = 'lax' } = options;
+
+    // Detect if we're on HTTPS (production) or HTTP (localhost)
+    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
 
     let cookieStr = `${name}=${encodeURIComponent(value)}; path=${path}; samesite=${sameSite}`;
 
-    // Set secure only in prod or if explicitly provided
-    const isProd = process.env.NODE_ENV === 'production';
-    if (secure === true || (secure !== false && isProd)) {
+    // Set secure flag for HTTPS
+    if (secure === true || (secure !== false && isSecure)) {
         cookieStr += '; secure';
     }
 
@@ -51,12 +53,17 @@ export const setCookieEasy = (name, value, days) => {
     const expires = days
         ? "; expires=" + new Date(Date.now() + days * 864e5).toUTCString()
         : "";
+
+    // Detect if we're on HTTPS (production) or HTTP (localhost)
+    const isSecure = window.location.protocol === 'https:';
+
+    // Set Secure flag only on HTTPS, use Lax for cross-site requests
     document.cookie =
         name +
         "=" +
         encodeURIComponent(value) +
         expires +
         "; path=/" +
-        // "; Secure" +      // only send over HTTPS
-        "; SameSite=Strict"; // prevent CSRF, adjust if needed
+        (isSecure ? "; Secure" : "") +
+        "; SameSite=Lax"; // Lax allows cookies to work across redirects but still provides CSRF protection
 };
