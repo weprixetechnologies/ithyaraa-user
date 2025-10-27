@@ -41,7 +41,7 @@ const SignUpAction = () => {
     const sendOtp = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://72.60.219.181:8800/api/user/send-otp', {
+            const res = await fetch('https://72.60.219.181:8800/api/user/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phoneNumber: `+91${phoneNumber}` })
@@ -88,7 +88,7 @@ const SignUpAction = () => {
         setLoading(true);
         try {
             // verify OTP
-            const verifyRes = await fetch('http://72.60.219.181:8800/api/user/verify-otp', {
+            const verifyRes = await fetch('https://72.60.219.181:8800/api/user/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phoneNumber: `+91${phoneNumber}`, otp })
@@ -102,7 +102,7 @@ const SignUpAction = () => {
             toast.success("OTP verified");
 
             // create user
-            const createRes = await fetch('http://72.60.219.181:8800/api/user/create-user', {
+            const createRes = await fetch('https://72.60.219.181:8800/api/user/create-user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
