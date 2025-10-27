@@ -20,7 +20,7 @@ const LoginAction = () => {
         if (!isActive) return;
 
         try {
-            const res = await fetch('https://72.60.219.181:8800/api/user/login', {
+            const res = await fetch('https://api.ithyaraa.com:8800/api/user/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phonenumber: phoneNumber, password }),
