@@ -41,7 +41,7 @@ const ResetPasswordToken = () => {
 
         try {
             setLoading(true);
-            const response = await axios.post("http://localhost:3300/api/user/reset-password-tokenised", {
+            const response = await axios.post("http://72.60.219.181:8800/api/user/reset-password-tokenised", {
                 token,
                 newPassword: password
             });
