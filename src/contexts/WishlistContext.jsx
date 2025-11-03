@@ -63,7 +63,7 @@ export const WishlistProvider = ({ children }) => {
             if (data?.success) {
                 // Add to local state
                 setWishlistProductIds(prev => new Set([...prev, productID]));
-                // toast.success('Added to wishlist!');
+                // // toast.success('Added to wishlist!');
                 return true;
             } else {
                 if (data?.alreadyExists) {
@@ -102,7 +102,7 @@ export const WishlistProvider = ({ children }) => {
                     return newSet;
                 });
                 setWishlistItems(prev => prev.filter(item => item.productID !== productID));
-                // toast.success('Removed from wishlist');
+                // // toast.success('Removed from wishlist');
                 return true;
             } else {
                 toast.error(data?.message || 'Failed to remove from wishlist');

@@ -41,14 +41,14 @@ const SignUpAction = () => {
     const sendOtp = async () => {
         setLoading(true);
         try {
-            const res = await fetch('https://api.ithyaraa.com:8800/api/user/send-otp', {
+            const res = await fetch('http://localhost:3300/api/user/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phoneNumber: `+91${phoneNumber}` })
             });
             const data = await res.json();
             if (res.ok) {
-                toast.success("OTP sent successfully");
+                // toast.success("OTP sent successfully");
                 setShowOtpScreen(true);
                 setCooldown(60); // start cooldown on each OTP send
             } else {
@@ -88,7 +88,7 @@ const SignUpAction = () => {
         setLoading(true);
         try {
             // verify OTP
-            const verifyRes = await fetch('https://api.ithyaraa.com:8800/api/user/verify-otp', {
+            const verifyRes = await fetch('http://localhost:3300/api/user/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phoneNumber: `+91${phoneNumber}`, otp })
@@ -99,10 +99,10 @@ const SignUpAction = () => {
                 setLoading(false);
                 return;
             }
-            toast.success("OTP verified");
+            // toast.success("OTP verified");
 
             // create user
-            const createRes = await fetch('https://api.ithyaraa.com:8800/api/user/create-user', {
+            const createRes = await fetch('http://localhost:3300/api/user/create-user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -117,7 +117,7 @@ const SignUpAction = () => {
             });
             const createData = await createRes.json();
             if (createRes.ok) {
-                toast.success("User created successfully");
+                // toast.success("User created successfully");
                 setTimeout(() => {
                     router.push('/login');
                 }, 2000); // 2000ms = 2 seconds

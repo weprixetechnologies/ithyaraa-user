@@ -41,13 +41,13 @@ const ResetPasswordToken = () => {
 
         try {
             setLoading(true);
-            const response = await axios.post("https://api.ithyaraa.com:8800/api/user/reset-password-tokenised", {
+            const response = await axios.post("http://localhost:3300/api/user/reset-password-tokenised", {
                 token,
                 newPassword: password
             });
 
             if (response.data.success) {
-                toast.success("Password reset successful!");
+                // toast.success("Password reset successful!");
                 setStatus("success");
                 // Redirect to login after 2 seconds
                 setTimeout(() => {

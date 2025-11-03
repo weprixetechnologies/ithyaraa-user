@@ -69,7 +69,7 @@ const ProductDetail = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`https://api.ithyaraa.com:8800/api/combo/detail-user/${productID}`);
+                const res = await axios.get(`http://localhost:3300/api/combo/detail-user/${productID}`);
                 let data = res.data.data;
                 setFeaturedImage(data.featuredImage?.[0]?.imgUrl || "");
                 setGalleryImages(data.featuredImage || []);
@@ -96,7 +96,7 @@ const ProductDetail = () => {
         if (type) params.append("type", type);
 
         const res = await fetch(
-            `https://api.ithyaraa.com:8800/api/products/all-products?${params.toString()}`
+            `http://localhost:3300/api/products/all-products?${params.toString()}`
         );
         console.log(res);
 
@@ -163,7 +163,7 @@ const ProductDetail = () => {
                 })
             ).unwrap(); // Throws error if action is rejected
 
-            toast.success("Combo added to cart!");
+            // toast.success("Combo added to cart!");
         } catch (error) {
             console.error(error);
             toast.error("Error adding combo to cart.");

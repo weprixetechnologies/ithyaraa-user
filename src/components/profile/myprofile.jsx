@@ -51,7 +51,7 @@ const MyProfile = ({ user }) => {
         try {
             const res = await axiosInstance.post('/user/send-email-verification-otp');
             if (res.data.success) {
-                toast.success(res.data.message);
+                // toast.success(res.data.message);
                 setIsVerifyingEmail(true);
             } else {
                 toast.error(res.data.message);
@@ -70,7 +70,7 @@ const MyProfile = ({ user }) => {
         try {
             const res = await axiosInstance.post('/user/verify-email-otp', { otp: emailOtp });
             if (res.data.success) {
-                toast.success(res.data.message);
+                // toast.success(res.data.message);
                 setIsVerifyingEmail(false);
                 setEmailOtp('');
                 fetchUserData();
@@ -87,7 +87,7 @@ const MyProfile = ({ user }) => {
         try {
             const res = await axiosInstance.post('/user/send-phone-verification-otp');
             if (res.data.success) {
-                toast.success(res.data.message);
+                // toast.success(res.data.message);
                 setIsVerifyingPhone(true);
             } else {
                 toast.error(res.data.message);
@@ -106,7 +106,7 @@ const MyProfile = ({ user }) => {
         try {
             const res = await axiosInstance.post('/user/verify-phone-otp', { otp: phoneOtp });
             if (res.data.success) {
-                toast.success(res.data.message);
+                // toast.success(res.data.message);
                 setIsVerifyingPhone(false);
                 setPhoneOtp('');
                 fetchUserData();
@@ -265,7 +265,7 @@ const MyProfile = ({ user }) => {
             )}
 
             {/* Username + UID */}
-            <div className="flex justify-between mb-7 pt-2">
+            <div className="flex justify-between mb-3 pt-2">
                 <div className="flex flex-col">
                     <p className="text-sm font-medium">Username and UID</p>
                 </div>
@@ -283,6 +283,25 @@ const MyProfile = ({ user }) => {
                         readOnly
                         className="bg-gray-200 border-gray-200 border text-xs px-4 rounded-lg min-w-[200px] min-h-[35px]"
                         placeholder="UID"
+                    />
+                </div>
+            </div>
+
+            {/* Wallet Balance */}
+            <div className="flex justify-between mb-7 pt-2">
+                <div className="flex flex-col">
+                    <p className="text-sm font-medium">Wallet Balance</p>
+                    <p className="text-xs text-secondary-text-deep">
+                        Available balance for future purchases
+                    </p>
+                </div>
+                <div className="flex items-center">
+                    <input
+                        type="text"
+                        value={`₹${parseFloat(profile.balance || 0).toFixed(2)}`}
+                        readOnly
+                        className="bg-blue-50 border-blue-200 border text-xs px-4 rounded-lg min-w-[200px] min-h-[35px] font-semibold text-blue-700"
+                        placeholder="Wallet Balance"
                     />
                 </div>
             </div>

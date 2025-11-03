@@ -103,13 +103,13 @@ const CustomProductDetail = () => {
             await dispatch(addCartAsync(cartData));
 
             if (isBuyNow) {
-                toast.success('Added to cart! Redirecting to checkout...');
+                // toast.success('Added to cart! Redirecting to checkout...');
                 // Redirect to cart after a short delay
                 setTimeout(() => {
                     window.location.href = '/cart';
                 }, 1000);
             } else {
-                toast.success('Custom product added to cart successfully!');
+                // toast.success('Custom product added to cart successfully!');
             }
 
             setShowConfirmModal(false);
@@ -137,9 +137,9 @@ const CustomProductDetail = () => {
             try {
                 setLoading(true);
                 console.log('🔍 Fetching product with ID:', productID);
-                console.log('🔍 API URL:', `https://api.ithyaraa.com:8800/api/products/details/${productID}`);
+                console.log('🔍 API URL:', `http://localhost:3300/api/products/details/${productID}`);
 
-                const response = await axios.get(`https://api.ithyaraa.com:8800/api/products/details/${productID}`);
+                const response = await axios.get(`http://localhost:3300/api/products/details/${productID}`);
 
                 console.log('✅ API Response:', response);
                 console.log('✅ Response data:', response.data);
@@ -204,7 +204,7 @@ const CustomProductDetail = () => {
     useEffect(() => {
         const fetchRelatedProducts = async () => {
             try {
-                const response = await axios.get(`https://api.ithyaraa.com:8800/api/products/shop?limit=8`);
+                const response = await axios.get(`http://localhost:3300/api/products/shop?limit=8`);
                 // Helper to safely JSON.parse any field
                 const safeParse = (value) => {
                     try {

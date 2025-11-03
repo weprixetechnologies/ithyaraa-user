@@ -12,6 +12,7 @@ const OrderSuccessPage = () => {
     const orderId = params.orderId;
 
     const [orderDetails, setOrderDetails] = useState(null);
+    const [showCongrats, setShowCongrats] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -22,7 +23,65 @@ const OrderSuccessPage = () => {
                 const response = await axiosInstance.get(`/order/order-details/${orderId}`);
 
                 if (response.data?.success) {
-                    setOrderDetails(response.data.data);
+                    const apiItems = Array.isArray(response.data.items) ? response.data.items : [];
+                    if (apiItems.length === 0) {
+                        setError('Order not found');
+                        return;
+                    }
+
+                    const detail = response.data.orderDetail || {};
+                    const first = apiItems[0];
+
+                    const items = apiItems.map((it) => ({
+                        name: it.name,
+                        featuredImage: it.featuredImage,
+                        variationName: it.storedVariationName,
+                        salePrice: it.salePrice,
+                        regularPrice: it.regularPrice,
+                        quantity: it.quantity,
+                        lineTotalAfter: it.lineTotalAfter,
+                        comboItems: it.comboItems || [],
+                    }));
+
+                    // Prefer backend-provided totals and meta from orderDetail; fallback to compute when absent
+                    const fallbackSubtotal = items.reduce((sum, it) => {
+                        const unit = (it?.salePrice ? parseFloat(it.salePrice) : (it?.regularPrice ? parseFloat(it.regularPrice) : 0)) || 0;
+                        const line = it?.lineTotalAfter ? parseFloat(it.lineTotalAfter) : unit * (it.quantity || 0);
+                        return sum + (line || 0);
+                    }, 0);
+
+                    const normalized = {
+                        orderID: detail.orderID || first.orderID,
+                        items,
+                        subtotal: detail.subtotal != null ? parseFloat(detail.subtotal) : fallbackSubtotal,
+                        discount: detail.totalDiscount != null ? parseFloat(detail.totalDiscount) : 0,
+                        couponDiscount: detail.couponDiscount != null ? parseFloat(detail.couponDiscount) : 0,
+                        shipping: detail.shipping != null ? parseFloat(detail.shipping) : 0,
+                        total: detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal),
+                        paymentMode: detail.paymentMode || first.paymentMode,
+                        paymentStatus: detail.paymentStatus || first.paymentStatus,
+                        createdAt: detail.createdAt || first.orderCreatedAt,
+                        deliveryAddress: {
+                            emailID: first.email || '',
+                            phoneNumber: first.contactNumber || '',
+                            line1: first.shippingAddress || '',
+                            line2: '',
+                            city: '',
+                            state: '',
+                            pincode: '',
+                            landmark: '',
+                        },
+                        couponCode: detail.couponCode || '',
+                        orderStatus: detail.orderStatus || first.orderStatus || 'Preparing',
+                        coinsEarned: detail.coinsEarned != null ? parseInt(detail.coinsEarned) : Math.floor(((detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal)) || 0) / 100),
+                        isWalletUsed: detail.isWalletUsed ? Boolean(Number(detail.isWalletUsed)) : false,
+                        paidWallet: detail.paidWallet != null ? parseFloat(detail.paidWallet) : 0
+                    };
+
+                    setOrderDetails(normalized);
+                    if ((normalized.coinsEarned || 0) > 0) {
+                        setShowCongrats(true);
+                    }
                 } else {
                     setError('Order not found');
                 }
@@ -84,6 +143,22 @@ const OrderSuccessPage = () => {
             style: 'currency',
             currency: 'INR'
         }).format(numPrice || 0);
+    };
+
+    const getOrderStatusUI = (status) => {
+        const s = String(status || '').toLowerCase();
+        switch (s) {
+            case 'preparing':
+                return { label: 'Preparing', dot: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800' };
+            case 'shipped':
+                return { label: 'Shipped', dot: 'bg-blue-500', badge: 'bg-blue-100 text-blue-800' };
+            case 'delivered':
+                return { label: 'Delivered', dot: 'bg-green-500', badge: 'bg-green-100 text-green-800' };
+            case 'cancelled':
+                return { label: 'Cancelled', dot: 'bg-red-500', badge: 'bg-red-100 text-red-800' };
+            default:
+                return { label: 'Preparing', dot: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800' };
+        }
     };
 
     return (
@@ -272,6 +347,26 @@ const OrderSuccessPage = () => {
                                             <span>Total:</span>
                                             <span>{formatPrice(orderDetails.total)}</span>
                                         </div>
+                                        {/* Payment breakdown */}
+                                        {orderDetails.paidWallet > 0 && (
+                                            <div className="mt-2 space-y-1 border-t pt-2">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-gray-600">Paid via Wallet:</span>
+                                                    <span className="font-medium">{formatPrice(orderDetails.paidWallet)}</span>
+                                                </div>
+                                                {Math.max(0, (orderDetails.total || 0) - (orderDetails.paidWallet || 0)) > 0 ? (
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-gray-600">To pay by {orderDetails.paymentMode === 'PREPAID' ? 'Online' : 'COD'}:</span>
+                                                        <span className="font-medium">{formatPrice(Math.max(0, (orderDetails.total || 0) - (orderDetails.paidWallet || 0)))}</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-gray-600">Status:</span>
+                                                        <span className="font-medium text-green-600">Fully paid via Wallet</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -280,6 +375,20 @@ const OrderSuccessPage = () => {
 
                     {/* Right Side - Information Cards (25%) */}
                     <div className="lg:col-span-4 flex flex-col space-y-4 sm:space-y-6 order-1 lg:order-2">
+                        {/* Coins Earned */}
+                        {typeof orderDetails.coinsEarned === 'number' && orderDetails.coinsEarned > 0 && (
+                            <div className="bg-white rounded-lg border border-gray-200 p-0 overflow-hidden">
+                                <div className="coins-animated-bg p-4 sm:p-6">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Ithyaraa Coins Earned</h3>
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full bg-amber-100 text-amber-800 text-xs sm:text-sm font-medium">
+                                            +{orderDetails.coinsEarned} coins
+                                        </span>
+                                    </div>
+                                    <p className="text-xs sm:text-sm text-gray-700 mt-2">You earned {orderDetails.coinsEarned} coins for this order. Coins expire after 365 days.</p>
+                                </div>
+                            </div>
+                        )}
                         {/* Delivery Address */}
                         <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
                             <div className="flex items-center mb-3 sm:mb-4">
@@ -320,13 +429,27 @@ const OrderSuccessPage = () => {
                                 </div>
                                 <div className="flex flex-col sm:flex-row sm:items-center">
                                     <span className="font-medium">Payment Status:</span>
-                                    <span className={`ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block px-2 py-1 rounded text-xs ${orderDetails.paymentStatus === 'pending'
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : 'bg-green-100 text-green-800'
-                                        }`}>
-                                        {orderDetails.paymentStatus === 'pending' ? 'Pending' : 'Successful'}
-                                    </span>
+                                    {orderDetails.paymentMode === 'COD' ? (
+                                        <span className={`ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block px-2 py-1 rounded text-xs bg-gray-100 text-gray-800`}>
+                                            Pay on delivery
+                                        </span>
+                                    ) : (
+                                        <span className={`ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block px-2 py-1 rounded text-xs ${orderDetails.paymentStatus === 'pending'
+                                            ? 'bg-yellow-100 text-yellow-800'
+                                            : 'bg-green-100 text-green-800'
+                                            }`}>
+                                            {orderDetails.paymentStatus === 'pending' ? 'Pending' : 'Successful'}
+                                        </span>
+                                    )}
                                 </div>
+                                {orderDetails.paidWallet > 0 && (
+                                    <div className="flex flex-col sm:flex-row sm:items-center">
+                                        <span className="font-medium">Wallet:</span>
+                                        <span className="ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block px-2 py-1 rounded text-xs bg-purple-100 text-purple-800">
+                                            Used {formatPrice(orderDetails.paidWallet)}
+                                        </span>
+                                    </div>
+                                )}
                                 <div>
                                     <span className="font-medium">Order Date:</span>
                                     <span className="ml-2 text-xs sm:text-sm">{formatDate(orderDetails.createdAt)}</span>
@@ -341,16 +464,26 @@ const OrderSuccessPage = () => {
                                 <h3 className="text-base sm:text-lg font-semibold text-gray-900">Order Status</h3>
                             </div>
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                                <div className="flex items-center space-x-2">
-                                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                    <span className="text-gray-700 text-sm sm:text-base">Order Confirmed</span>
-                                </div>
-                                <span className="text-xs sm:text-sm text-gray-500">
-                                    {orderDetails.paymentStatus === 'pending'
-                                        ? 'Payment pending'
-                                        : 'Payment completed'
-                                    }
-                                </span>
+                                {(() => {
+                                    const ui = getOrderStatusUI(orderDetails.orderStatus);
+                                    return (
+                                        <>
+                                            <div className="flex items-center space-x-2">
+                                                <div className={`w-3 h-3 rounded-full ${ui.dot}`}></div>
+                                                <span className="text-gray-700 text-sm sm:text-base">{ui.label}</span>
+                                            </div>
+                                            {orderDetails.paymentMode === 'COD' ? (
+                                                <span className={`text-xs sm:text-sm inline-block px-2 py-1 rounded bg-gray-100 text-gray-800`}>
+                                                    Pay on delivery
+                                                </span>
+                                            ) : (
+                                                <span className={`text-xs sm:text-sm inline-block px-2 py-1 rounded ${ui.badge}`}>
+                                                    {orderDetails.paymentStatus === 'pending' ? 'Payment pending' : 'Payment completed'}
+                                                </span>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </div>
                     </div>
@@ -371,6 +504,52 @@ const OrderSuccessPage = () => {
                         Continue Shopping
                     </Link>
                 </div>
+                {/* Congrats modal with confetti */}
+                {showCongrats && (
+                    <div className="confetti-overlay" role="dialog" aria-modal="true">
+                        <div className="confetti-card">
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Congratulations! 🎉</h3>
+                            <p className="text-sm text-gray-600 mt-2">
+                                You earned <span className="font-semibold text-amber-600">{orderDetails?.coinsEarned}</span> Ithyaraa coin{(orderDetails?.coinsEarned || 0) > 1 ? 's' : ''}.
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">You can use them on your next order.</p>
+                            <button onClick={() => setShowCongrats(false)}
+                                className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
+                                Awesome
+                            </button>
+                            {/* Simple confetti pieces */}
+                            {Array.from({ length: 24 }).map((_, i) => {
+                                const left = Math.random() * 100; // vw percent
+                                const delay = Math.random() * 0.6; // s
+                                const duration = 1.8 + Math.random() * 1.2; // s
+                                const colors = ['#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6'];
+                                const color = colors[i % colors.length];
+                                return (
+                                    <span key={i}
+                                        className="confetti"
+                                        style={{ left: `${left}%`, background: color, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />
+                                );
+                            })}
+                        </div>
+                        <style jsx global>{`
+                            .confetti-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 50; }
+                            .confetti-card { background: #fff; border-radius: 12px; padding: 20px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
+                            .confetti { position: absolute; top: -10px; width: 8px; height: 14px; opacity: 0.9; animation: fall linear forwards; }
+                            @keyframes fall { from { transform: translateY(-20px) rotate(0deg); } to { transform: translateY(520px) rotate(720deg); } }
+                            /* Animated gradient for coins card */
+                            .coins-animated-bg { 
+                                background: linear-gradient(120deg, rgba(255,251,235,1), rgba(254,243,199,1), rgba(254,240,138,1));
+                                background-size: 200% 200%;
+                                animation: coinsGlow 4s ease infinite;
+                            }
+                            @keyframes coinsGlow {
+                                0% { background-position: 0% 50%; }
+                                50% { background-position: 100% 50%; }
+                                100% { background-position: 0% 50%; }
+                            }
+                        `}</style>
+                    </div>
+                )}
             </div>
         </div>
     );

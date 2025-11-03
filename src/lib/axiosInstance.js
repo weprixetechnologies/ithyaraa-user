@@ -9,6 +9,17 @@ import {
     shouldRetryRequest
 } from './redirectUtils';
 
+// Detect API URL based on environment
+const getApiUrl = () => {
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
+            return 'http://localhost:3300/api';
+        }
+    }
+    return 'http://localhost:3300/api';
+};
+
 const redirectToLogin = (originalRequest = null) => {
     console.log('[redirectToLogin] Clearing cookies and redirecting to login');
     document.cookie = '_at=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
@@ -32,7 +43,7 @@ const redirectToLogin = (originalRequest = null) => {
 };
 
 const axiosInstance = axios.create({
-    baseURL: 'https://api.ithyaraa.com:8800/api',
+    baseURL: getApiUrl(),
     headers: { 'Content-Type': 'application/json' },
 });
 

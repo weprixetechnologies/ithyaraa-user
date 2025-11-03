@@ -193,7 +193,7 @@ const ProductDetail = () => {
         }
 
         setIsModalOpen(false);
-        toast.success("Products selected successfully!");
+        // toast.success("Products selected successfully!");
     };
 
     // Handle variation change after selection
@@ -249,7 +249,7 @@ const ProductDetail = () => {
                 })
             ).unwrap();
 
-            toast.success("Combo added to cart!");
+            // toast.success("Combo added to cart!");
         } catch (error) {
             console.error(error);
             toast.error("Error adding combo to cart.");

@@ -5,8 +5,10 @@ import { useParams, useSearchParams } from "next/navigation";
 import { BsFillStarFill } from "react-icons/bs";
 import { toast } from "react-toastify";
 import { CiHeart, CiRuler } from "react-icons/ci";
+import { FaHeart } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { addCartAsync } from "@/redux/slices/cartSlice";
+import { useWishlist } from "@/contexts/WishlistContext";
 import Loading from "@/components/ui/loading";
 
 // Lazy load heavy components for better performance
@@ -49,6 +51,11 @@ const ProductDetail = () => {
     });
     const dispatch = useDispatch()
     const cart = useSelector((state) => state.cart.cartCount)
+    const { toggleWishlist, isInWishlist, loading: wishlistLoading, wishlistProductIds } = useWishlist()
+
+    // Check wishlist status - use wishlistProductIds to avoid dependency issues
+    const isWishlisted = productID ? isInWishlist(productID) : false
+
     console.log(cart);
 
     // Increment
@@ -76,7 +83,7 @@ const ProductDetail = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`https://api.ithyaraa.com:8800/api/products/details/${productID}`);
+                const res = await axios.get(`http://localhost:3300/api/products/details/${productID}`);
                 let data = res.data.product;
 
                 const safeParse = (value) => {
@@ -117,7 +124,7 @@ const ProductDetail = () => {
                 // Delay of 500ms to let other scripts load first
                 await new Promise(resolve => setTimeout(resolve, 500));
 
-                const res = await axios.get(`https://api.ithyaraa.com:8800/api/reviews/product/${productID}/stats`);
+                const res = await axios.get(`http://localhost:3300/api/reviews/product/${productID}/stats`);
                 if (res.data.success) {
                     setReviewStats(res.data.data);
                 }
@@ -211,7 +218,7 @@ const ProductDetail = () => {
         if (type) params.append("type", type);
 
         const res = await fetch(
-            `https://api.ithyaraa.com:8800/api/products/all-products?${params.toString()}`
+            `http://localhost:3300/api/products/all-products?${params.toString()}`
         );
         console.log(res);
 
@@ -294,6 +301,11 @@ const ProductDetail = () => {
             console.error(error);
             toast.error('Failed to add item to cart.');
         }
+    };
+
+    const handleWishlistToggle = async () => {
+        if (!productID) return;
+        await toggleWishlist(productID);
     };
 
     return (
@@ -413,9 +425,21 @@ const ProductDetail = () => {
                             </button>
                         </div>
                         <div className="flex gap-4 pt-2">
-                            <div className="flex items-center hover:text-secondary-text-deep cursor-pointer">
-                                <CiHeart />  <p className="pl-1">Add to Wishlist</p>
-                            </div>
+                            <button
+                                onClick={handleWishlistToggle}
+                                disabled={wishlistLoading}
+                                className={`flex items-center transition-colors ${isWishlisted
+                                    ? 'text-red-500 hover:text-red-600'
+                                    : 'hover:text-secondary-text-deep text-gray-600'
+                                    } cursor-pointer disabled:opacity-50`}
+                            >
+                                {isWishlisted ? (
+                                    <FaHeart className="text-red-500" />
+                                ) : (
+                                    <CiHeart />
+                                )}
+                                <p className="pl-1">{isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}</p>
+                            </button>
                             <div className="flex items-center hover:text-secondary-text-deep cursor-pointer">
                                 <CiRuler />  <p className="pl-1">Size Guide</p>
                             </div>

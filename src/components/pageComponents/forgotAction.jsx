@@ -14,6 +14,18 @@ const ForgotAction = () => {
     const [messageShow, setMessageShow] = useState('');
     const [buttonState, setButtonState] = useState(false)
     const [resendTimer, setResendTimer] = useState(0); // countdown seconds
+
+    // Detect API URL based on environment
+    const getApiUrl = () => {
+        if (typeof window !== 'undefined') {
+            const hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
+                return 'http://localhost:3300/api';
+            }
+        }
+        return 'http://localhost:3300/api';
+    };
+
     // Reusable identifier validation
     const validateIdentifier = (value) => {
         let cleaned = value.trim();
@@ -62,7 +74,7 @@ const ForgotAction = () => {
         };
 
         try {
-            const res = await fetch('https://api.ithyaraa.com:8800/api/user/forgot-password', {
+            const res = await fetch(`${getApiUrl()}/user/forgot-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -72,7 +84,7 @@ const ForgotAction = () => {
             });
             const data = await res.json();
             if (data.success) {
-                toast.success('OTP Sent');
+                // toast.success('OTP Sent');
                 setMessageShow(`OTP sent to ${identifier}`);
                 setSentOTP(true);
                 setResendTimer(30); // start cooldown (30s)
@@ -100,7 +112,7 @@ const ForgotAction = () => {
 
         try {
             const res = await fetch(
-                'https://api.ithyaraa.com:8800/api/user/verify-otp-reset-password',
+                `${getApiUrl()}/user/verify-otp-reset-password`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -115,7 +127,7 @@ const ForgotAction = () => {
             const data = await res.json();
 
             if (data.resetToken) {
-                toast.success(data.message || 'OTP Verified');
+                // toast.success(data.message || 'OTP Verified');
                 console.log('verification success');
 
                 let countdown = 1;

@@ -15,6 +15,7 @@ const Addresses = lazy(() => import("@/components/profile/addresses"));
 const GiftCard = lazy(() => import("@/components/profile/giftcard"));
 const ApplyAffiliate = lazy(() => import("@/components/profile/applyAffiliate"));
 const Payout = lazy(() => import("@/components/profile/payout"));
+const Coins = lazy(() => import("@/components/profile/coins"));
 
 const ProfilePage = () => {
     const [user, setUser] = useState({})
@@ -73,6 +74,7 @@ const ProfilePage = () => {
                                     { key: 'accountdetail', label: 'Account', icon: <CgProfile size={16} /> },
                                     { key: 'addresses', label: 'Addresses', icon: <CgProfile size={16} /> },
                                     { key: 'orderhistory', label: 'Orders', icon: <CgProfile size={16} /> },
+                                    { key: 'coins', label: 'Ithyaraa Coins', icon: <CgProfile size={16} /> },
                                     { key: 'giftcard', label: 'Giftcard', icon: <CgProfile size={16} /> },
                                     { key: 'mycart', label: 'Cart', icon: <CgProfile size={16} /> },
                                     { key: 'mywishlist', label: 'Wishlist', icon: <CgProfile size={16} /> },
@@ -113,6 +115,12 @@ const ProfilePage = () => {
                                     <CgProfile size={20} />
                                     <p className="text-[15px] font-normal pl-4">
                                         Order History
+                                    </p>
+                                </section>
+                                <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg ${activeTab === 'coins' ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={() => { setActiveTab('coins') }} >
+                                    <CgProfile size={20} />
+                                    <p className="text-[15px] font-normal pl-4">
+                                        Ithyaraa Coins
                                     </p>
                                 </section>
                                 <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg ${activeTab === 'giftcard' ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={() => { setActiveTab('giftcard') }} >
@@ -164,6 +172,7 @@ const ProfilePage = () => {
                                 {activeTab === "accountdetail" && <AccountDetail user={user} />}
                                 {activeTab === "addresses" && <Addresses />}
                                 {activeTab === "orderhistory" && <OrderHistory />}
+                                {activeTab === "coins" && <Coins />}
                                 {activeTab === "giftcard" && <GiftCard />}
                                 {activeTab === "applyaffiliate" && <ApplyAffiliate user={user} />}
                                 {activeTab === "payout" && <Payout user={user} />}

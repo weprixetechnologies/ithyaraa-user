@@ -89,7 +89,7 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
             );
 
             if (response.data.success) {
-                toast.success('Review submitted successfully and is pending approval!');
+                // toast.success('Review submitted successfully and is pending approval!');
                 setShowWriteReview(false);
                 setComment('');
                 setRating(5);

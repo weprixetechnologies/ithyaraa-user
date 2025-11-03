@@ -27,7 +27,7 @@ const CartItems = () => {
 
         try {
             await dispatch(removeCartItemAsync(cartItemID)).unwrap();
-            toast.success('Item removed from cart');
+            // toast.success('Item removed from cart');
 
             // Refresh cart data
             dispatch(getCartAsync());

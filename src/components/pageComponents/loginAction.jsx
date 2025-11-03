@@ -14,13 +14,25 @@ const LoginAction = () => {
     const router = useRouter()
     const searchParams = useSearchParams()
     const { handleLoginSuccess } = useAuth()
+
+    // Detect API URL based on environment
+    const getApiUrl = () => {
+        if (typeof window !== 'undefined') {
+            const hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
+                return 'http://localhost:3300/api';
+            }
+        }
+        return 'http://localhost:3300/api';
+    };
+
     const isActive = phoneNumber.replace(/\D/g, '').length === 10 && password !== '';
 
     const handleSignIn = async () => {
         if (!isActive) return;
 
         try {
-            const res = await fetch('https://api.ithyaraa.com:8800/api/user/login', {
+            const res = await fetch(`${getApiUrl()}/user/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phonenumber: phoneNumber, password }),
@@ -41,7 +53,7 @@ const LoginAction = () => {
                 setCookie('_rt', data.refreshToken, { days: 7 });
                 setCookie('_iil', true, { days: 7 });
 
-                toast.success('Login Success');
+                // toast.success('Login Success');
 
                 // Get redirect parameter from URL
                 const redirectParam = searchParams.get('redirect');

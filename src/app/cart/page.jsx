@@ -30,6 +30,7 @@ const Page = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null)
   const [couponDiscount, setCouponDiscount] = useState(0)
   const [showCheckoutModal, setShowCheckoutModal] = useState(false)
+  const [walletApplied, setWalletApplied] = useState(0)
   const steps = [
     { id: 1, label: 'Cart' },
     { id: 2, label: 'Address & Payment' }
@@ -84,6 +85,7 @@ const Page = () => {
         addressID: selectedAddressID,
         paymentMode,
         couponCode: appliedCoupon?.couponCode || null,
+        walletApplied: walletApplied || 0
       });
 
       // PhonePe redirect (online payments)
@@ -214,7 +216,12 @@ const Page = () => {
                   <SelectAddress onSelect={handleAddressSelect} showAll={true} />
                 </Suspense>
                 <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
-                  <SelectPayment onSelect={handlePaymentModeSelect} />
+                  <SelectPayment
+                    onSelect={handlePaymentModeSelect}
+                    onWalletChange={setWalletApplied}
+                    cartTotal={cartRedux?.cartDetail?.total || 0}
+                    couponDiscount={couponDiscount}
+                  />
                 </Suspense>
               </div>
             </>
@@ -232,6 +239,17 @@ const Page = () => {
               appliedCoupon={appliedCoupon}
             />
           </Suspense>
+          {/* Coins notice */}
+          {(() => {
+            const payable = Math.max(0, (Number(cartRedux?.cartDetail?.total) || 0) - (Number(couponDiscount) || 0));
+            const coins = Math.floor(payable / 100);
+            if (coins <= 0) return null;
+            return (
+              <div className="mt-2 border border-amber-200 bg-amber-50 text-amber-800 rounded-lg p-3 text-xs">
+                You will earn <span className="font-semibold">{coins} Ithyaraa coin{coins > 1 ? 's' : ''}</span> on this order.
+              </div>
+            );
+          })()}
           {placeError && (
             <p className="text-red-600 text-sm mt-1">{placeError}</p>
           )}
