@@ -83,7 +83,7 @@ const ProductDetail = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`http://72.60.219.181:8800/api/products/details/${productID}`);
+                const res = await axios.get(`https://api.ithyaraa.com/api/products/details/${productID}`);
                 let data = res.data.product;
 
                 const safeParse = (value) => {
@@ -124,7 +124,7 @@ const ProductDetail = () => {
                 // Delay of 500ms to let other scripts load first
                 await new Promise(resolve => setTimeout(resolve, 500));
 
-                const res = await axios.get(`http://72.60.219.181:8800/api/reviews/product/${productID}/stats`);
+                const res = await axios.get(`https://api.ithyaraa.com/api/reviews/product/${productID}/stats`);
                 if (res.data.success) {
                     setReviewStats(res.data.data);
                 }
@@ -218,7 +218,7 @@ const ProductDetail = () => {
         if (type) params.append("type", type);
 
         const res = await fetch(
-            `http://72.60.219.181:8800/api/products/all-products?${params.toString()}`
+            `https://api.ithyaraa.com/api/products/all-products?${params.toString()}`
         );
         console.log(res);
 

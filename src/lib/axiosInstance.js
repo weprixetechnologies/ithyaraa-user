@@ -14,10 +14,10 @@ const getApiUrl = () => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
         if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
-            return 'http://72.60.219.181:8800/api';
+            return 'https://api.ithyaraa.com/api';
         }
     }
-    return 'http://72.60.219.181:8800/api';
+    return 'https://api.ithyaraa.com/api';
 };
 
 const redirectToLogin = (originalRequest = null) => {
