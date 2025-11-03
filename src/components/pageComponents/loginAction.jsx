@@ -20,10 +20,10 @@ const LoginAction = () => {
         if (typeof window !== 'undefined') {
             const hostname = window.location.hostname;
             if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
-                return 'https://api.ithyaraa.com/api';
+                return 'https://api.ithyaraa.com:8800/api';
             }
         }
-        return 'https://api.ithyaraa.com/api';
+        return 'https://api.ithyaraa.com:8800/api';
     };
 
     const isActive = phoneNumber.replace(/\D/g, '').length === 10 && password !== '';
