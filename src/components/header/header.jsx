@@ -205,7 +205,7 @@ const Header = () => {
                                         <p className="text-sm font-semibold">{user?.name || user?.username || 'User'}</p>
                                     </aside>
                                 ) : (
-                                    <button className="text-sm font-medium bg-primary text-white px-4 py-2 rounded hover:bg-secondary transition-colors cursor-pointer">
+                                    <button className="text-sm font-medium bg-primary text-white px-4 py-2 rounded hover:bg-secondary transition-colors cursor-pointer" onClick={() => (router.push('/login'))}>
                                         LOGIN / SIGNUP
                                     </button>
                                 )}

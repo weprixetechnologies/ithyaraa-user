@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect, Suspense, lazy, useRef, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { BsFillStarFill } from "react-icons/bs";
 import { toast } from "react-toastify";
@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addCartAsync } from "@/redux/slices/cartSlice";
 import { useWishlist } from "@/contexts/WishlistContext";
 import Loading from "@/components/ui/loading";
+import CountdownTimer from "@/components/products/CountdownTimer";
 
 // Lazy load heavy components for better performance
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
@@ -23,8 +24,7 @@ const ProductDetail = () => {
     const referBy = searchParams.get('referBy');
 
     // Debug: Log the referBy parameter
-    console.log('URL referBy parameter:', referBy);
-    console.log('All search params:', Object.fromEntries(searchParams.entries()));
+    // Avoid heavy logs per render
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -78,6 +78,7 @@ const ProductDetail = () => {
 
 
     // Fetch product
+    const fetchedRef = useRef(null);
     useEffect(() => {
         if (!productID) return;
 
@@ -111,26 +112,26 @@ const ProductDetail = () => {
                 setLoading(false);
             }
         };
-
-        fetchProduct();
+        if (fetchedRef.current !== productID) {
+            fetchedRef.current = productID;
+            fetchProduct();
+        }
     }, [productID]);
 
-    // Fetch review stats with delay to ensure other scripts load first
+
+    // Fetch review stats with guard to avoid refetching on rerenders
+    const reviewsFetchedRef = useRef(null);
     useEffect(() => {
         if (!productID) return;
+        if (reviewsFetchedRef.current === productID) return;
+        reviewsFetchedRef.current = productID;
 
         const fetchReviewStats = async () => {
             try {
-                // Delay of 500ms to let other scripts load first
-                await new Promise(resolve => setTimeout(resolve, 500));
-
                 const res = await axios.get(`https://api.ithyaraa.com:8800/api/reviews/product/${productID}/stats`);
-                if (res.data.success) {
-                    setReviewStats(res.data.data);
-                }
+                if (res.data.success) setReviewStats(res.data.data);
             } catch (error) {
                 console.error('Error fetching review stats:', error);
-                // Keep default stats on error
             }
         };
 
@@ -255,7 +256,10 @@ const ProductDetail = () => {
             data: parsedProducts
         };
     }
+    const moreFetchedRef = useRef(false);
     useEffect(() => {
+        if (moreFetchedRef.current) return;
+        moreFetchedRef.current = true;
         async function fetchProducts() {
             try {
                 const data = await getProducts();
@@ -264,9 +268,15 @@ const ProductDetail = () => {
                 console.error(error);
             }
         }
-
         fetchProducts();
-    }, [productID]);
+    }, []);
+
+    // Memoize ProductSection before early returns to maintain consistent hook order
+    const memoizedProductSection = useMemo(() => (
+        <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
+            <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
+        </Suspense>
+    ), [buyMore]);
 
     if (loading) return <Loading />
     if (!product) return <p className="text-center mt-10">Product not found</p>;
@@ -352,6 +362,8 @@ const ProductDetail = () => {
                                 <p className="text-xl font-medium text-green-600">{product.discountValue}% Off</p>
                             )}
                         </div>
+
+                        {product.isFlashSale && <CountdownTimer endTime={product.flashSaleEndTime} />}
 
                         {/* Variation Selector */}
                         <div className="variationOptions mt-5">
@@ -451,9 +463,7 @@ const ProductDetail = () => {
                 </div>
                 <hr className="mt-5 border-gray-200" />
                 <div className="w-full col-span-2">
-                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
-                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
-                    </Suspense>
+                    {memoizedProductSection}
                 </div>
                 <hr className="mt-5 mb-5 border-gray-200" />
 
@@ -463,14 +473,10 @@ const ProductDetail = () => {
                     </Suspense>
                 </div>
                 <div className="w-full col-span-2 mt-3">
-                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
-                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
-                    </Suspense>
+                    {memoizedProductSection}
                 </div>
                 <div className="w-full col-span-2">
-                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
-                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
-                    </Suspense>
+                    {memoizedProductSection}
                 </div>
             </div>
         </div>
