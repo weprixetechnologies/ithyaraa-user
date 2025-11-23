@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { getCartAsync } from "@/redux/slices/cartSlice"
 import WishlistIcon from "../ui/WishlistIcon"
 import { useAuth } from "@/contexts/AuthContext"
+import CartDrawer from "../ui/CartDrawer"
 
 const ShopWithUs = () => {
 
@@ -134,6 +135,7 @@ const Header = () => {
 
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
 
     const dispatch = useDispatch()
     const cartCounter = useSelector((state) => state.cart.cartCount)
@@ -195,7 +197,14 @@ const Header = () => {
                         <div className="flex gap-4 flex-row items-center">
                             <SearchNavbar />
                             <WishlistIcon />
-                            <LuShoppingCart size={24} className="cursor-pointer" onClick={() => (router.push('/cart'))} />
+                            <div className="relative cursor-pointer" onClick={() => setCartDrawerOpen(true)}>
+                                <LuShoppingCart size={24} />
+                                {cartCounter > 0 && (
+                                    <span className="absolute -top-3 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                                        {cartCounter > 99 ? '99+' : cartCounter}
+                                    </span>
+                                )}
+                            </div>
                             <IoPersonOutline size={24} className="cursor-pointer" onClick={() => (router.push('/profile'))} />
                             <div className="border-l border-black h-6"></div>
                             <div className="section">
@@ -277,7 +286,7 @@ const Header = () => {
 
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
                                 <Link
-                                    href="/products"
+                                    href="/brands"
                                     className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap"
                                     prefetch={false}
                                 >
@@ -313,7 +322,14 @@ const Header = () => {
                 <div className="icons flex flex-row items-center">
                     <CiSearch size={24} className="ml-3" />
                     <WishlistIcon />
-                    <CiShoppingCart size={24} className="ml-3" />
+                    <div className="relative ml-3 cursor-pointer" onClick={() => setCartDrawerOpen(true)}>
+                        <CiShoppingCart size={24} />
+                        {cartCounter > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                                {cartCounter > 99 ? '99+' : cartCounter}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div
@@ -330,6 +346,8 @@ const Header = () => {
                 </div>
             </div>
 
+            {/* Cart Drawer */}
+            <CartDrawer isOpen={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
 
         </div>
     )

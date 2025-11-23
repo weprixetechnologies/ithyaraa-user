@@ -1,11 +1,13 @@
 "use client";
 import React, { useState } from "react";
 
-const ProductTabs = ({ tabHeading1, tabData1 }) => {
+const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
     const [openTabs, setOpenTabs] = useState({
-        tab1: false,
-        tab2: false,
-        tab3: false,
+        descriptionTab: false,
+        productTab1: false,
+        productTab2: false,
+        shippingTab: false,
+        returnsTab: false,
     });
 
     const toggleTab = (tab) => {
@@ -14,32 +16,70 @@ const ProductTabs = ({ tabHeading1, tabData1 }) => {
 
     return (
         <div className="w-full max-w-3xl mx-auto mt-6 space-y-2">
-            {/* TAB 1 */}
-            <div className="cursor-pointer rounded-lg">
-                <button
-                    onClick={() => toggleTab("tab1")}
-                    className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
-                >
-                    {tabHeading1}
-                    <span>{openTabs.tab1 ? "-" : "+"}</span>
-                </button>
-                {openTabs.tab1 && (
-                    <div className="px-4 py-3 bg-white">
-                        {tabData1}
-                    </div>
-                )}
-            </div>
+            {/* Description Tab */}
+            {tabHeading1 && (
+                <div className="cursor-pointer rounded-lg">
+                    <button
+                        onClick={() => toggleTab("descriptionTab")}
+                        className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
+                    >
+                        {tabHeading1}
+                        <span>{openTabs.descriptionTab ? "-" : "+"}</span>
+                    </button>
+                    {openTabs.descriptionTab && (
+                        <div className="px-4 py-3 bg-white">
+                            {tabData1}
+                        </div>
+                    )}
+                </div>
+            )}
 
-            {/* TAB 2: Shipping & Delivery */}
+            {/* Product Tab 1 - Dynamic from API */}
+            {tab1 && (
+                <div className="cursor-pointer rounded-lg">
+                    <button
+                        onClick={() => toggleTab("productTab1")}
+                        className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
+                    >
+                        PRODUCT DETAILS
+                        <span>{openTabs.productTab1 ? "-" : "+"}</span>
+                    </button>
+                    {openTabs.productTab1 && (
+                        <div className="px-4 py-3 bg-white">
+                            <div dangerouslySetInnerHTML={{ __html: tab1 }} />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Product Tab 2 - Dynamic from API */}
+            {tab2 && (
+                <div className="cursor-pointer rounded-lg">
+                    <button
+                        onClick={() => toggleTab("productTab2")}
+                        className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
+                    >
+                        ADDITIONAL INFORMATION
+                        <span>{openTabs.productTab2 ? "-" : "+"}</span>
+                    </button>
+                    {openTabs.productTab2 && (
+                        <div className="px-4 py-3 bg-white">
+                            <div dangerouslySetInnerHTML={{ __html: tab2 }} />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Shipping & Delivery */}
             <div className="cursor-pointer rounded-lg">
                 <button
-                    onClick={() => toggleTab("tab2")}
+                    onClick={() => toggleTab("shippingTab")}
                     className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center cursor-pointer rounded-lg"
                 >
                     SHIPPING & DELIVERY
-                    <span>{openTabs.tab2 ? "-" : "+"}</span>
+                    <span>{openTabs.shippingTab ? "-" : "+"}</span>
                 </button>
-                {openTabs.tab2 && (
+                {openTabs.shippingTab && (
                     <div className="px-4 py-3 bg-white">
                         <p>
                             Standard shipping: 3-7 business days.<br />
@@ -50,16 +90,16 @@ const ProductTabs = ({ tabHeading1, tabData1 }) => {
                 )}
             </div>
 
-            {/* TAB 3: Returns & Warranty */}
+            {/* Returns & Warranty */}
             <div className="cursor-pointer rounded-lg">
                 <button
-                    onClick={() => toggleTab("tab3")}
+                    onClick={() => toggleTab("returnsTab")}
                     className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center cursor-pointer rounded-lg"
                 >
                     RETURNS & WARRANTY
-                    <span>{openTabs.tab3 ? "-" : "+"}</span>
+                    <span>{openTabs.returnsTab ? "-" : "+"}</span>
                 </button>
-                {openTabs.tab3 && (
+                {openTabs.returnsTab && (
                     <div className="px-4 py-3 bg-white">
                         <p>
                             7-day return policy.<br />

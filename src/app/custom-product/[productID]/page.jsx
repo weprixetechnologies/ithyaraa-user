@@ -15,6 +15,7 @@ const ProductGallery = lazy(() => import("@/components/products/productGallery")
 const ProductTabs = lazy(() => import("@/components/products/tabsAccordion"));
 const ProductSection = lazy(() => import("@/components/home/ProductSection"));
 const Reviews = lazy(() => import("@/components/products/reviews"));
+const CrossSellModal = lazy(() => import("@/components/products/crossSellModal"));
 
 const CustomProductDetail = () => {
     const { productID } = useParams();
@@ -31,11 +32,15 @@ const CustomProductDetail = () => {
     const [galleryImages, setGalleryImages] = useState([]);
     const [customInputs, setCustomInputs] = useState([]);
     const [customInputValues, setCustomInputValues] = useState({});
+    const [customerUploadedImage, setCustomerUploadedImage] = useState(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
     const [count, setCount] = useState(1);
     const [productQuantity, setProductQuantity] = useState(100);
     const [buyMore, setBuyMore] = useState([]);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [isBuyNow, setIsBuyNow] = useState(false);
+    const [showCrossSellModal, setShowCrossSellModal] = useState(false);
+    const [crossSellProducts, setCrossSellProducts] = useState([]);
     const dispatch = useDispatch();
     const cart = useSelector((state) => state.cart.cartCount);
     console.log(cart);
@@ -88,19 +93,76 @@ const CustomProductDetail = () => {
         setShowConfirmModal(true);
     };
 
+    // Handle customer image upload
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please upload an image file');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('Image size should be less than 5MB');
+            return;
+        }
+
+        setUploadingImage(true);
+        try {
+            // Upload to BunnyCDN (same as admin panel)
+            const storageZone = 'ithyaraa';
+            const storageRegion = 'sg.storage.bunnycdn.com';
+            const pullZoneUrl = 'https://ithyaraa.b-cdn.net';
+            const apiKey = '7017f7c4-638b-48ab-add3858172a8-f520-4b88'; // ⚠️ Dev only
+
+            const timestamp = Date.now();
+            const fileName = `customer-upload-${timestamp}-${encodeURIComponent(file.name)}`;
+            const uploadUrl = `https://${storageRegion}/${storageZone}/${fileName}`;
+            const publicUrl = `${pullZoneUrl}/${fileName}`;
+
+            const res = await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: {
+                    AccessKey: apiKey,
+                    'Content-Type': file.type
+                },
+                body: file
+            });
+
+            if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+
+            setCustomerUploadedImage(publicUrl);
+            toast.success('Image uploaded successfully');
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            toast.error('Failed to upload image. Please try again.');
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
     // Actually add to cart after confirmation
     const addToCart = async () => {
         try {
+            // Include uploaded image URL in customInputs if available
+            const customInputsWithImage = { ...customInputValues };
+            if (customerUploadedImage) {
+                customInputsWithImage.customerUploadedImage = customerUploadedImage;
+            }
+
             const cartData = {
                 productID: product.productID,
                 quantity: count,
-                customInputs: customInputValues,
+                customInputs: customInputsWithImage,
                 referBy: referBy
             };
 
             console.log('Adding custom product to cart:', cartData);
 
-            await dispatch(addCartAsync(cartData));
+            const cartResult = await dispatch(addCartAsync(cartData)).unwrap();
 
             if (isBuyNow) {
                 // toast.success('Added to cart! Redirecting to checkout...');
@@ -110,6 +172,15 @@ const CustomProductDetail = () => {
                 }, 1000);
             } else {
                 // toast.success('Custom product added to cart successfully!');
+
+                // Check if cart response has cross-sell products
+                if (cartResult && cartResult.crossSellProducts && Array.isArray(cartResult.crossSellProducts) && cartResult.crossSellProducts.length > 0) {
+                    setCrossSellProducts(cartResult.crossSellProducts);
+                    setShowCrossSellModal(true);
+                } else {
+                    // No cross-sell products, don't show modal
+                    setCrossSellProducts([]);
+                }
             }
 
             setShowConfirmModal(false);
@@ -291,6 +362,84 @@ const CustomProductDetail = () => {
                             )}
                         </div>
 
+                        {/* Customer Image Upload Section */}
+                        {product?.allowCustomerImageUpload ? (
+                            <div className="mt-5 mb-5">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Upload Your Image
+                                    <span className="text-gray-500 text-xs ml-2">(Optional)</span>
+                                </label>
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                                    {customerUploadedImage ? (
+                                        <div className="flex flex-col items-center gap-3">
+                                            <img
+                                                src={customerUploadedImage}
+                                                alt="Uploaded"
+                                                className="w-[100px] h-[100px] rounded-lg object-cover"
+                                            />
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setCustomerUploadedImage(null);
+                                                        // Reset file input
+                                                        const fileInput = document.getElementById('customer-image-upload');
+                                                        if (fileInput) fileInput.value = '';
+                                                    }}
+                                                    className="px-4 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                                                >
+                                                    Remove Image
+                                                </button>
+                                                <label
+                                                    htmlFor="customer-image-upload"
+                                                    className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
+                                                >
+                                                    Change Image
+                                                </label>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <label
+                                            htmlFor="customer-image-upload"
+                                            className="flex flex-col items-center justify-center cursor-pointer"
+                                        >
+                                            <div className="text-center">
+                                                <svg
+                                                    className="mx-auto h-12 w-12 text-gray-400"
+                                                    stroke="currentColor"
+                                                    fill="none"
+                                                    viewBox="0 0 48 48"
+                                                    aria-hidden="true"
+                                                >
+                                                    <path
+                                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                        strokeWidth={2}
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                    />
+                                                </svg>
+                                                <div className="mt-4 flex text-sm leading-6 text-gray-600">
+                                                    <span className="relative cursor-pointer rounded-md font-semibold text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2">
+                                                        {uploadingImage ? 'Uploading...' : 'Upload an image'}
+                                                    </span>
+                                                    <p className="pl-1">or drag and drop</p>
+                                                </div>
+                                                <p className="text-xs leading-5 text-gray-600">PNG, JPG, GIF up to 5MB</p>
+                                            </div>
+                                        </label>
+                                    )}
+                                    <input
+                                        id="customer-image-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={uploadingImage}
+                                        className="hidden"
+                                    />
+                                </div>
+                            </div>
+                        ) : null}
+
                         {/* Custom Input Fields */}
                         {customInputs.length > 0 && (
                             <div className="customInputs mt-5">
@@ -390,7 +539,12 @@ const CustomProductDetail = () => {
 
                         {/* Product Tabs */}
                         <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
-                            <ProductTabs />
+                            <ProductTabs
+                                tabHeading1="Description"
+                                tabData1={product.description || "No description available."}
+                                tab1={product.tab1}
+                                tab2={product.tab2}
+                            />
                         </Suspense>
                     </div>
                 </div>
@@ -470,6 +624,14 @@ const CustomProductDetail = () => {
                     </div>
                 </div>
             )}
+            <Suspense fallback={null}>
+                <CrossSellModal
+                    isOpen={showCrossSellModal}
+                    onClose={() => setShowCrossSellModal(false)}
+                    products={crossSellProducts}
+                    loading={false}
+                />
+            </Suspense>
         </div>
     );
 };

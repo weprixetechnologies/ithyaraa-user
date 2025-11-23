@@ -197,6 +197,9 @@ const OrderSuccessPage = () => {
                                                 />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-medium text-gray-900 text-sm leading-tight">{item.name}</p>
+                                                    {item.brandName && (
+                                                        <p className="text-xs text-blue-600 font-medium mt-0.5">{item.brandName}</p>
+                                                    )}
                                                     {item.variationName && (
                                                         <p className="text-xs text-gray-500 mt-1">{item.variationName}</p>
                                                     )}
@@ -229,6 +232,9 @@ const OrderSuccessPage = () => {
                                                             />
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="text-xs font-medium text-gray-700">{comboItem.name}</p>
+                                                                {comboItem.brandName && (
+                                                                    <p className="text-xs text-blue-600 font-medium">{comboItem.brandName}</p>
+                                                                )}
                                                                 {comboItem.variationName && (
                                                                     <p className="text-xs text-gray-500">{comboItem.variationName}</p>
                                                                 )}
@@ -266,6 +272,9 @@ const OrderSuccessPage = () => {
                                                                 />
                                                                 <div>
                                                                     <p className="font-medium text-gray-900">{item.name}</p>
+                                                                    {item.brandName && (
+                                                                        <p className="text-xs text-blue-600 font-medium">{item.brandName}</p>
+                                                                    )}
                                                                     {item.variationName && (
                                                                         <p className="text-sm text-gray-500">{item.variationName}</p>
                                                                     )}
@@ -297,6 +306,9 @@ const OrderSuccessPage = () => {
                                                                     />
                                                                     <div>
                                                                         <p className="text-sm font-medium text-gray-700">{comboItem.name}</p>
+                                                                        {comboItem.brandName && (
+                                                                            <p className="text-xs text-blue-600 font-medium">{comboItem.brandName}</p>
+                                                                        )}
                                                                         {comboItem.variationName && (
                                                                             <p className="text-xs text-gray-500">{comboItem.variationName}</p>
                                                                         )}

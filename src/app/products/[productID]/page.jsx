@@ -11,6 +11,8 @@ import { addCartAsync } from "@/redux/slices/cartSlice";
 import { useWishlist } from "@/contexts/WishlistContext";
 import Loading from "@/components/ui/loading";
 import CountdownTimer from "@/components/products/CountdownTimer";
+// Import modal directly (not lazy) so it's available immediately when needed
+import CrossSellModal from "@/components/products/crossSellModal";
 
 // Lazy load heavy components for better performance
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
@@ -38,6 +40,8 @@ const ProductDetail = () => {
     const [count, setCount] = useState(1);
     const [productQuantity, setProductQuantity] = useState(100)
     const [buyMore, setBuyMore] = useState([])
+    const [showCrossSellModal, setShowCrossSellModal] = useState(false)
+    const [crossSellProducts, setCrossSellProducts] = useState([])
     const [reviewStats, setReviewStats] = useState({
         totalReviews: 0,
         averageRating: 0,
@@ -56,7 +60,7 @@ const ProductDetail = () => {
     // Check wishlist status - use wishlistProductIds to avoid dependency issues
     const isWishlisted = productID ? isInWishlist(productID) : false
 
-    console.log(cart);
+    // console.log(cart);
 
     // Increment
     const handleIncrement = () => {
@@ -298,18 +302,38 @@ const ProductDetail = () => {
                 variationName: selectedVariation.variationName
             });
 
-            await dispatch(addCartAsync({
+            // Wait for cart addition to complete and verify success
+            const cartResult = await dispatch(addCartAsync({
                 productID,
                 referBy,
                 quantity: count,
                 variationID: selectedVariation.variationID,
                 variationName: selectedVariation.variationName
-            })).unwrap(); // if using Redux Toolkit
+            })).unwrap(); // This will throw if the action fails
 
-            toast.success('Item added to cart!');
+            // Only proceed if cart addition was successful
+            if (cartResult && (cartResult.success !== false)) {
+                toast.success('Item added to cart!');
+
+                // Check if cart response has cross-sell products
+                if (cartResult.crossSellProducts && Array.isArray(cartResult.crossSellProducts) && cartResult.crossSellProducts.length > 0) {
+                    console.log('✅ Cross-sell products found in cart response:', cartResult.crossSellProducts);
+                    setCrossSellProducts(cartResult.crossSellProducts);
+                    setShowCrossSellModal(true);
+                } else {
+                    console.log('⚠️ No cross-sell products in cart response');
+                    setCrossSellProducts([]);
+                    // Don't show modal if no cross-sell products
+                }
+            } else {
+                // Cart addition failed or returned unsuccessful response
+                console.error('Cart addition was not successful:', cartResult);
+                toast.error('Failed to add item to cart.');
+            }
         } catch (error) {
-            console.error(error);
+            console.error('Error adding to cart:', error);
             toast.error('Failed to add item to cart.');
+            // Do not show modal if cart addition failed
         }
     };
 
@@ -457,7 +481,12 @@ const ProductDetail = () => {
                             </div>
                         </div>
                         <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
-                            <ProductTabs />
+                            <ProductTabs
+                                tabHeading1="Description"
+                                tabData1={product.description || "No description available."}
+                                tab1={product.tab1}
+                                tab2={product.tab2}
+                            />
                         </Suspense>
                     </div>
                 </div>
@@ -479,6 +508,12 @@ const ProductDetail = () => {
                     {memoizedProductSection}
                 </div>
             </div>
+            <CrossSellModal
+                isOpen={showCrossSellModal}
+                onClose={() => setShowCrossSellModal(false)}
+                products={crossSellProducts}
+                loading={false}
+            />
         </div>
     );
 };

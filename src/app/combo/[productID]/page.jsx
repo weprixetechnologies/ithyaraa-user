@@ -248,7 +248,12 @@ const ProductDetail = () => {
                                 <CiRuler />  <p className="pl-1">Size Guide</p>
                             </div>
                         </div>
-                        <ProductTabs />
+                        <ProductTabs
+                            tabHeading1="Description"
+                            tabData1={product?.description || "No description available."}
+                            tab1={product?.tab1}
+                            tab2={product?.tab2}
+                        />
                     </div>
                 </div>
                 <hr className="mt-5 border-gray-200" />
