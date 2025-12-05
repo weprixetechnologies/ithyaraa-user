@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { MdAccountBalanceWallet, MdPayment, MdHistory, MdPending } from "react-icons/md";
+import { MdAccountBalanceWallet, MdPayment, MdHistory, MdPending, MdAccountBalance, MdAdd, MdCheckCircle, MdCancel, MdHourglassEmpty } from "react-icons/md";
+import { RxCross2 } from "react-icons/rx";
 import Loading from '../ui/loading';
 import axiosInstance from '../../lib/axiosInstance'
 
@@ -20,6 +21,24 @@ const Payout = ({ user }) => {
     const [modalStep, setModalStep] = useState(1); // 1: amount selection, 2: OTP verification
     const [otp, setOtp] = useState('');
     const [otpLoading, setOtpLoading] = useState(false);
+
+    // Bank Account States
+    const [bankAccounts, setBankAccounts] = useState([]);
+    const [loadingBankAccounts, setLoadingBankAccounts] = useState(false);
+    const [showBankAccountModal, setShowBankAccountModal] = useState(false);
+    const [bankAccountForm, setBankAccountForm] = useState({
+        accountHolderName: '',
+        accountNumber: '',
+        ifscCode: '',
+        bankName: '',
+        branchName: '',
+        accountType: 'savings',
+        panNumber: '',
+        gstin: '',
+        address: '',
+        isDefault: false
+    });
+    const [bankAccountLoading, setBankAccountLoading] = useState(false);
 
     // Fetch payout data
     useEffect(() => {
@@ -58,8 +77,24 @@ const Payout = ({ user }) => {
 
         if (user?.affiliate === 'approved') {
             fetchPayoutData();
+            fetchBankAccounts();
         }
     }, [user]);
+
+    // Fetch bank accounts
+    const fetchBankAccounts = async () => {
+        setLoadingBankAccounts(true);
+        try {
+            const response = await axiosInstance.get('/affiliate/bank-accounts');
+            if (response.data?.success) {
+                setBankAccounts(response.data.data || []);
+            }
+        } catch (err) {
+            console.error('Failed to load bank accounts:', err);
+        } finally {
+            setLoadingBankAccounts(false);
+        }
+    };
 
     // Function to refresh payout data
     const refreshPayoutData = async () => {
@@ -203,6 +238,119 @@ const Payout = ({ user }) => {
         setPayoutAmount(amount.toString());
     };
 
+    // Bank Account Handlers
+    const handleAddBankAccount = () => {
+        setShowBankAccountModal(true);
+        setBankAccountForm({
+            accountHolderName: '',
+            accountNumber: '',
+            ifscCode: '',
+            bankName: '',
+            branchName: '',
+            accountType: 'savings',
+            panNumber: '',
+            gstin: '',
+            address: '',
+            isDefault: false
+        });
+    };
+
+    const handleBankAccountSubmit = async (e) => {
+        e.preventDefault();
+        setBankAccountLoading(true);
+        setMessage('');
+
+        try {
+            const response = await axiosInstance.post('/affiliate/bank-account', bankAccountForm);
+            if (response.data?.success) {
+                setMessage('Bank account added successfully! It will be reviewed by admin.');
+                setShowBankAccountModal(false);
+                fetchBankAccounts();
+                setBankAccountForm({
+                    accountHolderName: '',
+                    accountNumber: '',
+                    ifscCode: '',
+                    bankName: '',
+                    branchName: '',
+                    accountType: 'savings',
+                    panNumber: '',
+                    gstin: '',
+                    address: '',
+                    isDefault: false
+                });
+            } else {
+                setMessage(response.data?.error || 'Failed to add bank account');
+            }
+        } catch (err) {
+            console.error('Failed to add bank account:', err);
+            setMessage(err.response?.data?.error || 'Failed to add bank account');
+        } finally {
+            setBankAccountLoading(false);
+        }
+    };
+
+    const handleSetDefault = async (bankAccountID) => {
+        try {
+            const response = await axiosInstance.put('/affiliate/bank-account/set-default', {
+                bankAccountID
+            });
+            if (response.data?.success) {
+                setMessage('Default bank account updated successfully');
+                fetchBankAccounts();
+            } else {
+                setMessage(response.data?.error || 'Failed to set default account');
+            }
+        } catch (err) {
+            console.error('Failed to set default account:', err);
+            setMessage(err.response?.data?.error || 'Failed to set default account');
+        }
+    };
+
+    const handleDeleteBankAccount = async (bankAccountID) => {
+        if (!confirm('Are you sure you want to delete this bank account?')) {
+            return;
+        }
+
+        try {
+            const response = await axiosInstance.delete(`/affiliate/bank-account/${bankAccountID}`);
+            if (response.data?.success) {
+                setMessage('Bank account deleted successfully');
+                fetchBankAccounts();
+            } else {
+                setMessage(response.data?.error || 'Failed to delete bank account');
+            }
+        } catch (err) {
+            console.error('Failed to delete bank account:', err);
+            setMessage(err.response?.data?.error || 'Failed to delete bank account');
+        }
+    };
+
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'approved':
+                return <MdCheckCircle className="text-green-500" size={20} />;
+            case 'rejected':
+                return <MdCancel className="text-red-500" size={20} />;
+            case 'pending':
+                return <MdHourglassEmpty className="text-yellow-500" size={20} />;
+            default:
+                return null;
+        }
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'approved':
+                return 'bg-green-50 border-green-200 text-green-700';
+            case 'rejected':
+                return 'bg-red-50 border-red-200 text-red-700';
+            case 'pending':
+                return 'bg-yellow-50 border-yellow-200 text-yellow-700';
+            default:
+                return 'bg-gray-50 border-gray-200 text-gray-700';
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center w-full py-20">
@@ -269,6 +417,100 @@ const Payout = ({ user }) => {
                     </div>
                 </div>
 
+                {/* Bank Accounts Section */}
+                <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <p className="text-lg font-medium">Bank Accounts</p>
+                            <p className="text-sm text-gray-500">Manage your bank accounts for payouts</p>
+                        </div>
+                        <button
+                            onClick={handleAddBankAccount}
+                            className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition flex items-center gap-2"
+                        >
+                            <MdAdd className="text-lg" />
+                            Add Bank Account
+                        </button>
+                    </div>
+
+                    {loadingBankAccounts ? (
+                        <div className="flex items-center justify-center py-8">
+                            <Loading />
+                        </div>
+                    ) : bankAccounts.length === 0 ? (
+                        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                            <MdAccountBalance className="text-gray-400 text-4xl mx-auto mb-3" />
+                            <p className="text-gray-500 mb-2">No bank accounts added</p>
+                            <p className="text-sm text-gray-400 mb-4">Add a bank account to receive payouts</p>
+                            <button
+                                onClick={handleAddBankAccount}
+                                className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+                            >
+                                Add Bank Account
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {bankAccounts.map((account) => (
+                                <div
+                                    key={account.bankAccountID}
+                                    className={`border rounded-lg p-4 ${account.isDefault ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                                >
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <MdAccountBalance className="text-gray-600" size={20} />
+                                                <p className="font-medium text-gray-900">{account.bankName}</p>
+                                                {account.isDefault && (
+                                                    <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
+                                                        Default
+                                                    </span>
+                                                )}
+                                                <span className={`px-2 py-1 text-xs rounded-full flex items-center gap-1 ${getStatusColor(account.status)}`}>
+                                                    {getStatusIcon(account.status)}
+                                                    {account.status}
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                                                <p><strong>Account Holder:</strong> {account.accountHolderName}</p>
+                                                <p><strong>Account Number:</strong> ****{account.accountNumber.slice(-4)}</p>
+                                                <p><strong>IFSC Code:</strong> {account.ifscCode}</p>
+                                                {account.branchName && (
+                                                    <p><strong>Branch:</strong> {account.branchName}</p>
+                                                )}
+                                            </div>
+                                            {account.rejectionReason && account.status === 'rejected' && (
+                                                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                                                    <strong>Rejection Reason:</strong> {account.rejectionReason}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-2 ml-4">
+                                            {account.status === 'approved' && !account.isDefault && (
+                                                <button
+                                                    onClick={() => handleSetDefault(account.bankAccountID)}
+                                                    className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition"
+                                                >
+                                                    Set Default
+                                                </button>
+                                            )}
+                                            {(account.status === 'pending' || account.status === 'rejected') && (
+                                                <button
+                                                    onClick={() => handleDeleteBankAccount(account.bankAccountID)}
+                                                    className="px-3 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-50 transition flex items-center gap-1"
+                                                >
+                                                    <RxCross2 size={14} />
+                                                    Delete
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 {/* Payout Request Section */}
                 <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
                     <div className="flex items-center justify-between mb-4">
@@ -286,7 +528,7 @@ const Payout = ({ user }) => {
                             </button>
                             <button
                                 onClick={handlePayoutRequest}
-                                disabled={payoutData.pendingAmount <= 0}
+                                disabled={payoutData.pendingAmount <= 0 || !bankAccounts.some(acc => acc.status === 'approved')}
                                 className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 <MdPayment className="text-lg" />
@@ -294,6 +536,14 @@ const Payout = ({ user }) => {
                             </button>
                         </div>
                     </div>
+
+                    {!bankAccounts.some(acc => acc.status === 'approved') && (
+                        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-800">
+                                <strong>Note:</strong> Please add and get approval for a bank account before requesting payout.
+                            </p>
+                        </div>
+                    )}
 
                     {message && (
                         <div className={`p-3 rounded-lg text-sm ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -560,6 +810,198 @@ const Payout = ({ user }) => {
                                 )}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Bank Account Modal */}
+            {showBankAccountModal && (
+                <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                    <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-medium">Add Bank Account</h3>
+                            <button
+                                onClick={() => setShowBankAccountModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <RxCross2 size={24} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleBankAccountSubmit} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Account Holder Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={bankAccountForm.accountHolderName}
+                                        onChange={(e) => setBankAccountForm({ ...bankAccountForm, accountHolderName: e.target.value })}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black outline-none"
+                                        placeholder="Enter account holder name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Account Number <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={bankAccountForm.accountNumber}
+                                        onChange={(e) => setBankAccountForm({ ...bankAccountForm, accountNumber: e.target.value.replace(/\D/g, '') })}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black outline-none"
+                                        placeholder="Enter account number"
+                                        maxLength="20"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        IFSC Code <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={bankAccountForm.ifscCode}
+                                        onChange={(e) => setBankAccountForm({ ...bankAccountForm, ifscCode: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 11) })}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black outline-none"
+                                        placeholder="SBIN0001234"
+                                        maxLength="11"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">11 characters (e.g., SBIN0001234)</p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Bank Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={bankAccountForm.bankName}
+                                        onChange={(e) => setBankAccountForm({ ...bankAccountForm, bankName: e.target.value })}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black outline-none"
+                                        placeholder="Enter bank name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Branch Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={bankAccountForm.branchName}
+                                        onChange={(e) => setBankAccountForm({ ...bankAccountForm, branchName: e.target.value })}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black outline-none"
+                                        placeholder="Enter branch name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Account Type <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        required
+                                        value={bankAccountForm.accountType}
+                                        onChange={(e) => setBankAccountForm({ ...bankAccountForm, accountType: e.target.value })}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black outline-none"
+                                    >
+                                        <option value="savings">Savings</option>
+                                        <option value="current">Current</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        PAN Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={bankAccountForm.panNumber}
+                                        onChange={(e) => setBankAccountForm({ ...bankAccountForm, panNumber: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10) })}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black outline-none"
+                                        placeholder="ABCDE1234F"
+                                        maxLength="10"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        GSTIN
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={bankAccountForm.gstin}
+                                        onChange={(e) => setBankAccountForm({ ...bankAccountForm, gstin: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 15) })}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black outline-none"
+                                        placeholder="29ABCDE1234F1Z5"
+                                        maxLength="15"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Address
+                                </label>
+                                <textarea
+                                    value={bankAccountForm.address}
+                                    onChange={(e) => setBankAccountForm({ ...bankAccountForm, address: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black outline-none"
+                                    placeholder="Enter bank address (optional)"
+                                    rows="3"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="isDefault"
+                                    checked={bankAccountForm.isDefault}
+                                    onChange={(e) => setBankAccountForm({ ...bankAccountForm, isDefault: e.target.checked })}
+                                    className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
+                                />
+                                <label htmlFor="isDefault" className="text-sm text-gray-700">
+                                    Set as default account for payouts
+                                </label>
+                            </div>
+
+                            {message && (
+                                <div className={`p-3 rounded-lg text-sm ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {message}
+                                </div>
+                            )}
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowBankAccountModal(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={bankAccountLoading}
+                                    className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {bankAccountLoading ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            Adding...
+                                        </>
+                                    ) : (
+                                        'Add Bank Account'
+                                    )}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

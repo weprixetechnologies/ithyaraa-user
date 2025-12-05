@@ -153,17 +153,73 @@
 
 /* Ithyaraa Coins animations and modal utilities */
 .coins-animated-bg {
-  background: linear-gradient(120deg, rgba(255,251,235,1), rgba(254,243,199,1), rgba(254,240,138,1));
+  background: linear-gradient(120deg, rgba(255, 251, 235, 1), rgba(254, 243, 199, 1), rgba(254, 240, 138, 1));
   background-size: 200% 200%;
   animation: coinsGlow 4s ease infinite;
 }
+
 @keyframes coinsGlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
-.confetti-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 50; }
-.confetti-card { background: #fff; border-radius: 12px; padding: 20px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
-.confetti { position: absolute; top: -10px; width: 8px; height: 14px; opacity: 0.9; animation: fall linear forwards; }
-@keyframes fall { from { transform: translateY(-20px) rotate(0deg); } to { transform: translateY(520px) rotate(720deg); } }
+.confetti-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.confetti-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 14px;
+  opacity: 0.9;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  from {
+    transform: translateY(-20px) rotate(0deg);
+  }
+
+  to {
+    transform: translateY(520px) rotate(720deg);
+  }
+}
+
+/* Golden shine animation */
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) translateY(0) skewX(-15deg);
+  }
+
+  100% {
+    transform: translateX(200%) translateY(0) skewX(-15deg);
+  }
+}

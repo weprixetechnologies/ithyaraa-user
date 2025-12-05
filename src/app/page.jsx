@@ -22,19 +22,26 @@ const ProductSection = dynamic(() => import("@/components/home/ProductSection"),
 const TabbedProductSection = dynamic(() => import("@/components/home/TabbedProductSection"), {
   loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
 });
+const UnderSections = dynamic(() => import("@/components/homeComponents/underSections"), {
+  loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
+});
+const PresaleSection = dynamic(() => import("@/components/homeComponents/presaleSections"), {
+  loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
+});
 
 // ISR: regenerate this page every 10 seconds
-export const revalidate = 10;
+// export const revalidate = 10;
 
-async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'variable' } = {}) {
+async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'variable', sectionid = "" } = {}) {
   const params = new URLSearchParams();
   params.append("limit", String(limit));
   params.append("page", String(page));
   if (categoryID) params.append("categoryID", categoryID);
   if (type) params.append("type", type);
+  if (sectionid) params.append("sectionid", sectionid);
 
   const res = await fetch(
-    `https://api.ithyaraa.com:8800/api/products/all-products?${params.toString()}`
+    `http://api.ithyaraa.com:8800/api/products/all-products?${params.toString()}`
   );
 
   if (!res.ok) {
@@ -79,7 +86,7 @@ export default async function Home() {
 
   let section_one = [];
   try {
-    const section_one_raw = await getProducts();
+    const section_one_raw = await getProducts({ sectionid: "HOME_HERO" });
     section_one = section_one_raw.data
     // console.log(section_one);
 
@@ -123,16 +130,20 @@ export default async function Home() {
         subHeading="Collections You Will Definitely Love"
         products={section_one}
       />
-      <hr />
+      {/* <hr /> */}
+      <UnderSections />
+      {/* <hr /> */}
 
 
-
+      <PresaleSection heading="Pre-Booking Available" subHeading="Found a perfect place" />
 
       <ProductSection
         heading="Another Section"
         subHeading="More things to explore"
         products={section_one}
       />
+
+
       <HomeCategory />
       {/* Tabbed Product Section with Categories */}
       <TabbedProductSection

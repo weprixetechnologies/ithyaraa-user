@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const CountdownTimer = ({ endTime }) => {
+const CountdownTimer = ({ endTime, label }) => {
     const [remainingMs, setRemainingMs] = useState(null);
 
     useEffect(() => {
@@ -11,7 +11,7 @@ const CountdownTimer = ({ endTime }) => {
         }
 
         const endTimestamp = new Date(endTime).getTime();
-        
+
         const tick = () => {
             const now = Date.now();
             const diff = Math.max(0, endTimestamp - now);
@@ -20,7 +20,7 @@ const CountdownTimer = ({ endTime }) => {
 
         // Prime immediately
         tick();
-        
+
         // Set interval for updates
         const timer = setInterval(tick, 1000);
 
@@ -38,7 +38,7 @@ const CountdownTimer = ({ endTime }) => {
 
     return (
         <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded bg-red-50 text-red-600 text-sm">
-            <span className="font-semibold">Flash sale ends in:</span>
+            <span className="font-semibold">{label || "Flash sale ends in:"}</span>
             <span>{days}d {hours.toString().padStart(2, '0')}:{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}</span>
         </div>
     );

@@ -13,6 +13,7 @@ import Loading from "@/components/ui/loading";
 import CountdownTimer from "@/components/products/CountdownTimer";
 // Import modal directly (not lazy) so it's available immediately when needed
 import CrossSellModal from "@/components/products/crossSellModal";
+import RollingText from "@/components/ui/rollingText";
 
 // Lazy load heavy components for better performance
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
@@ -21,7 +22,7 @@ const ProductSection = lazy(() => import("@/components/home/ProductSection"));
 const Reviews = lazy(() => import("@/components/products/reviews"));
 
 const ProductDetail = () => {
-    const { productID } = useParams();
+    const { presaleProductID } = useParams();
     const searchParams = useSearchParams();
     const referBy = searchParams.get('referBy');
 
@@ -58,7 +59,7 @@ const ProductDetail = () => {
     const { toggleWishlist, isInWishlist, loading: wishlistLoading, wishlistProductIds } = useWishlist()
 
     // Check wishlist status - use wishlistProductIds to avoid dependency issues
-    const isWishlisted = productID ? isInWishlist(productID) : false
+    const isWishlisted = presaleProductID ? isInWishlist(presaleProductID) : false
 
     // console.log(cart);
 
@@ -81,15 +82,21 @@ const ProductDetail = () => {
     };
 
 
-    // Fetch product
+    // Fetch product (from presale API)
     const fetchedRef = useRef(null);
     useEffect(() => {
-        if (!productID) return;
+        if (!presaleProductID) return;
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`http://api.ithyaraa.com:8800/api/products/details/${productID}`);
-                let data = res.data.product;
+                const res = await axios.get(`http://api.ithyaraa.com:8800/api/presale/products/${presaleProductID}`);
+
+                if (!res.data?.success || !res.data?.data) {
+                    setProduct(null);
+                    return;
+                }
+
+                let data = res.data.data;
 
                 const safeParse = (value) => {
                     try {
@@ -111,28 +118,28 @@ const ProductDetail = () => {
                 setVariationPrice(data.regularPrice);
                 setVariationSalePrice(data.salePrice);
             } catch (err) {
-                console.error("Failed to fetch product details:", err);
+                console.error("Failed to fetch presale product details:", err);
             } finally {
                 setLoading(false);
             }
         };
-        if (fetchedRef.current !== productID) {
-            fetchedRef.current = productID;
+        if (fetchedRef.current !== presaleProductID) {
+            fetchedRef.current = presaleProductID;
             fetchProduct();
         }
-    }, [productID]);
+    }, [presaleProductID]);
 
 
     // Fetch review stats with guard to avoid refetching on rerenders
     const reviewsFetchedRef = useRef(null);
     useEffect(() => {
-        if (!productID) return;
-        if (reviewsFetchedRef.current === productID) return;
-        reviewsFetchedRef.current = productID;
+        if (!presaleProductID) return;
+        if (reviewsFetchedRef.current === presaleProductID) return;
+        reviewsFetchedRef.current = presaleProductID;
 
         const fetchReviewStats = async () => {
             try {
-                const res = await axios.get(`http://api.ithyaraa.com:8800/api/reviews/product/${productID}/stats`);
+                const res = await axios.get(`http://api.ithyaraa.com:8800/api/reviews/product/${presaleProductID}/stats`);
                 if (res.data.success) setReviewStats(res.data.data);
             } catch (error) {
                 console.error('Error fetching review stats:', error);
@@ -140,7 +147,7 @@ const ProductDetail = () => {
         };
 
         fetchReviewStats();
-    }, [productID]);
+    }, [presaleProductID]);
 
     // Build attribute options from variations
     useEffect(() => {
@@ -176,7 +183,7 @@ const ProductDetail = () => {
         }));
 
         setAttributes(attributesArr);
-    }, [productID, product]);
+    }, [presaleProductID, product]);
 
     // Handle selecting variation attributes
     // When selecting a variation
@@ -285,7 +292,12 @@ const ProductDetail = () => {
     if (loading) return <Loading />
     if (!product) return <p className="text-center mt-10">Product not found</p>;
 
-
+    // Pre-sale timing (optional fields on product)
+    const now = new Date();
+    const start = product.preSaleStartDate ? new Date(product.preSaleStartDate) : null;
+    const end = product.preSaleEndDate ? new Date(product.preSaleEndDate) : null;
+    const isUpcoming = start && now < start;
+    const isActive = start && end && now >= start && now <= end;
 
     const addToCart = async () => {
         if (!selectedVariation || selectedVariation.variationStock === 0) {
@@ -295,7 +307,7 @@ const ProductDetail = () => {
 
         try {
             console.log('Add to cart data:', {
-                productID,
+                presaleProductID,
                 referBy,
                 quantity: count,
                 variationID: selectedVariation.variationID,
@@ -304,7 +316,7 @@ const ProductDetail = () => {
 
             // Wait for cart addition to complete and verify success
             const cartResult = await dispatch(addCartAsync({
-                productID,
+                presaleProductID,
                 referBy,
                 quantity: count,
                 variationID: selectedVariation.variationID,
@@ -338,14 +350,62 @@ const ProductDetail = () => {
     };
 
     const handleWishlistToggle = async () => {
-        if (!productID) return;
-        await toggleWishlist(productID);
+        if (!presaleProductID) return;
+        await toggleWishlist(presaleProductID);
     };
 
     return (
-        <div className="w-full flex flex-col items-center">
-            <div className="md:w-[80%] md:mt-10 w-full mb-5">
-                <div className="md:grid md:grid-cols-2 md:gap-4 md:w-full flex flex-col gap-4">
+        <div className="w-full flex flex-col items-center bg-[#F5F5F5] min-h-screen">
+            <div className="mt-2"></div>
+            <RollingText text1="PRE ORDER NOW" text2="BOOKING HAVE STARTED" direction="right" />
+
+            <div className="md:w-[80%] md:mt-2 w-full mb-5">
+                {/* Pre-Sale badge and title */}
+                {/* <div className="px-3 mb-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                    <div>
+                        <p className="text-xs text-purple-600 uppercase tracking-wide font-semibold">
+                            Pre-Sale
+                        </p>
+                        <p className="text-xl md:text-2xl font-medium">{product.name}</p>
+                    </div>
+                    <div className="flex flex-col items-start md:items-end gap-1 text-xs">
+                        {isUpcoming && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full font-semibold bg-yellow-100 text-yellow-800">
+                                Pre-Sale Starts Soon
+                            </span>
+                        )}
+                        {isActive && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full font-semibold bg-green-100 text-green-800">
+                                Pre-Sale Live
+                            </span>
+                        )}
+                        {!isUpcoming && !isActive && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full font-semibold bg-gray-100 text-gray-700">
+                                Pre-Sale Ended
+                            </span>
+                        )}
+                        {end && isActive && (
+                            <div className="mt-1 text-xs text-gray-600">
+                                <span className="font-medium">Pre-Sale Ends In: </span>
+                                <CountdownTimer endDate={end} />
+                            </div>
+                        )}
+                        {product.expectedDeliveryDate && (
+                            <div className="mt-1 text-xs text-purple-700">
+                                <span className="font-medium mr-1">Expected Delivery:</span>
+                                <span>
+                                    {new Date(product.expectedDeliveryDate).toLocaleDateString("en-IN", {
+                                        day: "numeric",
+                                        month: "short",
+                                        year: "numeric"
+                                    })}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div> */}
+
+                <div className="md:grid md:grid-cols-2 md:gap-4 md:w-full flex flex-col gap-4 rounded-lg  p-2 md:p-4">
                     {/* Extracted Gallery */}
                     <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
                         <ProductGallery
@@ -386,6 +446,11 @@ const ProductDetail = () => {
                                 <p className="text-xl font-medium text-green-600">{product.discountValue}% Off</p>
                             )}
                         </div>
+
+                        {/* Presale Countdown - similar to flash sale countdown */}
+                        {isActive && product.preSaleEndDate && (
+                            <CountdownTimer endTime={product.preSaleEndDate} label="PRESALE ENDS IN:" />
+                        )}
 
                         {product.isFlashSale && <CountdownTimer endTime={product.flashSaleEndTime} />}
 
@@ -453,12 +518,26 @@ const ProductDetail = () => {
                             </div>
 
                             {/* Action buttons */}
-                            <button className="flex-1 py-2 rounded-lg border font-medium text-center cursor-pointer " onClick={addToCart}>
-                                Add to Cart
+                            <button
+                                className="flex-1 py-2 rounded-lg text-center cursor-pointer relative overflow-hidden text-black font-bold transition-all duration-300 hover:scale-105 active:scale-95"
+                                onClick={addToCart}
+                                style={{
+                                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                                    boxShadow: '0 10px 25px -5px rgba(234, 179, 8, 0.5), 0 0 20px rgba(234, 179, 8, 0.3)',
+                                }}
+                            >
+                                <span className="relative z-10">Pre-Book Now</span>
+                                <div
+                                    className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                                    style={{
+                                        width: '50%',
+                                        height: '100%',
+                                        background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.7) 50%, transparent 100%)',
+                                        animation: 'shine 2.5s infinite ease-in-out',
+                                    }}
+                                />
                             </button>
-                            <button className="flex-1 py-2 rounded-lg bg-primary-yellow font-medium text-center cursor-pointer  ">
-                                Buy Now
-                            </button>
+
                         </div>
                         <div className="flex gap-4 pt-2">
                             <button
@@ -490,7 +569,12 @@ const ProductDetail = () => {
                         </Suspense>
                     </div>
                 </div>
-                <hr className="mt-5 border-gray-200" />
+
+
+            </div>
+            <RollingText text1="PRE ORDER NOW" text2="BOOKING HAVE STARTED" direction="left" />
+            <div className="md:w-[80%] md:mt-10 w-full mb-5">
+                {/* <hr className="mt-5 border-gray-200" /> */}
                 <div className="w-full col-span-2">
                     {memoizedProductSection}
                 </div>
@@ -508,6 +592,7 @@ const ProductDetail = () => {
                     {memoizedProductSection}
                 </div>
             </div>
+
             <CrossSellModal
                 isOpen={showCrossSellModal}
                 onClose={() => setShowCrossSellModal(false)}

@@ -104,7 +104,7 @@ const Page = () => {
       if (response?.data?.paymentMode === 'COD' && response?.data?.success) {
         const orderId = response?.data?.orderID || response?.data?.orderId;
         if (orderId) {
-          window.location.href = `/order-success/order-summary/${orderId}`;
+          window.location.href = `/order-status/order-summary/${orderId}`;
           return;
         }
       }

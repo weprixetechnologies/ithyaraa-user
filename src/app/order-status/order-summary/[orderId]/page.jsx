@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import axiosInstance from '@/lib/axiosInstance';
 import Link from 'next/link';
-import { FaCheckCircle, FaTruck, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { FaCheckCircle, FaTruck, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDownload } from 'react-icons/fa';
 import { ClipLoader } from 'react-spinners';
 
 const OrderSuccessPage = () => {
@@ -15,88 +15,179 @@ const OrderSuccessPage = () => {
     const [showCongrats, setShowCongrats] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+    const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+
+    const fetchOrderDetails = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await axiosInstance.get(`/order/order-details/${orderId}`);
+
+            if (response.data?.success) {
+                const apiItems = Array.isArray(response.data.items) ? response.data.items : [];
+                if (apiItems.length === 0) {
+                    setError('Order not found');
+                    return;
+                }
+
+                const detail = response.data.orderDetail || {};
+                const first = apiItems[0];
+
+                const items = apiItems.map((it) => ({
+                    name: it.name,
+                    featuredImage: it.featuredImage,
+                    variationName: it.storedVariationName,
+                    salePrice: it.salePrice,
+                    regularPrice: it.regularPrice,
+                    quantity: it.quantity,
+                    lineTotalAfter: it.lineTotalAfter,
+                    comboItems: it.comboItems || [],
+                }));
+
+                // Prefer backend-provided totals and meta from orderDetail; fallback to compute when absent
+                const fallbackSubtotal = items.reduce((sum, it) => {
+                    const unit = (it?.salePrice ? parseFloat(it.salePrice) : (it?.regularPrice ? parseFloat(it.regularPrice) : 0)) || 0;
+                    const line = it?.lineTotalAfter ? parseFloat(it.lineTotalAfter) : unit * (it.quantity || 0);
+                    return sum + (line || 0);
+                }, 0);
+
+                const normalized = {
+                    orderID: detail.orderID || first.orderID,
+                    items,
+                    subtotal: detail.subtotal != null ? parseFloat(detail.subtotal) : fallbackSubtotal,
+                    discount: detail.totalDiscount != null ? parseFloat(detail.totalDiscount) : 0,
+                    couponDiscount: detail.couponDiscount != null ? parseFloat(detail.couponDiscount) : 0,
+                    shipping: detail.shipping != null ? parseFloat(detail.shipping) : 0,
+                    total: detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal),
+                    paymentMode: detail.paymentMode || first.paymentMode,
+                    paymentStatus: detail.paymentStatus || first.paymentStatus,
+                    createdAt: detail.createdAt || first.orderCreatedAt,
+                    deliveryAddress: {
+                        emailID: first.email || '',
+                        phoneNumber: first.contactNumber || '',
+                        line1: first.shippingAddress || '',
+                        line2: '',
+                        city: '',
+                        state: '',
+                        pincode: '',
+                        landmark: '',
+                    },
+                    couponCode: detail.couponCode || '',
+                    orderStatus: detail.orderStatus || first.orderStatus || 'Preparing',
+                    coinsEarned: detail.coinsEarned != null ? parseInt(detail.coinsEarned) : Math.floor(((detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal)) || 0) / 100),
+                    isWalletUsed: detail.isWalletUsed ? Boolean(Number(detail.isWalletUsed)) : false,
+                    paidWallet: detail.paidWallet != null ? parseFloat(detail.paidWallet) : 0
+                };
+
+                setOrderDetails(normalized);
+                // Only show coins modal if payment is successful (not pending for PREPAID)
+                const isPaymentPending = normalized.paymentMode === 'PREPAID' && normalized.paymentStatus === 'pending';
+                if ((normalized.coinsEarned || 0) > 0 && !isPaymentPending) {
+                    setShowCongrats(true);
+                }
+                return normalized;
+            } else {
+                setError('Order not found');
+                return null;
+            }
+        } catch (err) {
+            console.error('Error fetching order details:', err);
+            setError('Failed to load order details');
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    }, [orderId]);
 
     useEffect(() => {
-        const fetchOrderDetails = async () => {
-            try {
-                setLoading(true);
-                const response = await axiosInstance.get(`/order/order-details/${orderId}`);
-
-                if (response.data?.success) {
-                    const apiItems = Array.isArray(response.data.items) ? response.data.items : [];
-                    if (apiItems.length === 0) {
-                        setError('Order not found');
-                        return;
-                    }
-
-                    const detail = response.data.orderDetail || {};
-                    const first = apiItems[0];
-
-                    const items = apiItems.map((it) => ({
-                        name: it.name,
-                        featuredImage: it.featuredImage,
-                        variationName: it.storedVariationName,
-                        salePrice: it.salePrice,
-                        regularPrice: it.regularPrice,
-                        quantity: it.quantity,
-                        lineTotalAfter: it.lineTotalAfter,
-                        comboItems: it.comboItems || [],
-                    }));
-
-                    // Prefer backend-provided totals and meta from orderDetail; fallback to compute when absent
-                    const fallbackSubtotal = items.reduce((sum, it) => {
-                        const unit = (it?.salePrice ? parseFloat(it.salePrice) : (it?.regularPrice ? parseFloat(it.regularPrice) : 0)) || 0;
-                        const line = it?.lineTotalAfter ? parseFloat(it.lineTotalAfter) : unit * (it.quantity || 0);
-                        return sum + (line || 0);
-                    }, 0);
-
-                    const normalized = {
-                        orderID: detail.orderID || first.orderID,
-                        items,
-                        subtotal: detail.subtotal != null ? parseFloat(detail.subtotal) : fallbackSubtotal,
-                        discount: detail.totalDiscount != null ? parseFloat(detail.totalDiscount) : 0,
-                        couponDiscount: detail.couponDiscount != null ? parseFloat(detail.couponDiscount) : 0,
-                        shipping: detail.shipping != null ? parseFloat(detail.shipping) : 0,
-                        total: detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal),
-                        paymentMode: detail.paymentMode || first.paymentMode,
-                        paymentStatus: detail.paymentStatus || first.paymentStatus,
-                        createdAt: detail.createdAt || first.orderCreatedAt,
-                        deliveryAddress: {
-                            emailID: first.email || '',
-                            phoneNumber: first.contactNumber || '',
-                            line1: first.shippingAddress || '',
-                            line2: '',
-                            city: '',
-                            state: '',
-                            pincode: '',
-                            landmark: '',
-                        },
-                        couponCode: detail.couponCode || '',
-                        orderStatus: detail.orderStatus || first.orderStatus || 'Preparing',
-                        coinsEarned: detail.coinsEarned != null ? parseInt(detail.coinsEarned) : Math.floor(((detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal)) || 0) / 100),
-                        isWalletUsed: detail.isWalletUsed ? Boolean(Number(detail.isWalletUsed)) : false,
-                        paidWallet: detail.paidWallet != null ? parseFloat(detail.paidWallet) : 0
-                    };
-
-                    setOrderDetails(normalized);
-                    if ((normalized.coinsEarned || 0) > 0) {
-                        setShowCongrats(true);
-                    }
-                } else {
-                    setError('Order not found');
-                }
-            } catch (err) {
-                console.error('Error fetching order details:', err);
-                setError('Failed to load order details');
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (orderId) {
             fetchOrderDetails();
         }
-    }, [orderId]);
+    }, [orderId, fetchOrderDetails]);
+
+    // Poll for payment status updates if payment is pending (for PREPAID orders)
+    useEffect(() => {
+        if (!orderDetails || orderDetails.paymentMode !== 'PREPAID' || orderDetails.paymentStatus !== 'pending') {
+            return;
+        }
+
+        // Poll every 10 seconds for up to 200 seconds (20 attempts)
+        let attempts = 0;
+        const maxAttempts = 20;
+        const pollInterval = 10000; // 10 seconds
+        let isPolling = true;
+
+        const checkPaymentStatus = async () => {
+            try {
+                setIsCheckingPayment(true);
+
+                // Use PhonePe status check API which also updates the database
+                const statusResponse = await axiosInstance.get(`/phonepe/order/${orderId}/status`);
+
+                if (statusResponse.data?.success) {
+                    const latestStatus = statusResponse.data.latestStatus;
+
+                    // If payment is successful, refresh order details
+                    if (latestStatus?.isSuccess || statusResponse.data.currentStatus === 'successful') {
+                        // Fetch updated order details
+                        const updatedOrder = await fetchOrderDetails();
+
+                        // Stop polling if payment is successful
+                        if (updatedOrder && (updatedOrder.paymentStatus === 'successful' || updatedOrder.paymentStatus === 'paid')) {
+                            isPolling = false;
+                            setIsCheckingPayment(false);
+                            return true; // Payment confirmed
+                        }
+                    }
+                }
+
+                setIsCheckingPayment(false);
+                return false; // Still pending
+            } catch (err) {
+                console.error('Error checking payment status:', err);
+                setIsCheckingPayment(false);
+                return false; // Continue polling on error
+            }
+        };
+
+        // Initial check after 5 seconds
+        const initialTimeout = setTimeout(async () => {
+            if (isPolling) {
+                await checkPaymentStatus();
+            }
+        }, 5000);
+
+        // Poll at intervals
+        const pollPaymentStatus = setInterval(async () => {
+            if (!isPolling) {
+                clearInterval(pollPaymentStatus);
+                return;
+            }
+
+            attempts++;
+            const paymentConfirmed = await checkPaymentStatus();
+
+            // Stop polling if payment is successful or max attempts reached
+            if (paymentConfirmed) {
+                isPolling = false;
+                clearInterval(pollPaymentStatus);
+                clearTimeout(initialTimeout);
+            } else if (attempts >= maxAttempts) {
+                isPolling = false;
+                clearInterval(pollPaymentStatus);
+                clearTimeout(initialTimeout);
+                setIsCheckingPayment(false);
+                console.log('Payment status check stopped after max attempts');
+            }
+        }, pollInterval);
+
+        return () => {
+            isPolling = false;
+            clearInterval(pollPaymentStatus);
+            clearTimeout(initialTimeout);
+            setIsCheckingPayment(false);
+        };
+    }, [orderDetails?.paymentStatus, orderDetails?.paymentMode, orderId, fetchOrderDetails]);
 
     if (loading) {
         return (
@@ -161,17 +252,54 @@ const OrderSuccessPage = () => {
         }
     };
 
+    const handleDownloadInvoice = async () => {
+        try {
+            setDownloadingInvoice(true);
+            const response = await axiosInstance.get(`/order/generate-invoice/${orderId}?action=download`, {
+                responseType: 'blob'
+            });
+
+            // Create blob link to download
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `invoice_${orderDetails.orderID}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Error downloading invoice:', err);
+            alert('Failed to download invoice. Please try again.');
+        } finally {
+            setDownloadingInvoice(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
             <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
                 {/* Success Header */}
                 <div className="text-center mb-6 sm:mb-8">
-                    <FaCheckCircle className="text-green-500 text-4xl sm:text-6xl mx-auto mb-3 sm:mb-4" />
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h1>
-                    <p className="text-sm sm:text-base text-gray-600 px-2">Your order has been confirmed and will be processed soon.</p>
-                    <div className="mt-3 sm:mt-4 inline-flex items-center px-3 sm:px-4 py-2 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm font-medium">
-                        Order ID: {orderDetails.orderID}
-                    </div>
+                    {orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending' ? (
+                        <>
+                            <div className="text-yellow-500 text-4xl sm:text-6xl mx-auto mb-3 sm:mb-4 animate-pulse">⏳</div>
+                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Payment In Progress</h1>
+                            <p className="text-sm sm:text-base text-gray-600 px-2">Your order has been confirmed. We're verifying your payment - this page will update automatically.</p>
+                            <div className="mt-3 sm:mt-4 inline-flex items-center px-3 sm:px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-xs sm:text-sm font-medium">
+                                Order ID: {orderDetails.orderID}
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <FaCheckCircle className="text-green-500 text-4xl sm:text-6xl mx-auto mb-3 sm:mb-4" />
+                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h1>
+                            <p className="text-sm sm:text-base text-gray-600 px-2">Your order has been confirmed and will be processed soon.</p>
+                            <div className="mt-3 sm:mt-4 inline-flex items-center px-3 sm:px-4 py-2 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm font-medium">
+                                Order ID: {orderDetails.orderID}
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Main Content Grid */}
@@ -387,17 +515,28 @@ const OrderSuccessPage = () => {
 
                     {/* Right Side - Information Cards (25%) */}
                     <div className="lg:col-span-4 flex flex-col space-y-4 sm:space-y-6 order-1 lg:order-2">
-                        {/* Coins Earned */}
+                        {/* Coins Earned / Pending Cashback */}
                         {typeof orderDetails.coinsEarned === 'number' && orderDetails.coinsEarned > 0 && (
                             <div className="bg-white rounded-lg border border-gray-200 p-0 overflow-hidden">
-                                <div className="coins-animated-bg p-4 sm:p-6">
+                                <div className={`p-4 sm:p-6 ${orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending' ? 'bg-yellow-50' : 'coins-animated-bg'}`}>
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Ithyaraa Coins Earned</h3>
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full bg-amber-100 text-amber-800 text-xs sm:text-sm font-medium">
+                                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                                            {orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending'
+                                                ? 'Pending Cashback'
+                                                : 'Ithyaraa Coins Earned'}
+                                        </h3>
+                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : 'bg-amber-100 text-amber-800'
+                                            }`}>
                                             +{orderDetails.coinsEarned} coins
                                         </span>
                                     </div>
-                                    <p className="text-xs sm:text-sm text-gray-700 mt-2">You earned {orderDetails.coinsEarned} coins for this order. Coins expire after 365 days.</p>
+                                    <p className="text-xs sm:text-sm text-gray-700 mt-2">
+                                        {orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending'
+                                            ? `You will earn ${orderDetails.coinsEarned} coins once payment is confirmed. Coins expire after 365 days.`
+                                            : `You earned ${orderDetails.coinsEarned} coins for this order. Coins expire after 365 days.`}
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -450,10 +589,25 @@ const OrderSuccessPage = () => {
                                             ? 'bg-yellow-100 text-yellow-800'
                                             : 'bg-green-100 text-green-800'
                                             }`}>
-                                            {orderDetails.paymentStatus === 'pending' ? 'Pending' : 'Successful'}
+                                            {orderDetails.paymentStatus === 'pending' ? 'Verifying payment...' : 'Payment successful'}
                                         </span>
                                     )}
                                 </div>
+                                {orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending' && (
+                                    <div className="text-xs sm:text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-3 py-2 mt-2">
+                                        <div className="flex items-start space-x-2">
+                                            {isCheckingPayment && (
+                                                <ClipLoader size={12} color="#D97706" className="mt-0.5" />
+                                            )}
+                                            <div className="flex-1">
+                                                <p className="font-medium mb-1">
+                                                    {isCheckingPayment ? '🔄 Checking payment status...' : '⏳ Payment verification in progress'}
+                                                </p>
+                                        <p className="text-yellow-600">Your payment is being verified. This page will update automatically once confirmed.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                                 {orderDetails.paidWallet > 0 && (
                                     <div className="flex flex-col sm:flex-row sm:items-center">
                                         <span className="font-medium">Wallet:</span>
@@ -489,8 +643,10 @@ const OrderSuccessPage = () => {
                                                     Pay on delivery
                                                 </span>
                                             ) : (
-                                                <span className={`text-xs sm:text-sm inline-block px-2 py-1 rounded ${ui.badge}`}>
-                                                    {orderDetails.paymentStatus === 'pending' ? 'Payment pending' : 'Payment completed'}
+                                                <span className={`text-xs sm:text-sm inline-block px-2 py-1 rounded ${orderDetails.paymentStatus === 'pending'
+                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                    : ui.badge}`}>
+                                                    {orderDetails.paymentStatus === 'pending' ? 'Verifying payment...' : 'Payment completed'}
                                                 </span>
                                             )}
                                         </>
@@ -503,6 +659,23 @@ const OrderSuccessPage = () => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2 sm:px-0">
+                    <button
+                        onClick={handleDownloadInvoice}
+                        disabled={downloadingInvoice}
+                        className="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {downloadingInvoice ? (
+                            <>
+                                <ClipLoader size={16} color="#ffffff" className="mr-2" />
+                                Downloading...
+                            </>
+                        ) : (
+                            <>
+                                <FaDownload className="mr-2" />
+                                Download Invoice
+                            </>
+                        )}
+                    </button>
                     <Link
                         href="/profile?tab=orders"
                         className="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
@@ -516,8 +689,8 @@ const OrderSuccessPage = () => {
                         Continue Shopping
                     </Link>
                 </div>
-                {/* Congrats modal with confetti */}
-                {showCongrats && (
+                {/* Congrats modal with confetti - Don't show if payment is pending */}
+                {showCongrats && !(orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending') && (
                     <div className="confetti-overlay" role="dialog" aria-modal="true">
                         <div className="confetti-card">
                             <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Congratulations! 🎉</h3>

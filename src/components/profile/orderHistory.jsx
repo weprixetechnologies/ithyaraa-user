@@ -151,7 +151,7 @@ const OrderHistory = () => {
     }
 
     const handleViewOrder = (orderId) => {
-        router.push(`/order-success/order-summary/${orderId}`)
+        router.push(`/order-status/order-summary/${orderId}`)
     }
 
     const handlePageChange = (page) => {
