@@ -1,7 +1,8 @@
 "use client";
 import axios from "axios";
+import axiosInstance from "@/lib/axiosInstance";
 import { useState, useEffect, Suspense, lazy, useRef, useMemo } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { BsFillStarFill } from "react-icons/bs";
 import { toast } from "react-toastify";
 import { CiHeart, CiRuler } from "react-icons/ci";
@@ -14,16 +15,20 @@ import CountdownTimer from "@/components/products/CountdownTimer";
 // Import modal directly (not lazy) so it's available immediately when needed
 import CrossSellModal from "@/components/products/crossSellModal";
 import RollingText from "@/components/ui/rollingText";
+import CheckoutLoadingModal from "@/components/ui/CheckoutLoadingModal";
 
 // Lazy load heavy components for better performance
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
 const ProductTabs = lazy(() => import("@/components/products/tabsAccordion"));
 const ProductSection = lazy(() => import("@/components/home/ProductSection"));
 const Reviews = lazy(() => import("@/components/products/reviews"));
+const SelectAddress = lazy(() => import("@/components/pageComponents/selectAddress"));
+const SelectPayment = lazy(() => import("@/components/pageComponents/selectPayment"));
 
 const ProductDetail = () => {
     const { presaleProductID } = useParams();
     const searchParams = useSearchParams();
+    const router = useRouter();
     const referBy = searchParams.get('referBy');
 
     // Debug: Log the referBy parameter
@@ -54,6 +59,14 @@ const ProductDetail = () => {
             { rating: 1, count: 0 }
         ]
     });
+    // Prebooking modal states
+    const [showPrebookingModal, setShowPrebookingModal] = useState(false)
+    const [selectedAddress, setSelectedAddress] = useState(null)
+    const [selectedAddressID, setSelectedAddressID] = useState(null)
+    const [paymentMode, setPaymentMode] = useState('cod')
+    const [placing, setPlacing] = useState(false)
+    const [placeError, setPlaceError] = useState('')
+    const [showCheckoutModal, setShowCheckoutModal] = useState(false)
     const dispatch = useDispatch()
     const cart = useSelector((state) => state.cart.cartCount)
     const { toggleWishlist, isInWishlist, loading: wishlistLoading, wishlistProductIds } = useWishlist()
@@ -349,6 +362,99 @@ const ProductDetail = () => {
         }
     };
 
+    // Handle address selection for prebooking
+    const handleAddressSelect = (address) => {
+        setSelectedAddress(address);
+        setSelectedAddressID(address?.addressID || null);
+    };
+
+    // Handle payment mode selection for prebooking
+    const handlePaymentModeSelect = (mode) => {
+        // Map UI selection to backend expected values
+        const mapped = mode === 'phonepe' ? 'PREPAID' : 'COD';
+        setPaymentMode(mapped);
+    };
+
+    // Handle wallet change (not used for presale bookings, but required by SelectPayment)
+    const handleWalletChange = () => {
+        // Wallet not applicable for presale bookings
+    };
+
+    // Handle prebooking order placement
+    const handlePrebookingOrder = async () => {
+        if (!selectedVariation || selectedVariation.variationStock === 0) {
+            toast.error('Please select a valid variation.');
+            return;
+        }
+
+        setPlaceError('');
+
+        // Require selected address
+        if (!selectedAddressID) {
+            setPlaceError('Please select a delivery address');
+            return;
+        }
+
+        try {
+            setPlacing(true);
+            setShowCheckoutModal(true);
+
+            const response = await axiosInstance.post('/presale/place-prebooking-order', {
+                addressID: selectedAddressID,
+                productID: presaleProductID,
+                variationID: selectedVariation?.variationID || null,
+                paymentMode,
+                quantity: count
+            });
+
+            // PhonePe redirect (online payments)
+            const redirectUrlRaw = response?.data?.checkoutPageUrl;
+            const redirectUrl = typeof redirectUrlRaw === 'string'
+                ? redirectUrlRaw
+                : redirectUrlRaw?.data?.instrumentResponse?.redirectInfo?.url;
+
+            if (redirectUrl) {
+                // Show checkout loading modal for PhonePe
+                window.location.href = redirectUrl;
+                return;
+            }
+
+            // Check if it's a COD order
+            if (response?.data?.paymentMode === 'COD' && response?.data?.success) {
+                const preBookingID = response?.data?.preBookingID;
+                if (preBookingID) {
+                    toast.success('Prebooking order placed successfully!');
+                    setShowPrebookingModal(false);
+                    setShowCheckoutModal(false);
+                    // Redirect to order-status page
+                    router.push(`/order-status/order-summary/${preBookingID}`);
+                    return;
+                }
+            }
+
+            // Fallback
+            toast.success('Prebooking order placed successfully!');
+            setShowPrebookingModal(false);
+            setShowCheckoutModal(false);
+        } catch (error) {
+            console.error('Error placing prebooking order:', error);
+            setPlaceError(error?.response?.data?.message || 'Failed to place prebooking order');
+            setShowCheckoutModal(false);
+            toast.error(error?.response?.data?.message || 'Failed to place prebooking order');
+        } finally {
+            setPlacing(false);
+        }
+    };
+
+    // Open prebooking modal
+    const handlePreBookNow = () => {
+        if (!selectedVariation || selectedVariation.variationStock === 0) {
+            toast.error('Please select a valid variation.');
+            return;
+        }
+        setShowPrebookingModal(true);
+    };
+
     const handleWishlistToggle = async () => {
         if (!presaleProductID) return;
         await toggleWishlist(presaleProductID);
@@ -520,7 +626,7 @@ const ProductDetail = () => {
                             {/* Action buttons */}
                             <button
                                 className="flex-1 py-2 rounded-lg text-center cursor-pointer relative overflow-hidden text-black font-bold transition-all duration-300 hover:scale-105 active:scale-95"
-                                onClick={addToCart}
+                                onClick={handlePreBookNow}
                                 style={{
                                     background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
                                     boxShadow: '0 10px 25px -5px rgba(234, 179, 8, 0.5), 0 0 20px rgba(234, 179, 8, 0.3)',
@@ -599,6 +705,100 @@ const ProductDetail = () => {
                 products={crossSellProducts}
                 loading={false}
             />
+
+            {/* Prebooking Modal */}
+            {showPrebookingModal && (
+                <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                            <h2 className="text-xl font-bold">Complete Your Prebooking</h2>
+                            <button
+                                onClick={() => {
+                                    setShowPrebookingModal(false);
+                                    setPlaceError('');
+                                }}
+                                className="text-gray-500 hover:text-gray-700 text-2xl"
+                                disabled={placing}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            {/* Address Selection */}
+                            <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
+                                <SelectAddress onSelect={handleAddressSelect} showAll={true} />
+                            </Suspense>
+
+                            {/* Payment Selection */}
+                            <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
+                                <SelectPayment
+                                    onSelect={handlePaymentModeSelect}
+                                    onWalletChange={handleWalletChange}
+                                    cartTotal={(variationSalePrice || variationPrice || 0) * count}
+                                    couponDiscount={0}
+                                />
+                            </Suspense>
+
+                            {/* Order Summary */}
+                            <div className="border-t border-gray-200 pt-4">
+                                <h3 className="font-semibold mb-3">Order Summary</h3>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span>Product:</span>
+                                        <span className="font-medium">{product?.name}</span>
+                                    </div>
+                                    {selectedVariation && (
+                                        <div className="flex justify-between">
+                                            <span>Variation:</span>
+                                            <span className="font-medium">{selectedVariation.variationName}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between">
+                                        <span>Quantity:</span>
+                                        <span className="font-medium">{count}</span>
+                                    </div>
+                                    <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                                        <span>Total:</span>
+                                        <span>₹{((variationSalePrice || variationPrice || 0) * count).toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Error Message */}
+                            {placeError && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                                    {placeError}
+                                </div>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => {
+                                        setShowPrebookingModal(false);
+                                        setPlaceError('');
+                                    }}
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    disabled={placing}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handlePrebookingOrder}
+                                    disabled={placing || !selectedAddressID}
+                                    className="flex-1 px-4 py-2 bg-primary-yellow rounded-lg font-semibold hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {placing ? 'Placing Order...' : 'Confirm Prebooking'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Checkout Loading Modal */}
+            <CheckoutLoadingModal isOpen={showCheckoutModal} />
         </div>
     );
 };

@@ -21,7 +21,14 @@ const OrderSuccessPage = () => {
     const fetchOrderDetails = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axiosInstance.get(`/order/order-details/${orderId}`);
+            // Try regular order first, then presale booking
+            let response;
+            try {
+                response = await axiosInstance.get(`/order/order-details/${orderId}`);
+            } catch (orderError) {
+                // If regular order fails, try presale booking
+                response = await axiosInstance.get(`/presale/booking-details/${orderId}`);
+            }
 
             if (response.data?.success) {
                 const apiItems = Array.isArray(response.data.items) ? response.data.items : [];
