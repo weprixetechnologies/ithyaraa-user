@@ -7,9 +7,9 @@ import Link from 'next/link';
 import { FaCheckCircle, FaTruck, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDownload } from 'react-icons/fa';
 import { ClipLoader } from 'react-spinners';
 
-const OrderSuccessPage = () => {
+const PresaleOrderSuccessPage = () => {
     const params = useParams();
-    const orderId = params.orderId;
+    const preBookingID = params.preBookingID;
 
     const [orderDetails, setOrderDetails] = useState(null);
     const [showCongrats, setShowCongrats] = useState(false);
@@ -21,14 +21,8 @@ const OrderSuccessPage = () => {
     const fetchOrderDetails = useCallback(async () => {
         try {
             setLoading(true);
-            // Try regular order first, then presale booking
-            let response;
-            try {
-                response = await axiosInstance.get(`/order/order-details/${orderId}`);
-            } catch (orderError) {
-                // If regular order fails, try presale booking
-                response = await axiosInstance.get(`/presale/booking-details/${orderId}`);
-            }
+            // Fetch presale booking details
+            const response = await axiosInstance.get(`/presale/booking-details/${preBookingID}`);
 
             if (response.data?.success) {
                 const apiItems = Array.isArray(response.data.items) ? response.data.items : [];
@@ -58,8 +52,11 @@ const OrderSuccessPage = () => {
                     return sum + (line || 0);
                 }, 0);
 
+                // Extract address details from orderDetail or first item
+                const deliveryAddr = detail.deliveryAddress || {};
                 const normalized = {
                     orderID: detail.orderID || first.orderID,
+                    preBookingID: preBookingID,
                     items,
                     subtotal: detail.subtotal != null ? parseFloat(detail.subtotal) : fallbackSubtotal,
                     discount: detail.totalDiscount != null ? parseFloat(detail.totalDiscount) : 0,
@@ -71,25 +68,26 @@ const OrderSuccessPage = () => {
                     createdAt: detail.createdAt || first.orderCreatedAt,
                     deliveryAddress: {
                         emailID: first.email || '',
-                        phoneNumber: first.contactNumber || '',
-                        line1: first.shippingAddress || '',
-                        line2: '',
-                        city: '',
-                        state: '',
-                        pincode: '',
-                        landmark: '',
+                        phoneNumber: deliveryAddr.phoneNumber || first.contactNumber || '',
+                        line1: deliveryAddr.line1 || first.addressLine1 || (first.shippingAddress ? first.shippingAddress.split(',')[0] : '') || '',
+                        line2: deliveryAddr.line2 || first.addressLine2 || '',
+                        city: deliveryAddr.city || first.city || '',
+                        state: deliveryAddr.state || first.state || '',
+                        pincode: deliveryAddr.pincode || first.pincode || '',
+                        landmark: deliveryAddr.landmark || first.landmark || '',
                     },
                     couponCode: detail.couponCode || '',
-                    orderStatus: detail.orderStatus || first.orderStatus || 'Preparing',
+                    orderStatus: detail.orderStatus || first.orderStatus || 'pending',
                     coinsEarned: detail.coinsEarned != null ? parseInt(detail.coinsEarned) : Math.floor(((detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal)) || 0) / 100),
                     isWalletUsed: detail.isWalletUsed ? Boolean(Number(detail.isWalletUsed)) : false,
                     paidWallet: detail.paidWallet != null ? parseFloat(detail.paidWallet) : 0
                 };
 
                 setOrderDetails(normalized);
-                // Only show coins modal if payment is successful (not pending for PREPAID)
+                // Only show coins modal if payment is successful (not pending for PREPAID, not failed)
                 const isPaymentPending = normalized.paymentMode === 'PREPAID' && normalized.paymentStatus === 'pending';
-                if ((normalized.coinsEarned || 0) > 0 && !isPaymentPending) {
+                const isPaymentFailed = normalized.paymentStatus === 'failed';
+                if ((normalized.coinsEarned || 0) > 0 && !isPaymentPending && !isPaymentFailed) {
                     setShowCongrats(true);
                 }
                 return normalized;
@@ -104,13 +102,13 @@ const OrderSuccessPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [orderId]);
+    }, [preBookingID]);
 
     useEffect(() => {
-        if (orderId) {
+        if (preBookingID) {
             fetchOrderDetails();
         }
-    }, [orderId, fetchOrderDetails]);
+    }, [preBookingID, fetchOrderDetails]);
 
     // Poll for payment status updates if payment is pending (for PREPAID orders)
     useEffect(() => {
@@ -128,19 +126,19 @@ const OrderSuccessPage = () => {
             try {
                 setIsCheckingPayment(true);
 
-                // Use PhonePe status check API which also updates the database
-                const statusResponse = await axiosInstance.get(`/phonepe/order/${orderId}/status`);
+                // Use presale-specific PhonePe status check API
+                const statusResponse = await axiosInstance.get(`/phonepe/presale/${preBookingID}/status`);
 
                 if (statusResponse.data?.success) {
                     const latestStatus = statusResponse.data.latestStatus;
 
                     // If payment is successful, refresh order details
-                    if (latestStatus?.isSuccess || statusResponse.data.currentStatus === 'successful') {
+                    if (latestStatus?.isSuccess || statusResponse.data.currentStatus === 'paid') {
                         // Fetch updated order details
                         const updatedOrder = await fetchOrderDetails();
 
                         // Stop polling if payment is successful
-                        if (updatedOrder && (updatedOrder.paymentStatus === 'successful' || updatedOrder.paymentStatus === 'paid')) {
+                        if (updatedOrder && updatedOrder.paymentStatus === 'successful') {
                             isPolling = false;
                             setIsCheckingPayment(false);
                             return true; // Payment confirmed
@@ -194,7 +192,7 @@ const OrderSuccessPage = () => {
             clearTimeout(initialTimeout);
             setIsCheckingPayment(false);
         };
-    }, [orderDetails?.paymentStatus, orderDetails?.paymentMode, orderId, fetchOrderDetails]);
+    }, [orderDetails?.paymentStatus, orderDetails?.paymentMode, preBookingID, fetchOrderDetails]);
 
     if (loading) {
         return (
@@ -246,35 +244,46 @@ const OrderSuccessPage = () => {
     const getOrderStatusUI = (status) => {
         const s = String(status || '').toLowerCase();
         switch (s) {
-            case 'preparing':
-                return { label: 'Preparing', dot: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800' };
+            case 'pending':
+                return { label: 'Pending', dot: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800' };
+            case 'accepted':
+                return { label: 'Accepted', dot: 'bg-blue-500', badge: 'bg-blue-100 text-blue-800' };
+            case 'packed':
+                return { label: 'Packed', dot: 'bg-purple-500', badge: 'bg-purple-100 text-purple-800' };
             case 'shipped':
                 return { label: 'Shipped', dot: 'bg-blue-500', badge: 'bg-blue-100 text-blue-800' };
             case 'delivered':
                 return { label: 'Delivered', dot: 'bg-green-500', badge: 'bg-green-100 text-green-800' };
             case 'cancelled':
                 return { label: 'Cancelled', dot: 'bg-red-500', badge: 'bg-red-100 text-red-800' };
+            case 'returned':
+                return { label: 'Returned', dot: 'bg-orange-500', badge: 'bg-orange-100 text-orange-800' };
             default:
-                return { label: 'Preparing', dot: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800' };
+                return { label: 'Pending', dot: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800' };
         }
     };
 
     const handleDownloadInvoice = async () => {
         try {
             setDownloadingInvoice(true);
-            const response = await axiosInstance.get(`/order/generate-invoice/${orderId}?action=download`, {
+            // Try presale invoice endpoint, fallback to regular if not available
+            try {
+                const response = await axiosInstance.get(`/presale/generate-invoice/${preBookingID}?action=download`, {
                 responseType: 'blob'
             });
-
             // Create blob link to download
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `invoice_${orderDetails.orderID}.pdf`);
+                link.setAttribute('download', `presale_invoice_${orderDetails.orderID}.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
+            } catch (presaleErr) {
+                // If presale invoice endpoint doesn't exist, show message
+                alert('Invoice generation for presale bookings is not available yet.');
+            }
         } catch (err) {
             console.error('Error downloading invoice:', err);
             alert('Failed to download invoice. Please try again.');
@@ -294,7 +303,7 @@ const OrderSuccessPage = () => {
                             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Payment In Progress</h1>
                             <p className="text-sm sm:text-base text-gray-600 px-2">Your order has been confirmed. We're verifying your payment - this page will update automatically.</p>
                             <div className="mt-3 sm:mt-4 inline-flex items-center px-3 sm:px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-xs sm:text-sm font-medium">
-                                Order ID: {orderDetails.orderID}
+                                Pre-Booking ID: {orderDetails.orderID}
                             </div>
                         </>
                     ) : orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'failed' ? (
@@ -303,16 +312,16 @@ const OrderSuccessPage = () => {
                             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Payment Failed</h1>
                             <p className="text-sm sm:text-base text-gray-600 px-2">Your payment could not be processed. Please try again or contact support.</p>
                             <div className="mt-3 sm:mt-4 inline-flex items-center px-3 sm:px-4 py-2 bg-red-100 text-red-800 rounded-full text-xs sm:text-sm font-medium">
-                                Order ID: {orderDetails.orderID}
+                                Pre-Booking ID: {orderDetails.orderID}
                             </div>
                         </>
                     ) : (
                         <>
                             <FaCheckCircle className="text-green-500 text-4xl sm:text-6xl mx-auto mb-3 sm:mb-4" />
-                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h1>
-                            <p className="text-sm sm:text-base text-gray-600 px-2">Your order has been confirmed and will be processed soon.</p>
+                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Pre-Booking Confirmed!</h1>
+                            <p className="text-sm sm:text-base text-gray-600 px-2">Your pre-booking has been confirmed and will be processed soon.</p>
                             <div className="mt-3 sm:mt-4 inline-flex items-center px-3 sm:px-4 py-2 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm font-medium">
-                                Order ID: {orderDetails.orderID}
+                                Pre-Booking ID: {orderDetails.orderID}
                             </div>
                         </>
                     )}
@@ -531,31 +540,54 @@ const OrderSuccessPage = () => {
 
                     {/* Right Side - Information Cards (25%) */}
                     <div className="lg:col-span-4 flex flex-col space-y-4 sm:space-y-6 order-1 lg:order-2">
-                        {/* Coins Earned / Pending Cashback */}
-                        {typeof orderDetails.coinsEarned === 'number' && orderDetails.coinsEarned > 0 && (
-                            <div className="bg-white rounded-lg border border-gray-200 p-0 overflow-hidden">
-                                <div className={`p-4 sm:p-6 ${orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending' ? 'bg-yellow-50' : 'coins-animated-bg'}`}>
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                                            {orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending'
-                                                ? 'Pending Cashback'
-                                                : 'Ithyaraa Coins Earned'}
-                                        </h3>
-                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending'
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : 'bg-amber-100 text-amber-800'
-                                            }`}>
-                                            +{orderDetails.coinsEarned} coins
-                                        </span>
+                        {/* Coins Earned / Pending Cashback / Cancelled */}
+                        {(() => {
+                            const isPaymentFailed = orderDetails.paymentStatus === 'failed';
+                            const hasCoins = typeof orderDetails.coinsEarned === 'number' && orderDetails.coinsEarned > 0;
+                            const isPaymentPending = orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending';
+                            
+                            // Show coins section if there are coins (even if 0) OR if payment failed (to show cancelled message)
+                            if (hasCoins || isPaymentFailed) {
+                                return (
+                                    <div className="bg-white rounded-lg border border-gray-200 p-0 overflow-hidden">
+                                        <div className={`p-4 sm:p-6 ${
+                                            isPaymentFailed 
+                                                ? 'bg-red-50' 
+                                                : isPaymentPending 
+                                                    ? 'bg-yellow-50' 
+                                                    : 'coins-animated-bg'
+                                        }`}>
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                                                    {isPaymentFailed
+                                                        ? 'Ithyaraa Coins Earning Cancelled'
+                                                        : isPaymentPending
+                                                            ? 'Pending Cashback'
+                                                            : 'Ithyaraa Coins Earned'}
+                                                </h3>
+                                                {!isPaymentFailed && (
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                                                        isPaymentPending
+                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                            : 'bg-amber-100 text-amber-800'
+                                                    }`}>
+                                                        +{orderDetails.coinsEarned} coins
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs sm:text-sm text-gray-700 mt-2">
+                                                {isPaymentFailed
+                                                    ? 'Payment failed. Coins were not earned for this order.'
+                                                    : isPaymentPending
+                                                        ? `You will earn ${orderDetails.coinsEarned} coins once payment is confirmed. Coins expire after 365 days.`
+                                                        : `You earned ${orderDetails.coinsEarned} coins for this order. Coins expire after 365 days.`}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <p className="text-xs sm:text-sm text-gray-700 mt-2">
-                                        {orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending'
-                                            ? `You will earn ${orderDetails.coinsEarned} coins once payment is confirmed. Coins expire after 365 days.`
-                                            : `You earned ${orderDetails.coinsEarned} coins for this order. Coins expire after 365 days.`}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
+                                );
+                            }
+                            return null;
+                        })()}
                         {/* Delivery Address */}
                         <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
                             <div className="flex items-center mb-3 sm:mb-4">
@@ -601,17 +633,20 @@ const OrderSuccessPage = () => {
                                             Pay on delivery
                                         </span>
                                     ) : (
-                                        <span className={`ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block px-2 py-1 rounded text-xs ${orderDetails.paymentStatus === 'pending'
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : orderDetails.paymentStatus === 'failed'
+                                        <span className={`ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block px-2 py-1 rounded text-xs ${
+                                            orderDetails.paymentStatus === 'pending'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : orderDetails.paymentStatus === 'failed'
                                                 ? 'bg-red-100 text-red-800'
                                                 : 'bg-green-100 text-green-800'
                                             }`}>
-                                            {orderDetails.paymentStatus === 'pending'
-                                                ? 'Verifying payment...'
+                                            {orderDetails.paymentStatus === 'pending' 
+                                                ? 'Verifying payment...' 
+                                                : orderDetails.paymentStatus === 'successful' 
+                                                ? 'Payment successful' 
                                                 : orderDetails.paymentStatus === 'failed'
-                                                    ? 'Payment failed'
-                                                    : 'Payment successful'}
+                                                ? 'Payment failed'
+                                                : 'Payment ' + orderDetails.paymentStatus}
                                         </span>
                                     )}
                                 </div>
@@ -665,17 +700,18 @@ const OrderSuccessPage = () => {
                                                     Pay on delivery
                                                 </span>
                                             ) : (
-                                                <span className={`text-xs sm:text-sm inline-block px-2 py-1 rounded ${orderDetails.paymentStatus === 'pending'
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : orderDetails.paymentStatus === 'failed'
+                                                <span className={`text-xs sm:text-sm inline-block px-2 py-1 rounded ${
+                                                    orderDetails.paymentStatus === 'pending'
+                                                        ? 'bg-yellow-100 text-yellow-800'
+                                                        : orderDetails.paymentStatus === 'failed'
                                                         ? 'bg-red-100 text-red-800'
                                                         : ui.badge
-                                                    }`}>
-                                                    {orderDetails.paymentStatus === 'pending'
-                                                        ? 'Verifying payment...'
+                                                }`}>
+                                                    {orderDetails.paymentStatus === 'pending' 
+                                                        ? 'Verifying payment...' 
                                                         : orderDetails.paymentStatus === 'failed'
-                                                            ? 'Payment failed'
-                                                            : 'Payment completed'}
+                                                        ? 'Payment failed'
+                                                        : 'Payment completed'}
                                                 </span>
                                             )}
                                         </>
@@ -718,15 +754,15 @@ const OrderSuccessPage = () => {
                         Continue Shopping
                     </Link>
                 </div>
-                {/* Congrats modal with confetti - Don't show if payment is pending */}
-                {showCongrats && !(orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending') && (
-                    <div
-                        className="confetti-overlay"
-                        role="dialog"
+                {/* Congrats modal with confetti - Don't show if payment is pending or failed */}
+                {showCongrats && !(orderDetails.paymentMode === 'PREPAID' && orderDetails.paymentStatus === 'pending') && orderDetails.paymentStatus !== 'failed' && (
+                    <div 
+                        className="confetti-overlay" 
+                        role="dialog" 
                         aria-modal="true"
                         onClick={() => setShowCongrats(false)}
                     >
-                        <div
+                        <div 
                             className="confetti-card"
                             onClick={(e) => e.stopPropagation()}
                         >
@@ -777,4 +813,4 @@ const OrderSuccessPage = () => {
     );
 };
 
-export default OrderSuccessPage;
+export default PresaleOrderSuccessPage;

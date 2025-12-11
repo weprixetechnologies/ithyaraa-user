@@ -102,7 +102,7 @@ const ProductDetail = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`https://api.ithyaraa.com:8800/api/presale/products/${presaleProductID}`);
+                const res = await axios.get(`https://api.ithyaraa.com/api/presale/products/${presaleProductID}`);
 
                 if (!res.data?.success || !res.data?.data) {
                     setProduct(null);
@@ -152,7 +152,7 @@ const ProductDetail = () => {
 
         const fetchReviewStats = async () => {
             try {
-                const res = await axios.get(`https://api.ithyaraa.com:8800/api/reviews/product/${presaleProductID}/stats`);
+                const res = await axios.get(`https://api.ithyaraa.com/api/reviews/product/${presaleProductID}/stats`);
                 if (res.data.success) setReviewStats(res.data.data);
             } catch (error) {
                 console.error('Error fetching review stats:', error);
@@ -243,7 +243,7 @@ const ProductDetail = () => {
         if (type) params.append("type", type);
 
         const res = await fetch(
-            `https://api.ithyaraa.com:8800/api/products/all-products?${params.toString()}`
+            `https://api.ithyaraa.com/api/products/all-products?${params.toString()}`
         );
         console.log(res);
 
@@ -426,8 +426,8 @@ const ProductDetail = () => {
                     toast.success('Prebooking order placed successfully!');
                     setShowPrebookingModal(false);
                     setShowCheckoutModal(false);
-                    // Redirect to order-status page
-                    router.push(`/order-status/order-summary/${preBookingID}`);
+                    // Redirect to presale order-status page
+                    router.push(`/presale/order-status/${preBookingID}`);
                     return;
                 }
             }

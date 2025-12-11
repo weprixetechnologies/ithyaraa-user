@@ -41,7 +41,7 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'vari
   if (sectionid) params.append("sectionid", sectionid);
 
   const res = await fetch(
-    `https://api.ithyaraa.com:8800/api/products/all-products?${params.toString()}`
+    `https://api.ithyaraa.com/api/products/all-products?${params.toString()}`
   );
 
   if (!res.ok) {

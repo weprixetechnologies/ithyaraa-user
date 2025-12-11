@@ -1,11 +1,12 @@
 "use client"
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import PrebookingProductCard from '../ui/prebookingProductCard'
+import PrebookingProductCardMap from '../ui/prebookingProductCardMap'
 
 const PresaleSection = ({ heading, subHeading }) => {
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
+    const [loadingMore, setLoadingMore] = useState(false)
     const [error, setError] = useState(null)
     const [currentPage, setCurrentPage] = useState(1)
     const [pagination, setPagination] = useState({
@@ -20,10 +21,15 @@ const PresaleSection = ({ heading, subHeading }) => {
     useEffect(() => {
         const fetchPresaleProducts = async () => {
             try {
-                setLoading(true)
+                // Only show main loading on first page load
+                if (currentPage === 1) {
+                    setLoading(true)
+                } else {
+                    setLoadingMore(true)
+                }
                 setError(null)
 
-                const response = await axios.get('https://api.ithyaraa.com:8800/api/presale/products/paginated', {
+                const response = await axios.get('https://api.ithyaraa.com/api/presale/products/paginated', {
                     params: {
                         page: currentPage,
                         limit: 5
@@ -31,7 +37,12 @@ const PresaleSection = ({ heading, subHeading }) => {
                 })
 
                 if (response.data?.success) {
-                    setProducts(response.data.data || [])
+                    // If loading more, append to existing products; otherwise replace
+                    if (currentPage > 1) {
+                        setProducts(prev => [...prev, ...(response.data.data || [])])
+                    } else {
+                        setProducts(response.data.data || [])
+                    }
                     if (response.data.pagination) {
                         setPagination(response.data.pagination)
                     }
@@ -43,6 +54,7 @@ const PresaleSection = ({ heading, subHeading }) => {
                 setError(err.message || 'Failed to fetch presale products')
             } finally {
                 setLoading(false)
+                setLoadingMore(false)
             }
         }
 
@@ -61,9 +73,9 @@ const PresaleSection = ({ heading, subHeading }) => {
                 </button>
             </div>
             <div className="py-5">
-                <div className="grid grid-cols-5 gap-10 items-center">
-                    <div className="col-span-1 h-[400px] bg-gray-200 rounded-r-lg w-full"></div>
-                    <div className="col-span-4 flex">
+                <div className="grid gap-10 items-center px-10">
+                    {/* <div className="col-span-1 h-[400px] bg-gray-200 rounded-r-lg w-full"></div> */}
+                    <div className=" flex">
                         {loading ? (
                             <div className="flex items-center justify-center p-4 w-full">
                                 <p>Loading products...</p>
@@ -73,7 +85,16 @@ const PresaleSection = ({ heading, subHeading }) => {
                                 <p className="text-red-500">Error: {error}</p>
                             </div>
                         ) : (
-                            <PrebookingProductCard products={products} />
+                            <PrebookingProductCardMap
+                                products={products}
+                                pagination={pagination}
+                                onLoadMore={() => {
+                                    if (pagination.hasNextPage && !loadingMore) {
+                                        setCurrentPage(prev => prev + 1)
+                                    }
+                                }}
+                                loadingMore={loadingMore}
+                            />
                         )}
                     </div>
                 </div>
