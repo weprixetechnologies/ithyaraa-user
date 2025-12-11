@@ -151,7 +151,9 @@ const OrderHistory = () => {
     }
 
     const handleViewOrder = (orderId) => {
-        router.push(`/order-status/order-summary/${orderId}`)
+        // Normalize path to prevent double slashes
+        const path = `/order-status/order-summary/${orderId}`.replace(/\/+/g, '/');
+        router.push(path)
     }
 
     const handlePageChange = (page) => {

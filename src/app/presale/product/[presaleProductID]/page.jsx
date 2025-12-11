@@ -427,7 +427,9 @@ const ProductDetail = () => {
                     setShowPrebookingModal(false);
                     setShowCheckoutModal(false);
                     // Redirect to presale order-status page
-                    router.push(`/presale/order-status/${preBookingID}`);
+                    // Normalize path to prevent double slashes
+                    const path = `/presale/order-status/${preBookingID}`.replace(/\/+/g, '/');
+                    router.push(path);
                     return;
                 }
             }

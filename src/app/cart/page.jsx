@@ -104,7 +104,9 @@ const Page = () => {
       if (response?.data?.paymentMode === 'COD' && response?.data?.success) {
         const orderId = response?.data?.orderID || response?.data?.orderId;
         if (orderId) {
-          window.location.href = `/order-status/order-summary/${orderId}`;
+          // Normalize path to prevent double slashes
+          const path = `/order-status/order-summary/${orderId}`.replace(/\/+/g, '/');
+          window.location.href = path;
           return;
         }
       }

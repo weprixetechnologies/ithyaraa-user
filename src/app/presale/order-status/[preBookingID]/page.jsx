@@ -549,7 +549,7 @@ const PresaleOrderSuccessPage = () => {
                             // Show coins section if there are coins (even if 0) OR if payment failed (to show cancelled message)
                             if (hasCoins || isPaymentFailed) {
                                 return (
-                                    <div className="bg-white rounded-lg border border-gray-200 p-0 overflow-hidden">
+                            <div className="bg-white rounded-lg border border-gray-200 p-0 overflow-hidden">
                                         <div className={`p-4 sm:p-6 ${
                                             isPaymentFailed 
                                                 ? 'bg-red-50' 
@@ -557,33 +557,33 @@ const PresaleOrderSuccessPage = () => {
                                                     ? 'bg-yellow-50' 
                                                     : 'coins-animated-bg'
                                         }`}>
-                                            <div className="flex items-center justify-between">
-                                                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                                                     {isPaymentFailed
                                                         ? 'Ithyaraa Coins Earning Cancelled'
                                                         : isPaymentPending
-                                                            ? 'Pending Cashback'
-                                                            : 'Ithyaraa Coins Earned'}
-                                                </h3>
+                                                ? 'Pending Cashback'
+                                                : 'Ithyaraa Coins Earned'}
+                                        </h3>
                                                 {!isPaymentFailed && (
                                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${
                                                         isPaymentPending
-                                                            ? 'bg-yellow-100 text-yellow-800'
-                                                            : 'bg-amber-100 text-amber-800'
-                                                    }`}>
-                                                        +{orderDetails.coinsEarned} coins
-                                                    </span>
+                                            ? 'bg-yellow-100 text-yellow-800'
+                                            : 'bg-amber-100 text-amber-800'
+                                            }`}>
+                                            +{orderDetails.coinsEarned} coins
+                                        </span>
                                                 )}
-                                            </div>
-                                            <p className="text-xs sm:text-sm text-gray-700 mt-2">
+                                    </div>
+                                    <p className="text-xs sm:text-sm text-gray-700 mt-2">
                                                 {isPaymentFailed
                                                     ? 'Payment failed. Coins were not earned for this order.'
                                                     : isPaymentPending
-                                                        ? `You will earn ${orderDetails.coinsEarned} coins once payment is confirmed. Coins expire after 365 days.`
-                                                        : `You earned ${orderDetails.coinsEarned} coins for this order. Coins expire after 365 days.`}
-                                            </p>
-                                        </div>
-                                    </div>
+                                            ? `You will earn ${orderDetails.coinsEarned} coins once payment is confirmed. Coins expire after 365 days.`
+                                            : `You earned ${orderDetails.coinsEarned} coins for this order. Coins expire after 365 days.`}
+                                    </p>
+                                </div>
+                            </div>
                                 );
                             }
                             return null;

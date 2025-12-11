@@ -95,7 +95,7 @@ const Coins = () => {
             {/* Balance Card */}
             <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-4 sm:p-6 mb-4">
                 <div className="flex items-center justify-between mb-3">
-                    <div>
+                <div>
                         <div className="text-sm text-gray-600 mb-1">Current Balance</div>
                         <div className="text-3xl font-bold text-amber-700">{balance} coins</div>
                     </div>
@@ -125,7 +125,7 @@ const Coins = () => {
                 >
                     <FaWallet className="text-sm" />
                     {submitting ? 'Processing...' : 'Redeem to Wallet'}
-                </button>
+                    </button>
             </div>
 
             <h3 className="text-base font-semibold mb-2">History</h3>

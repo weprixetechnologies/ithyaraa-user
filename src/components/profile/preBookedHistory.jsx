@@ -129,7 +129,9 @@ const PreBookedHistory = () => {
     }
 
     const handleViewBooking = (preBookingID) => {
-        router.push(`/presale/order-status/${preBookingID}`)
+        // Normalize path to prevent double slashes
+        const path = `/presale/order-status/${preBookingID}`.replace(/\/+/g, '/');
+        router.push(path)
     }
 
     const handlePageChange = (page) => {
