@@ -29,7 +29,7 @@ const PresaleSection = ({ heading, subHeading }) => {
                 }
                 setError(null)
 
-                const response = await axios.get('https://api.ithyaraa.com/api/presale/products/paginated', {
+                const response = await axios.get('https://backend.ithyaraa.com/api/presale/products/paginated', {
                     params: {
                         page: currentPage,
                         limit: 5

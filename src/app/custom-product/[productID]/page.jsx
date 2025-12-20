@@ -208,9 +208,9 @@ const CustomProductDetail = () => {
             try {
                 setLoading(true);
                 console.log('🔍 Fetching product with ID:', productID);
-                console.log('🔍 API URL:', `https://api.ithyaraa.com/api/products/details/${productID}`);
+                console.log('🔍 API URL:', `https://backend.ithyaraa.com/api/products/details/${productID}`);
 
-                const response = await axios.get(`https://api.ithyaraa.com/api/products/details/${productID}`);
+                const response = await axios.get(`https://backend.ithyaraa.com/api/products/details/${productID}`);
 
                 console.log('✅ API Response:', response);
                 console.log('✅ Response data:', response.data);
@@ -275,7 +275,7 @@ const CustomProductDetail = () => {
     useEffect(() => {
         const fetchRelatedProducts = async () => {
             try {
-                const response = await axios.get(`https://api.ithyaraa.com/api/products/shop?limit=8`);
+                const response = await axios.get(`https://backend.ithyaraa.com/api/products/shop?limit=8`);
                 // Helper to safely JSON.parse any field
                 const safeParse = (value) => {
                     try {

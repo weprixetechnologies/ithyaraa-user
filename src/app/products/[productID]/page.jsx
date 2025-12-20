@@ -88,7 +88,7 @@ const ProductDetail = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`https://api.ithyaraa.com/api/products/details/${productID}`);
+                const res = await axios.get(`https://backend.ithyaraa.com/api/products/details/${productID}`);
                 let data = res.data.product;
 
                 const safeParse = (value) => {
@@ -132,7 +132,7 @@ const ProductDetail = () => {
 
         const fetchReviewStats = async () => {
             try {
-                const res = await axios.get(`https://api.ithyaraa.com/api/reviews/product/${productID}/stats`);
+                const res = await axios.get(`https://backend.ithyaraa.com/api/reviews/product/${productID}/stats`);
                 if (res.data.success) setReviewStats(res.data.data);
             } catch (error) {
                 console.error('Error fetching review stats:', error);
@@ -223,7 +223,7 @@ const ProductDetail = () => {
         if (type) params.append("type", type);
 
         const res = await fetch(
-            `https://api.ithyaraa.com/api/products/all-products?${params.toString()}`
+            `https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`
         );
         console.log(res);
 
