@@ -73,7 +73,7 @@ const PresaleSection = ({ heading, subHeading }) => {
                 </button>
             </div>
             <div className="py-5">
-                <div className="grid gap-10 items-center px-10">
+                <div className="grid gap-10 items-center md:px-10 px-5">
                     {/* <div className="col-span-1 h-[400px] bg-gray-200 rounded-r-lg w-full"></div> */}
                     <div className=" flex">
                         {loading ? (
@@ -81,7 +81,7 @@ const PresaleSection = ({ heading, subHeading }) => {
                                 <p>Loading products...</p>
                             </div>
                         ) : error ? (
-                            <div className="flex items-center justify-center p-4 w-full">
+                            <div className="flex items-center justify-center md:p-4 w-full">
                                 <p className="text-red-500">Error: {error}</p>
                             </div>
                         ) : (

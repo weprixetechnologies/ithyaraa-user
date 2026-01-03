@@ -216,11 +216,11 @@ const SelectAddress = ({ onSelect, showAll = false, layout = 'layout1' }) => {
             </div>
 
             {/* Address list */}
-            <div className={`${layout == 'layout2' ? 'flex flex-col' : 'flex flex-row justify-between'} w-full gap-2 flex-wrap`}>
+            <div className="grid grid-cols-2 md:grid-cols-3 w-full gap-2">
                 {displayedAddresses.map((address) => (
                     <div
                         key={address.addressID}
-                        className={`border min-h-10 rounded-md px-4 py-3 relative cursor-pointer transition-all ${layout == 'layout1' ? 'w-[32%]' : 'w-full'}
+                        className={`border min-h-10 rounded-md px-4 py-3 relative cursor-pointer transition-all
                             ${selectedAddressID === address.addressID
                                 ? 'bg-primary-yellow text-white border-primary-yellow'
                                 : 'border-gray-200 bg-white'}`}

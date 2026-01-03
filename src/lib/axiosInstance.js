@@ -13,7 +13,7 @@ import {
 const getApiUrl = () => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
-        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
+        if (hostname === '192.168.1.12' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
             return 'https://backend.ithyaraa.com/api';
         }
     }

@@ -144,7 +144,7 @@ const SelectPayment = ({ onSelect, onWalletChange, cartTotal, couponDiscount = 0
                     </label>
                     {remaining > 0 && (
                         <p className="text-xs bg-green-100 text-green-700 font-medium px-3 py-1">
-                            Enjoy a flat discount of ₹20
+                            Hassle Free Delivery & Fast Payments
                         </p>
                     )}
                 </div>

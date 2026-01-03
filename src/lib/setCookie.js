@@ -13,7 +13,7 @@
 export const setCookie = (name, value, options = {}) => {
     const { days, path = '/', secure, sameSite = 'lax' } = options;
 
-    // Detect if we're on HTTPS (production) or HTTP (localhost)
+    // Detect if we're on HTTPS (production) or HTTP (192.168.1.12)
     const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
 
     let cookieStr = `${name}=${encodeURIComponent(value)}; path=${path}; samesite=${sameSite}`;
@@ -54,7 +54,7 @@ export const setCookieEasy = (name, value, days) => {
         ? "; expires=" + new Date(Date.now() + days * 864e5).toUTCString()
         : "";
 
-    // Detect if we're on HTTPS (production) or HTTP (localhost)
+    // Detect if we're on HTTPS (production) or HTTP (192.168.1.12)
     const isSecure = window.location.protocol === 'https:';
 
     // Set Secure flag only on HTTPS, use Lax for cross-site requests

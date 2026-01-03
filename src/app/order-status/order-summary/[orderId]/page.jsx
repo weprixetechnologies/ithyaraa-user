@@ -83,7 +83,9 @@ const OrderSuccessPage = () => {
                     orderStatus: detail.orderStatus || first.orderStatus || 'Preparing',
                     coinsEarned: detail.coinsEarned != null ? parseInt(detail.coinsEarned) : Math.floor(((detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal)) || 0) / 100),
                     isWalletUsed: detail.isWalletUsed ? Boolean(Number(detail.isWalletUsed)) : false,
-                    paidWallet: detail.paidWallet != null ? parseFloat(detail.paidWallet) : 0
+                    paidWallet: detail.paidWallet != null ? parseFloat(detail.paidWallet) : 0,
+                    handlingFee: detail.handlingFee != null ? Boolean(Number(detail.handlingFee)) : false,
+                    handFeeRate: detail.handFeeRate != null ? parseFloat(detail.handFeeRate) : 0
                 };
 
                 setOrderDetails(normalized);
@@ -499,6 +501,12 @@ const OrderSuccessPage = () => {
                                             <span className="text-gray-600">Shipping:</span>
                                             <span>{formatPrice(orderDetails.shipping)}</span>
                                         </div>
+                                        {(orderDetails.handlingFee && orderDetails.handFeeRate > 0) && (
+                                            <div className="flex justify-between text-sm sm:text-base">
+                                                <span className="text-gray-600">Handling Fee (COD):</span>
+                                                <span>{formatPrice(orderDetails.handFeeRate)}</span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between text-base sm:text-lg font-semibold border-t pt-2">
                                             <span>Total:</span>
                                             <span>{formatPrice(orderDetails.total)}</span>

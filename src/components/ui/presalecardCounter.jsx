@@ -38,34 +38,13 @@ const getTimeLeft = (futureDate) => {
 }
 
 const square = (val, label) => (
-    <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
-    }}>
-        <div style={{
-            minWidth: 36,
-            minHeight: 36,
-            background: '#fff',
-            borderRadius: 8,
-            border: '1.5px solid #eee',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontWeight: 700,
-            fontSize: 18,
-            color: '#222',
-            margin: '0 2px'
-        }}>
+    <div className="flex flex-col items-center">
+        <div className="min-w-8 min-h-8 sm:min-w-9 sm:min-h-9 bg-white rounded-lg border border-gray-200 flex items-center justify-center font-bold text-sm sm:text-base text-gray-900 mx-0.5">
             {pad(val)}
         </div>
-        <span style={{
-            fontSize: 10,
-            color: '#666',
-            marginTop: 2,
-            textTransform: 'uppercase',
-            letterSpacing: 0.5
-        }}>{label}</span>
+        <span className="text-[9px] sm:text-[10px] text-gray-500 mt-1 uppercase tracking-[0.05em]">
+            {label}
+        </span>
     </div>
 );
 
@@ -125,21 +104,30 @@ const PresaleCardCounter = ({ datetime }) => {
         );
 
     return (
-        <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            justifyContent: 'center'
-        }}>
+        <>
+            {/* Mobile: single compact box with full timer */}
+            <div className="flex sm:hidden items-center justify-center">
+                <div className="flex w-full flex-col items-center justify-center px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <span className="font-semibold text-xs text-red-500 tracking-[0.08em] uppercase mb-1">
+                        Ends in
+                    </span>
+                    <span className="font-bold text-[16px] text-gray-900 tracking-[0.2em]">
+                        {pad(timeLeft.days)}:{pad(timeLeft.hours)}:{pad(timeLeft.minutes)}:{pad(timeLeft.seconds)}
+                    </span>
+                </div>
+            </div>
 
-            {square(timeLeft.days, 'Days')}
-            <span style={{ fontWeight: 700, margin: '0 4px', fontSize: 18 }}>:</span>
-            {square(timeLeft.hours, 'Hrs')}
-            <span style={{ fontWeight: 700, margin: '0 4px', fontSize: 18 }}>:</span>
-            {square(timeLeft.minutes, 'Min')}
-            <span style={{ fontWeight: 700, margin: '0 4px', fontSize: 18 }}>:</span>
-            {square(timeLeft.seconds, 'Sec')}
-        </div>
+            {/* Desktop & tablets: existing multi-square layout */}
+            <div className="hidden sm:flex items-center justify-center gap-1 sm:gap-1.5">
+                {square(timeLeft.days, 'Days')}
+                <span className="font-bold mx-1 text-sm sm:text-base">:</span>
+                {square(timeLeft.hours, 'Hrs')}
+                <span className="font-bold mx-1 text-sm sm:text-base">:</span>
+                {square(timeLeft.minutes, 'Min')}
+                <span className="font-bold mx-1 text-sm sm:text-base">:</span>
+                {square(timeLeft.seconds, 'Sec')}
+            </div>
+        </>
     )
 }
 

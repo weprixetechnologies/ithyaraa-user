@@ -217,7 +217,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
 
             {/* Drawer */}
             <div
-                className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
+                className={`fixed top-0 right-0 h-full w-[90%] md:w-[30%] bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
                     }`}
             >
                 <div className="flex flex-col h-full">
@@ -521,6 +521,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                     <span className="text-gray-600">Shipping</span>
                                     <span className="font-medium">Free</span>
                                 </div>
+                                {/* Note: Handling fee will be shown on cart page when COD is selected */}
                                 <div className="border-t border-gray-300 pt-2 mt-2">
                                     <div className="flex justify-between">
                                         <span className="font-semibold text-lg">Total</span>

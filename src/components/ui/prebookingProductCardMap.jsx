@@ -1,8 +1,19 @@
 import React from 'react'
-import PreBookingProductCard from './prebookingProductCard'
+import PreBookingProductCard from './preBookingProductCard'
 
 const PreBookingProductCardMap = ({ products = [], pagination = {}, onLoadMore, loadingMore = false }) => {
     console.log(products);
+
+    // Filter out expired products based on preSaleEndDate
+    const filteredProducts = Array.isArray(products)
+        ? products.filter((product) => {
+            const endDate = product?.preSaleEndDate;
+            if (!endDate) return true; // keep if no end date
+            const now = new Date();
+            const saleEnd = new Date(endDate);
+            return saleEnd.getTime() > now.getTime();
+        })
+        : [];
 
     const handleLoadMore = () => {
         if (onLoadMore && pagination?.hasNextPage && !loadingMore) {
@@ -12,10 +23,10 @@ const PreBookingProductCardMap = ({ products = [], pagination = {}, onLoadMore, 
 
     return (
         <div className="w-full">
-            {products.length > 0 ? (
+            {filteredProducts.length > 0 ? (
                 <>
-                    <div className="grid grid-cols-5 gap-10 items-center">
-                        {products.map((product) => (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 md:gap-8 lg:gap-10 items-stretch">
+                        {filteredProducts.map((product) => (
                             <PreBookingProductCard
                                 key={product.presaleProductID}
                                 product={product}

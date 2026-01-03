@@ -17,6 +17,7 @@ import { getCartAsync } from "@/redux/slices/cartSlice"
 import WishlistIcon from "../ui/WishlistIcon"
 import { useAuth } from "@/contexts/AuthContext"
 import CartDrawer from "../ui/CartDrawer"
+import SearchDrawer from "../ui/SearchDrawer"
 
 const ShopWithUs = () => {
 
@@ -104,19 +105,29 @@ const ShopWithUs = () => {
     )
 }
 
-const HamburgerMenu = () => {
-    const { user } = useAuth()
+const HamburgerMenu = ({ isLoggedIn, user }) => {
+    const router = useRouter()
 
     return (
         <div className="px-3 py-5">
-
-            <div className="auth-content-hamburger flex flex-row gap-2">
-                <button className="h-[30px] w-[30px] rounded-full border"></button>
-                <div className="flex flex-col items-start">
-                    <p className="text-xs">Welcome Back</p>
-                    <p className="text-sm">{user?.name || user?.username || 'User'}</p>
+            {isLoggedIn ? (
+                <div className="auth-content-hamburger flex flex-row gap-2 items-center">
+                    <IoPersonOutline size={28} className="text-gray-700" />
+                    <div className="flex flex-col items-start">
+                        <p className="text-xs">Welcome Back</p>
+                        <p className="text-sm">{user?.name || user?.username || 'User'}</p>
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <button
+                    className="w-full text-sm font-medium bg-primary text-white px-4 py-2 rounded hover:bg-secondary transition-colors cursor-pointer"
+                    onClick={() => {
+                        router.push('/login')
+                    }}
+                >
+                    LOGIN / SIGNUP
+                </button>
+            )}
 
             <div className="mt-3 bg-secondary h-0.5 opacity-40 mb-3"></div>
             <HamburgerChildMenu />
@@ -136,6 +147,7 @@ const Header = () => {
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
+    const [searchDrawerOpen, setSearchDrawerOpen] = useState(false)
 
     const dispatch = useDispatch()
     const cartCounter = useSelector((state) => state.cart.cartCount)
@@ -198,7 +210,7 @@ const Header = () => {
                             <SearchNavbar />
                             <WishlistIcon />
                             <div className="relative cursor-pointer" onClick={() => setCartDrawerOpen(true)}>
-                                <LuShoppingCart size={24} />
+                                <LuShoppingCart size={28} />
                                 {cartCounter > 0 && (
                                     <span className="absolute -top-3 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                                         {cartCounter > 99 ? '99+' : cartCounter}
@@ -319,11 +331,13 @@ const Header = () => {
                 </div>
 
                 {/* Right icons */}
-                <div className="icons flex flex-row items-center">
-                    <CiSearch size={24} className="ml-3" />
+                <div className="icons flex flex-row items-center gap-3">
+                    <div className="cursor-pointer" onClick={() => setSearchDrawerOpen(true)}>
+                        <CiSearch size={28} />
+                    </div>
                     <WishlistIcon />
-                    <div className="relative ml-3 cursor-pointer" onClick={() => setCartDrawerOpen(true)}>
-                        <CiShoppingCart size={24} />
+                    <div className="relative cursor-pointer" onClick={() => setCartDrawerOpen(true)}>
+                        <CiShoppingCart size={28} />
                         {cartCounter > 0 && (
                             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                                 {cartCounter > 99 ? '99+' : cartCounter}
@@ -342,12 +356,15 @@ const Header = () => {
                 <div
                     className={`absolute top-0 left-0 w-[70%] rounded-r-2xl h-[100dvh] bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${hamburgerOpen ? "translate-x-0" : "-translate-x-full"}`}
                 >
-                    <HamburgerMenu />
+                    <HamburgerMenu isLoggedIn={isLoggedIn} user={user} />
                 </div>
             </div>
 
             {/* Cart Drawer */}
             <CartDrawer isOpen={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
+
+            {/* Search Drawer */}
+            <SearchDrawer isOpen={searchDrawerOpen} onClose={() => setSearchDrawerOpen(false)} />
 
         </div>
     )

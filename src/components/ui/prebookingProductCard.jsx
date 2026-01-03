@@ -16,9 +16,9 @@ const PreBookingProductCard = ({ product }) => {
     return (
         <div
             onClick={handleCardClick}
-            className="w-[250px] overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer hover:shadow-lg hover:shadow-gray-300 hover:p-2 rounded-lg"
+            className="w-full sm:w-[250px] overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer hover:shadow-lg hover:shadow-gray-300 hover:p-2 rounded-lg"
         >
-            <div className="h-auto aspect-[170/222] w-full max-w-[300px] relative rounded-lg overflow-hidden">
+            <div className="h-auto aspect-[170/222] w-full sm:max-w-[300px] mx-auto relative rounded-lg overflow-hidden">
                 <div className="absolute inset-0 rounded-lg overflow-hidden">
                     <Image
                         src={imageUrl}
@@ -45,10 +45,11 @@ const PreBookingProductCard = ({ product }) => {
                         Off)
                     </span>
                 </div>
-                <p className='text-sm text-center text-red-500 font-medium my-2' style={{ letterSpacing: '0.05em' }}>Ends In</p>
-                <PresaleCardCounter datetime={product.preSaleEndDate} />
+                <p className='hidden sm:block text-sm text-center text-red-500 font-medium my-2' style={{ letterSpacing: '0.05em' }}>Ends In</p>
             </div>
-            <button className='w-full bg-primary-yellow text-black font-semibold py-2 rounded-lg letter-spacing-wide cursor-pointer hover:text-white hover:bg-orange-500 transition-all duration-300' style={{ letterSpacing: '0.05em' }}>Buy Now</button>
+            <PresaleCardCounter datetime={product.preSaleEndDate} />
+
+            <button className='w-full mt-2 bg-primary-yellow text-black font-semibold py-2 rounded-lg letter-spacing-wide cursor-pointer hover:text-white hover:bg-orange-500 transition-all duration-300' style={{ letterSpacing: '0.05em' }}>Buy Now</button>
         </div>
     )
 }

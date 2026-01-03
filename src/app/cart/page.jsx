@@ -239,6 +239,7 @@ const Page = () => {
               breakdownData={cartRedux.cartDetail}
               couponDiscount={couponDiscount}
               appliedCoupon={appliedCoupon}
+              paymentMode={paymentMode}
             />
           </Suspense>
           {/* Coins notice */}
