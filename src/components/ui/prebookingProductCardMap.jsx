@@ -1,5 +1,5 @@
 import React from 'react'
-import PreBookingProductCard from './preBookingProductCard.jsx'
+import PreBookingProductCard from './preBookingProductCard'
 
 const PreBookingProductCardMap = ({ products = [], pagination = {}, onLoadMore, loadingMore = false }) => {
     console.log(products);
