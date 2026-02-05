@@ -1,8 +1,8 @@
 import React from 'react'
-import PreBookingProductCard from './prebookingProductCard'
+import PreBookingProductCard from './preBookingProductCard'
 
 const PreBookingProductCardMap = ({ products = [], pagination = {}, onLoadMore, loadingMore = false }) => {
-    console.log(products);
+    console.log("Presale Products Available");
 
     // Filter out expired products based on preSaleEndDate
     const filteredProducts = Array.isArray(products)

@@ -11,7 +11,7 @@ export default function HeaderServer({ megaMenuOpen, megaMenuName }) {
                 <p className="text-xs text-white">Enjoy Free Delivery on Orders Over 500 INR</p>
                 <div className="flex flex-row items-center gap-4">
                     <Link href="/track-order" className="text-xs text-white hover:text-gray-300">Track Your Order</Link>
-                    <Link href="/join-newsletter" className="text-xs text-white hover:text-gray-300">Join Our Newsletters</Link>
+                    <Link href="/newsletter" className="text-xs text-white hover:text-gray-300">Join Our Newsletters</Link>
                     <Link href="/download-mobile" className="text-xs text-white hover:text-gray-300">Download Our Mobile Application</Link>
                 </div>
             </div>

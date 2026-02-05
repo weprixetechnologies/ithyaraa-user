@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCookie } from '@/lib/setCookie';
+import { getCookie, setCookieEasy } from '@/lib/setCookie';
 import {
     getAndClearRedirectUrl,
     getAndClearPendingRequests,
@@ -108,6 +108,7 @@ export const AuthProvider = ({ children }) => {
         document.cookie = '_at=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         document.cookie = '_rt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         document.cookie = 'isLoggedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'newsletter_joined=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 
         router.push('/');
     };
@@ -119,6 +120,14 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await axiosInstance.get('/user/detail-by-user');
             setUser(response.data);
+
+            // Persist newsletter_joined flag in a cookie for optimization
+            const joined = response.data?.newsletter_joined;
+            if (joined === 1 || joined === true) {
+                setCookieEasy('newsletter_joined', 'true', 30);
+            } else if (joined === 0 || joined === false) {
+                setCookieEasy('newsletter_joined', 'false', 30);
+            }
         } catch (error) {
             console.error('[AuthContext] Error fetching user details:', error);
             if (error.response?.status === 401) {

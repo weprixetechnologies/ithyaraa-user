@@ -30,7 +30,7 @@ const PresaleSection = dynamic(() => import("@/components/homeComponents/presale
 });
 
 // ISR: regenerate this page every 10 seconds
-// export const revalidate = 10;
+export const revalidate = 3600;
 
 async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'variable', sectionid = "" } = {}) {
   const params = new URLSearchParams();

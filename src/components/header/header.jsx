@@ -191,7 +191,7 @@ const Header = () => {
                         <Link href="/track-order" className="text-xs text-white hover:text-gray-300">
                             Track Your Order
                         </Link>
-                        <Link href="/join-newsletter" className="text-xs text-white hover:text-gray-300">
+                        <Link href="/newsletter" className="text-xs text-white hover:text-gray-300">
                             Join Our Newsletters
                         </Link>
                         <Link href="/download-mobile" className="text-xs text-white hover:text-gray-300">
