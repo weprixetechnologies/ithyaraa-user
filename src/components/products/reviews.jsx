@@ -22,6 +22,10 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [uploadingImages, setUploadingImages] = useState(false);
+    const [lastUploadTimestamp, setLastUploadTimestamp] = useState(0);
     const { user, isAuthenticated } = useAuth();
 
     // Update review stats if prop changes
@@ -66,6 +70,110 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
         return '/default-avatar.png';
     };
 
+    const resetImageState = () => {
+        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+        setSelectedImages([]);
+        setImagePreviews([]);
+    };
+
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files || []);
+
+        if (files.length === 0) return;
+
+        // Enforce max 5 images
+        if (files.length + selectedImages.length > 5) {
+            toast.error('You can upload a maximum of 5 images per review.');
+            return;
+        }
+
+        const validMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        const newFiles = [];
+        const newPreviews = [];
+
+        for (const file of files) {
+            if (!validMimeTypes.includes(file.type)) {
+                toast.error('Only JPG, JPEG, PNG and WEBP images are allowed.');
+                continue;
+            }
+
+            // Optional size limit (5MB per image)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Each image must be less than 5MB.');
+                continue;
+            }
+
+            newFiles.push(file);
+            newPreviews.push(URL.createObjectURL(file));
+        }
+
+        if (newFiles.length === 0) {
+            return;
+        }
+
+        setSelectedImages((prev) => [...prev, ...newFiles]);
+        setImagePreviews((prev) => [...prev, ...newPreviews]);
+    };
+
+    const handleRemoveImage = (index) => {
+        setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+        setImagePreviews((prev) => {
+            const toRemove = prev[index];
+            if (toRemove) URL.revokeObjectURL(toRemove);
+            return prev.filter((_, i) => i !== index);
+        });
+    };
+
+    const uploadReviewImages = async () => {
+        if (selectedImages.length === 0) return [];
+
+        const now = Date.now();
+        // Simple client-side rate limiting: avoid repeated rapid uploads
+        if (now - lastUploadTimestamp < 2000) {
+            toast.error('Please wait a moment before uploading images again.');
+            throw new Error('Rate limited image uploads');
+        }
+
+        setLastUploadTimestamp(now);
+        setUploadingImages(true);
+
+        try {
+            const storageZone = 'ithyaraa';
+            const storageRegion = 'sg.storage.bunnycdn.com';
+            const pullZoneUrl = 'https://ithyaraa.b-cdn.net';
+            const apiKey = '7017f7c4-638b-48ab-add3858172a8-f520-4b88'; // Existing CDN dev key
+
+            const uploadedUrls = [];
+
+            for (let index = 0; index < selectedImages.length; index++) {
+                const file = selectedImages[index];
+                const timestamp = Date.now();
+                const fileName = `review-${productID}-${timestamp}-${index}-${encodeURIComponent(file.name)}`;
+                const uploadUrl = `https://${storageRegion}/${storageZone}/${fileName}`;
+                const publicUrl = `${pullZoneUrl}/${fileName}`;
+
+                const res = await fetch(uploadUrl, {
+                    method: 'PUT',
+                    headers: {
+                        AccessKey: apiKey,
+                        'Content-Type': file.type || 'application/octet-stream'
+                    },
+                    body: file
+                });
+
+                if (!res.ok) {
+                    throw new Error('Failed to upload one or more images. Please try again.');
+                }
+
+                uploadedUrls.push(publicUrl);
+            }
+
+            return uploadedUrls;
+        } finally {
+            setUploadingImages(false);
+        }
+    };
+
     const handleSubmitReview = async () => {
         if (!isAuthenticated) {
             toast.error('Please login to submit a review');
@@ -79,12 +187,20 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
 
         try {
             setSubmitting(true);
+            let imageUrls = [];
+
+            // Upload images (if any) before submitting the review
+            if (selectedImages.length > 0) {
+                imageUrls = await uploadReviewImages();
+            }
+
             const response = await axiosInstance.post(
                 '/reviews/add',
                 {
                     productID,
                     rating,
-                    comment: comment || null
+                    comment: comment || null,
+                    images: imageUrls.length > 0 ? imageUrls : undefined
                 }
             );
 
@@ -93,6 +209,7 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
                 setShowWriteReview(false);
                 setComment('');
                 setRating(5);
+                resetImageState();
                 fetchReviews();
                 // Trigger parent to refetch stats by dispatching an event or callback
                 window.location.reload();
@@ -181,6 +298,42 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-yellow"
                                 rows={4}
                             />
+                        </div>
+
+                        {/* Image Upload (optional) */}
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">
+                                Add Images <span className="text-xs text-gray-500">(optional, up to 5)</span>
+                            </label>
+                            <input
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.webp"
+                                multiple
+                                onChange={handleImageChange}
+                                disabled={uploadingImages || submitting}
+                                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                            />
+                            {selectedImages.length > 0 && (
+                                <div className="mt-3 grid grid-cols-3 gap-2">
+                                    {imagePreviews.map((src, index) => (
+                                        <div key={index} className="relative w-full aspect-square rounded-md overflow-hidden border border-gray-200">
+                                            <Image
+                                                src={src}
+                                                alt={`Selected review image ${index + 1}`}
+                                                fill
+                                                className="object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveImage(index)}
+                                                className="absolute top-1 right-1 bg-black/60 text-white text-xs rounded-full px-1.5 py-0.5"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Submit Button */}
@@ -279,6 +432,25 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
                                 >
                                     {expandedIndex === index ? "Read less" : "Read more"}
                                 </button>
+                            )}
+
+                            {/* Review Images */}
+                            {Array.isArray(review.images) && review.images.length > 0 && (
+                                <div className="mt-3 grid grid-cols-3 gap-2">
+                                    {review.images.map((imgUrl, imgIndex) => (
+                                        <div
+                                            key={imgIndex}
+                                            className="relative w-full aspect-square rounded-md overflow-hidden"
+                                        >
+                                            <Image
+                                                src={imgUrl}
+                                                alt={`Review image ${imgIndex + 1}`}
+                                                fill
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                             )}
 
                             {/* Review metadata

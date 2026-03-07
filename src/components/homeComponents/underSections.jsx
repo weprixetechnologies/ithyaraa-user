@@ -46,24 +46,25 @@ const UnderSections = () => {
                         backgroundPosition: 'center'
                     }}
                 >
-                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[250px] md:w-auto'>
-                        <Image src="/UNDER.png" alt="Under this price" width={250} height={175} className='rounded-lg w-full h-auto md:w-auto' />
+                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[500px] md:w-auto'>
+                        <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto md:w-auto' />
                     </div>
-                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[250px] md:w-auto'>
-                        <Image src="/UNDER.png" alt="Under this price" width={250} height={175} className='rounded-lg w-full h-auto md:w-auto' />
+                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[500px] md:w-auto'>
+                        <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto md:w-auto' />
                     </div>
-                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[250px] md:w-auto'>
-                        <Image src="/UNDER.png" alt="Under this price" width={250} height={175} className='rounded-lg w-full h-auto md:w-auto' />
+                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[500px] md:w-auto'>
+                        <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto md:w-auto' />
                     </div>
-                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[250px] md:w-auto'>
-                        <Image src="/UNDER.png" alt="Under this price" width={250} height={175} className='rounded-lg w-full h-auto md:w-auto' />
+                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[500px] md:w-auto'>
+                        <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto md:w-auto' />
                     </div>
-                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[250px] md:w-auto'>
-                        <Image src="/UNDER.png" alt="Under this price" width={250} height={175} className='rounded-lg w-full h-auto md:w-auto' />
+                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[500px] md:w-auto'>
+                        <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto md:w-auto' />
                     </div>
-                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[250px] md:w-auto'>
-                        <Image src="/UNDER.png" alt="Under this price" width={250} height={175} className='rounded-lg w-full h-auto md:w-auto' />
+                    <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg w-full max-w-[500px] md:w-auto'>
+                        <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto md:w-auto' />
                     </div>
+
                 </div>
             </div>
         </>

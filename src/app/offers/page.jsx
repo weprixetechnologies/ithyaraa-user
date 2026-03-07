@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaTag, FaGift, FaPercent, FaShoppingBag, FaArrowRight } from 'react-icons/fa';
+import { FaTag, FaGift, FaPercent, FaArrowRight } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io';
 import { useRouter } from 'next/navigation';
 import axiosInstance from '@/lib/axiosInstance';
@@ -20,9 +20,8 @@ const OffersPage = () => {
 
     const filters = [
         { id: 'all', label: 'All Offers', icon: FaTag },
-        { id: 'buy-get', label: 'Buy & Get', icon: FaGift },
-        { id: 'percentage', label: 'Percentage', icon: FaPercent },
-        { id: 'combo', label: 'Combo', icon: FaShoppingBag },
+        { id: 'buy_x_get_y', label: 'Buy & Get', icon: FaGift },
+        { id: 'buy_x_at_x', label: 'Heavily Discounted', icon: FaPercent },
     ];
 
     useEffect(() => {
@@ -57,12 +56,10 @@ const OffersPage = () => {
         } else {
             const filtered = offers.filter(offer => {
                 switch (activeFilter) {
-                    case 'buy-get':
-                        return offer.offerType === 'buy-get';
-                    case 'percentage':
-                        return offer.offerType === 'percentage';
-                    case 'combo':
-                        return offer.offerType === 'combo';
+                    case 'buy_x_get_y':
+                        return offer.offerType === 'buy_x_get_y';
+                    case 'buy_x_at_x':
+                        return offer.offerType === 'buy_x_at_x';
                     default:
                         return true;
                 }
@@ -73,12 +70,10 @@ const OffersPage = () => {
 
     const getOfferTypeIcon = (type) => {
         switch (type) {
-            case 'buy-get':
+            case 'buy_x_get_y':
                 return <FaGift className="text-purple-500" />;
-            case 'percentage':
+            case 'buy_x_at_x':
                 return <FaPercent className="text-green-500" />;
-            case 'combo':
-                return <FaShoppingBag className="text-blue-500" />;
             default:
                 return <FaTag className="text-orange-500" />;
         }
@@ -86,24 +81,20 @@ const OffersPage = () => {
 
     const getOfferTypeColor = (type) => {
         switch (type) {
-            case 'buy-get':
+            case 'buy_x_get_y':
                 return 'bg-purple-100 text-purple-800 border-purple-200';
-            case 'percentage':
+            case 'buy_x_at_x':
                 return 'bg-green-100 text-green-800 border-green-200';
-            case 'combo':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
             default:
                 return 'bg-orange-100 text-orange-800 border-orange-200';
         }
     };
 
     const formatOfferDescription = (offer) => {
-        if (offer.offerType === 'buy-get') {
+        if (offer.offerType === 'buy_x_get_y') {
             return `Buy ${offer.buyCount || 1} Get ${offer.getCount || 1}`;
-        } else if (offer.offerType === 'percentage') {
-            return `${offer.buyCount || 0}% Off`;
-        } else if (offer.offerType === 'combo') {
-            return 'Combo Package';
+        } else if (offer.offerType === 'buy_x_at_x') {
+            return offer.buyAt ? `At ₹${offer.buyAt}` : 'Fixed Price';
         }
         return 'Special Deal';
     };
@@ -237,9 +228,8 @@ const OffersPage = () => {
                                     <div className="absolute top-3 left-3">
                                         <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getOfferTypeColor(offer.offerType)}`}>
                                             {getOfferTypeIcon(offer.offerType)}
-                                            {offer.offerType === 'buy-get' ? 'Buy & Get' :
-                                                offer.offerType === 'percentage' ? 'Percentage Off' :
-                                                    offer.offerType === 'combo' ? 'Combo Deal' : 'Special Offer'}
+                                            {offer.offerType === 'buy_x_get_y' ? 'Buy & Get' :
+                                                offer.offerType === 'buy_x_at_x' ? 'Fixed Price' : 'Special Offer'}
                                         </span>
                                     </div>
 

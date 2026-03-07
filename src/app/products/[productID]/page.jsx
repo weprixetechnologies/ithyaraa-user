@@ -13,6 +13,7 @@ import Loading from "@/components/ui/loading";
 import CountdownTimer from "@/components/products/CountdownTimer";
 // Import modal directly (not lazy) so it's available immediately when needed
 import CrossSellModal from "@/components/products/crossSellModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Lazy load heavy components for better performance
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
@@ -59,6 +60,7 @@ const ProductDetail = () => {
 
     // Check wishlist status - use wishlistProductIds to avoid dependency issues
     const isWishlisted = productID ? isInWishlist(productID) : false
+    const [showSizeChart, setShowSizeChart] = useState(false);
 
     // console.log(cart);
 
@@ -285,6 +287,44 @@ const ProductDetail = () => {
     if (loading) return <Loading />
     if (!product) return <p className="text-center mt-10">Product not found</p>;
 
+    // Derived pricing helpers
+    const effectiveVariation = selectedVariation || null;
+    const effectiveRegularPrice =
+        (effectiveVariation && effectiveVariation.variationPrice) ??
+        variationPrice ??
+        product.regularPrice;
+
+    // This is the main price to show (includes flash sale adjustments from backend when applicable)
+    const effectiveDisplayPrice =
+        (effectiveVariation && effectiveVariation.variationSalePrice) ??
+        variationSalePrice ??
+        product.salePrice ??
+        effectiveRegularPrice;
+
+    const hasVariationSelected = Boolean(effectiveVariation);
+
+    // Flash/special price: when no variation is selected, compute from regularPrice using discountType/discountValue
+    let flashDisplayPrice = effectiveDisplayPrice;
+    if (product.isFlashSale && !hasVariationSelected && product.regularPrice != null) {
+        const baseRegular = Number(product.regularPrice);
+        const dtype = String(product.discountType || '').toLowerCase();
+        const dval = Number(product.discountValue || 0);
+
+        if (!Number.isNaN(baseRegular) && dval > 0) {
+            if (dtype === 'percentage') {
+                flashDisplayPrice = Math.max(0, +(baseRegular * (1 - dval / 100)).toFixed(2));
+            } else if (dtype === 'fixed' || dtype === 'flat') {
+                flashDisplayPrice = Math.max(0, +(baseRegular - dval).toFixed(2));
+            }
+        }
+    }
+
+    // Previous sale price (before flash sale) – used for middle, struck-through price
+    const previousSalePrice =
+        product.salePrice &&
+            product.salePrice !== product.regularPrice
+            ? product.salePrice
+            : null;
 
 
     const addToCart = async () => {
@@ -378,9 +418,30 @@ const ProductDetail = () => {
 
                         {/* Pricing */}
                         <div className="pricing flex mt-4 items-center gap-3">
-                            <p className="text-xl font-medium">₹{variationSalePrice || variationPrice}</p>
-                            {variationSalePrice && variationSalePrice !== variationPrice && (
-                                <p className="text-xl font-medium line-through text-secondary-text-deep">₹{variationPrice}</p>
+                            {product.isFlashSale && previousSalePrice ? (
+                                <>
+                                    {/* Flash Price */}
+                                    <p className="text-xl font-semibold text-red-600">₹{flashDisplayPrice}</p>
+                                    {/* Original sale price (now struck through) */}
+                                    <p className="text-lg font-medium line-through text-secondary-text-deep">
+                                        ₹{previousSalePrice}
+                                    </p>
+                                    {/* Regular price (also struck through) */}
+                                    {effectiveRegularPrice && (
+                                        <p className="text-lg font-medium line-through text-secondary-text-deep">
+                                            ₹{effectiveRegularPrice}
+                                        </p>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-xl font-medium">₹{variationSalePrice || variationPrice}</p>
+                                    {variationSalePrice && variationSalePrice !== variationPrice && (
+                                        <p className="text-xl font-medium line-through text-secondary-text-deep">
+                                            ₹{variationPrice}
+                                        </p>
+                                    )}
+                                </>
                             )}
                             {product.discountValue && (
                                 <p className="text-xl font-medium text-green-600">{product.discountValue}% Off</p>
@@ -476,9 +537,15 @@ const ProductDetail = () => {
                                 )}
                                 <p className="pl-1">{isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}</p>
                             </button>
-                            <div className="flex items-center hover:text-secondary-text-deep cursor-pointer">
-                                <CiRuler />  <p className="pl-1">Size Guide</p>
-                            </div>
+                            {product?.type === 'variable' && product?.sizeChartUrl && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSizeChart(true)}
+                                    className="flex items-center hover:text-secondary-text-deep cursor-pointer"
+                                >
+                                    <CiRuler />  <p className="pl-1">Size Guide</p>
+                                </button>
+                            )}
                         </div>
                         <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
                             <ProductTabs
@@ -514,6 +581,22 @@ const ProductDetail = () => {
                 products={crossSellProducts}
                 loading={false}
             />
+            {product?.type === 'variable' && product?.sizeChartUrl && (
+                <Dialog open={showSizeChart} onOpenChange={(open) => !open && setShowSizeChart(false)}>
+                    <DialogContent className="max-w-md w-full max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle>Size Chart</DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-2">
+                            <img
+                                src={product.sizeChartUrl}
+                                alt="Size chart"
+                                className="w-full h-auto object-contain"
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 };

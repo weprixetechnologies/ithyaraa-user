@@ -126,6 +126,40 @@ const AffiliateDashboard = ({ user }) => {
         };
         fetchOrders();
     }, [activeTab, ordersPage, appliedOrdersFilters]);
+
+    // Display status: mPending -> pending, mCompleted -> completed, etc.
+    const displayStatus = (s) => {
+        if (typeof s !== 'string' || !s) return s || '-';
+        if (s.length > 1 && s[0] === 'm' && s[1] === s[1].toUpperCase()) {
+            return s.slice(1).charAt(0).toLowerCase() + s.slice(2);
+        }
+        return s;
+    };
+    // Human-readable reason for transaction status (affiliate panel)
+    const getTransactionStatusReason = (status) => {
+        const raw = (status || '');
+        const s = (raw.length > 1 && raw[0] === 'm' && raw[1] === raw[1].toUpperCase())
+            ? (raw.slice(1).charAt(0).toLowerCase() + raw.slice(2)).toLowerCase()
+            : raw.toLowerCase();
+        switch (s) {
+            case 'returned':
+                return 'User may have returned the order';
+            case 'confirmed':
+                return 'Please wait until return window closes';
+            case 'completed':
+            case 'paid':
+                return 'Your amount has been credited to your affiliate account';
+            case 'failed':
+                return 'We will fix this soon';
+            case 'rejected':
+                return 'Order may have some dispute';
+            case 'pending':
+                return 'Processing — will update after delivery';
+            default:
+                return '';
+        }
+    };
+
     return (
         <div className="flex items-start justify-center w-full py-10 px-4">
             <div className="w-full max-w-[1000px]">
@@ -270,7 +304,7 @@ const AffiliateDashboard = ({ user }) => {
                                             value={filters.status}
                                             onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
                                         >
-                                            <option value="">All statuses</option>
+                                            <option value="">All Status</option>
                                             <option value="pending">Pending</option>
                                             <option value="confirmed">Confirmed</option>
                                             <option value="paid">Paid</option>
@@ -384,19 +418,26 @@ const AffiliateDashboard = ({ user }) => {
                                                     <th className="py-3 px-2 text-left w-24">Date</th>
                                                     <th className="py-3 px-2 text-left w-32">Type</th>
                                                     <th className="py-3 px-2 text-left w-24">Status</th>
+                                                    <th className="py-3 px-2 text-left min-w-[180px]">Reason</th>
                                                     <th className="py-3 px-2 text-right w-24">Amount</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {transactions.length === 0 ? (
                                                     <tr>
-                                                        <td className="py-6 text-center text-gray-500" colSpan={4}>No transactions found</td>
+                                                        <td className="py-6 text-center text-gray-500" colSpan={5}>No transactions found</td>
                                                     </tr>
                                                 ) : (
                                                     transactions.map((t) => {
                                                         const amountNum = Number(t.amount || 0);
-                                                        const isIncoming = (String(t.type).toLowerCase() === 'commission') || amountNum > 0;
+                                                        const isIncoming = (String(t.type).toLowerCase() === 'incoming') || (String(t.type).toLowerCase() === 'commission') || amountNum > 0;
                                                         const pillClass = isIncoming ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                                                        const rawStatus = t.status || '';
+                                                        const statusForDisplay = displayStatus(rawStatus);
+                                                        const statusReason = getTransactionStatusReason(rawStatus);
+                                                        const isGreen = /^(confirmed|paid|completed|mConfirmed|mCompleted)$/i.test(rawStatus);
+                                                        const isYellow = /^(pending|mPending)$/i.test(rawStatus);
+                                                        const isRed = /^(returned|rejected|failed|mReturned|mRejected|mFailed)$/i.test(rawStatus);
                                                         return (
                                                             <tr key={t.txnID} className="border-b hover:bg-gray-50 transition-colors">
                                                                 <td className="py-3 px-2 text-gray-600">{t.createdOn ? new Date(t.createdOn).toLocaleDateString() : '-'}</td>
@@ -406,12 +447,12 @@ const AffiliateDashboard = ({ user }) => {
                                                                     </span>
                                                                 </td>
                                                                 <td className="py-3 px-2">
-                                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${t.status === 'confirmed' || t.status === 'paid' ? 'bg-green-100 text-green-700' :
-                                                                        t.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                                            'bg-gray-100 text-gray-700'
-                                                                        }`}>
-                                                                        {t.status || '-'}
+                                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${isGreen ? 'bg-green-100 text-green-700' : isYellow ? 'bg-yellow-100 text-yellow-700' : isRed ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
+                                                                        {statusForDisplay}
                                                                     </span>
+                                                                </td>
+                                                                <td className="py-3 px-2 text-gray-600 text-xs">
+                                                                    {statusReason || '—'}
                                                                 </td>
                                                                 <td className="py-3 px-2 text-right">
                                                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${pillClass}`}>
@@ -647,6 +688,7 @@ const AffiliateDashboard = ({ user }) => {
 const ApplyAffiliate = ({ user }) => {
     const [isLoading, setIsLoading] = useState(true);   // start loading
     const [submitted, setIsSubmitted] = useState(false);
+    const [password, setPassword] = useState('');
 
     useEffect(() => {
 
@@ -718,7 +760,8 @@ const ApplyAffiliate = ({ user }) => {
                     />
                     <InputPassword
                         placeholder="Enter Your Password"
-                        value=""
+                        value={password}
+                        setState={setPassword}
                     />
                 </div>
 

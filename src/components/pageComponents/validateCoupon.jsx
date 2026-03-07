@@ -50,8 +50,14 @@ const ValidateCoupon = ({ onCouponApplied, appliedCoupon, onRemoveCoupon }) => {
                 toast.error(response.data.message || 'Failed to apply coupon')
             }
         } catch (error) {
-            console.error('Error applying coupon:', error)
-            toast.error(error.response?.data?.message || 'Failed to apply coupon')
+            const message = error.response?.data?.message || 'Failed to apply coupon'
+            // 4xx = validation/ineligibility (show as warning with backend message); 5xx = real server error
+            if (error.response?.status >= 400 && error.response?.status < 500) {
+                toast.warning(message)
+            } else {
+                console.error('Error applying coupon:', error)
+                toast.error(message)
+            }
         } finally {
             setLoading(false)
         }

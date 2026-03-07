@@ -444,3 +444,22 @@
     opacity: 1.0;
   }
 }
+
+/* Legal pages: print-friendly (PDF-ready) */
+@media print {
+  .legal-page {
+    max-width: 100%;
+    padding: 0;
+  }
+  .legal-page nav[aria-label="Table of contents"] {
+    display: none;
+  }
+  .legal-page section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .legal-page a[href^="#"] {
+    color: #111;
+    text-decoration: none;
+  }
+}

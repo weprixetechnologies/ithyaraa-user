@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { MdAccountBalanceWallet, MdPayment, MdHistory, MdPending, MdAccountBalance, MdAdd, MdCheckCircle, MdCancel, MdHourglassEmpty } from "react-icons/md";
+import { MdAccountBalanceWallet, MdPayment, MdHistory, MdPending, MdAccountBalance, MdAdd, MdCheckCircle, MdCancel, MdHourglassEmpty, MdLock, MdInfo } from "react-icons/md";
 import { RxCross2 } from "react-icons/rx";
 import Loading from '../ui/loading';
 import axiosInstance from '../../lib/axiosInstance'
@@ -10,8 +10,12 @@ const Payout = ({ user }) => {
         totalEarnings: 0,
         requestedAmount: 0,
         lastPayout: null,
+        lockedAmount: 0,
         payoutHistory: []
     });
+    const [showLockedBreakdownModal, setShowLockedBreakdownModal] = useState(false);
+    const [lockedBreakdownLoading, setLockedBreakdownLoading] = useState(false);
+    const [lockedBreakdown, setLockedBreakdown] = useState({ lockedAmount: 0, items: [] });
     const [loading, setLoading] = useState(false);
     const [payoutLoading, setPayoutLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -54,7 +58,8 @@ const Payout = ({ user }) => {
                         pendingAmount: requestableData.requestableAmount || 0,
                         totalEarnings: requestableData.breakdown?.totalEarnings || 0,
                         requestedAmount: requestableData.breakdown?.requestedPayout || 0,
-                        lastPayout: requestableData.breakdown?.totalPaid || 0
+                        lastPayout: requestableData.breakdown?.totalPaid || 0,
+                        lockedAmount: requestableData.breakdown?.lockedAmount ?? 0
                     }));
                 }
 
@@ -107,11 +112,30 @@ const Payout = ({ user }) => {
                     pendingAmount: requestableData.requestableAmount || 0,
                     totalEarnings: requestableData.breakdown?.totalEarnings || 0,
                     requestedAmount: requestableData.breakdown?.requestedPayout || 0,
-                    lastPayout: requestableData.breakdown?.totalPaid || 0
+                    lastPayout: requestableData.breakdown?.totalPaid || 0,
+                    lockedAmount: requestableData.breakdown?.lockedAmount ?? 0
                 }));
             }
         } catch (err) {
             console.error('Failed to refresh payout data:', err);
+        }
+    };
+
+    const openLockedBreakdownModal = async () => {
+        setShowLockedBreakdownModal(true);
+        setLockedBreakdownLoading(true);
+        try {
+            const res = await axiosInstance.get('/affiliate/locked-breakdown');
+            if (res.data?.success && res.data?.data) {
+                setLockedBreakdown(res.data.data);
+            } else {
+                setLockedBreakdown({ lockedAmount: 0, items: [] });
+            }
+        } catch (err) {
+            console.error('Failed to load locked breakdown:', err);
+            setLockedBreakdown({ lockedAmount: 0, items: [] });
+        } finally {
+            setLockedBreakdownLoading(false);
         }
     };
 
@@ -416,6 +440,34 @@ const Payout = ({ user }) => {
                         <p className="text-xs text-gray-400">Completed payouts</p>
                     </div>
                 </div>
+
+                {/* Locked Amount Card - shown when user has locked earnings */}
+                {Number(payoutData.lockedAmount) > 0 && (
+                    <div className="mb-8 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 shadow-sm">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex items-start gap-4">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-100">
+                                    <MdLock className="text-2xl text-amber-600" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-amber-800">Locked amount</p>
+                                    <p className="text-2xl font-bold text-amber-900">₹ {Number(payoutData.lockedAmount).toLocaleString('en-IN')}</p>
+                                    <p className="mt-1 text-sm text-amber-700/90">
+                                        This amount is locked until the return period ends. It will become available for payout after the lock date.
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={openLockedBreakdownModal}
+                                className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-4 py-2.5 text-sm font-medium text-amber-800 shadow-sm hover:bg-amber-50 transition"
+                            >
+                                <MdInfo className="text-lg" />
+                                Know more
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Bank Accounts Section */}
                 <div className="bg-white border rounded-2xl shadow-sm p-6 mb-8">
@@ -810,6 +862,71 @@ const Payout = ({ user }) => {
                                 )}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Locked amount breakdown modal */}
+            {showLockedBreakdownModal && (
+                <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+                        <div className="flex items-center justify-between p-6 border-b">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
+                                    <MdLock className="text-xl text-amber-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">Locked amount – unlock dates</h3>
+                                    <p className="text-sm text-gray-500">Amounts become available for payout on these dates</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowLockedBreakdownModal(false)}
+                                className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                            >
+                                <RxCross2 size={22} />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto flex-1">
+                            {lockedBreakdownLoading ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : !lockedBreakdown.items || lockedBreakdown.items.length === 0 ? (
+                                <p className="text-center text-gray-500 py-8">No locked amounts at the moment.</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="border-b text-left text-gray-600">
+                                                <th className="pb-3 font-medium">Order</th>
+                                                <th className="pb-3 font-medium">Amount (₹)</th>
+                                                <th className="pb-3 font-medium">Unlocks on</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {lockedBreakdown.items.map((row, idx) => (
+                                                <tr key={idx} className="border-b border-gray-100">
+                                                    <td className="py-3 text-gray-700">{row.orderID ? `#${row.orderID}` : '—'}</td>
+                                                    <td className="py-3 font-medium">₹ {Number(row.amount).toLocaleString('en-IN')}</td>
+                                                    <td className="py-3 text-gray-700">
+                                                        {row.unlockedAt ? new Date(row.unlockedAt).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : '—'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                        {lockedBreakdown.items?.length > 0 && (
+                            <div className="p-4 border-t bg-gray-50 rounded-b-2xl">
+                                <p className="text-sm text-gray-600">
+                                    <strong>Total locked:</strong> ₹ {Number(lockedBreakdown.lockedAmount || 0).toLocaleString('en-IN')}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

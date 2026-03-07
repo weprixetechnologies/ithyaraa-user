@@ -122,7 +122,7 @@ const SelectPayment = ({ onSelect, onWalletChange, cartTotal, couponDiscount = 0
                     )}
                 </div>
 
-                {/* PhonePe */}
+                {/* Online payment via PhonePe (UPI / Cards / Wallets) */}
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                     <label className="flex items-center justify-between px-3 py-2 cursor-pointer">
                         <div className="flex items-center">
@@ -135,7 +135,12 @@ const SelectPayment = ({ onSelect, onWalletChange, cartTotal, couponDiscount = 0
                                 className="accent-primary-yellow"
                                 disabled={remaining <= 0}
                             />
-                            <span className="ml-2 text-sm font-medium">Pay with PhonePe</span>
+                            <div className="ml-2 flex flex-col">
+                                <span className="text-sm font-medium">Online Payment</span>
+                                <span className="mt-0.5 text-[11px] text-gray-500">
+                                    Pay securely via <span className="font-semibold text-gray-700">UPI, Cards & Wallets</span> using PhonePe
+                                </span>
+                            </div>
                             {remaining <= 0 && <span className="ml-2 text-xs text-gray-500">(Not needed)</span>}
                         </div>
                         <div className="relative h-[30px] w-[100px]">
@@ -143,9 +148,16 @@ const SelectPayment = ({ onSelect, onWalletChange, cartTotal, couponDiscount = 0
                         </div>
                     </label>
                     {remaining > 0 && (
-                        <p className="text-xs bg-green-100 text-green-700 font-medium px-3 py-1">
-                            Hassle Free Delivery & Fast Payments
-                        </p>
+                        <div className="px-3 py-1 bg-green-50 border-t border-green-100">
+                            <div className="flex flex-wrap items-center gap-2 text-[11px] text-green-800 font-medium">
+                                <span className="px-2 py-0.5 rounded-full bg-white border border-green-200">UPI</span>
+                                <span className="px-2 py-0.5 rounded-full bg-white border border-green-200">Credit / Debit Card</span>
+                                <span className="px-2 py-0.5 rounded-full bg-white border border-green-200">Wallets</span>
+                                <span className="ml-auto text-[11px] text-green-700">
+                                    Hassle-free & fast payments
+                                </span>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>

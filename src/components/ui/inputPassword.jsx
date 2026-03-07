@@ -4,6 +4,14 @@ import { RiLockPasswordLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 
 const InputPassword = ({ setState, value, placeholder }) => {
     const [showPassword, setShowPassword] = useState(false);
+    const [internalValue, setInternalValue] = useState(value ?? "");
+    const isControlled = setState != null;
+    const displayValue = isControlled ? (value ?? "") : internalValue;
+    const handleChange = (e) => {
+        const v = e.target.value;
+        if (isControlled) setState(v);
+        else setInternalValue(v);
+    };
 
     return (
         <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden w-full">
@@ -15,8 +23,8 @@ const InputPassword = ({ setState, value, placeholder }) => {
             </span>
             {/* Password input */}
             <input
-                value={value}
-                onChange={(e) => setState(e.target.value)}
+                value={displayValue}
+                onChange={handleChange}
                 type={showPassword ? "text" : "password"}
                 placeholder={placeholder}
                 className="px-2 py-4 w-full outline-none"

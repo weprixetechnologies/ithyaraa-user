@@ -65,7 +65,7 @@ const PresaleSection = ({ heading, subHeading }) => {
         <div>
             <div className="flex flex-row justify-between px-5 mt-5 items-end mb-3 md:flex-col md:items-center">
                 <div className="flex flex-col">
-                    <p className="text-lg font-medium md:text-xl">{heading}</p>
+                    <p className="text-lg font-medium md:text-2xl">{heading}</p>
                     <p className="text-xs font-semibold text-secondary-text-deep md:text-center md:text-sm">{subHeading}</p>
                 </div>
                 <button className="bg-primary-yellow h-[30px] px-2 text-xs font-medium rounded md:hidden">

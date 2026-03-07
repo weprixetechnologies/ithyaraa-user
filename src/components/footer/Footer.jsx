@@ -74,9 +74,9 @@ const Footer = () => {
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="hover:text-primary-yellow transition-colors">
+                                <Link href="/returns-refunds" className="hover:text-primary-yellow transition-colors">
                                     Returns & Refunds
-                                </a>
+                                </Link>
                             </li>
                             <li>
                                 <a href="#" className="hover:text-primary-yellow transition-colors">
@@ -89,9 +89,9 @@ const Footer = () => {
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="hover:text-primary-yellow transition-colors">
+                                <Link href="/faq" className="hover:text-primary-yellow transition-colors">
                                     FAQ
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -128,16 +128,19 @@ const Footer = () => {
                     <div className="text-sm">
                         <p>&copy; {new Date().getFullYear()} ITHYARAA. All rights reserved.</p>
                     </div>
-                    <div className="flex space-x-6 text-sm">
-                        <a href="#" className="hover:text-primary-yellow transition-colors">
+                    <div className="flex flex-wrap justify-center md:justify-end gap-4 md:gap-6 text-sm">
+                        <Link href="/privacy-policy" className="hover:text-primary-yellow transition-colors">
                             Privacy Policy
-                        </a>
-                        <a href="#" className="hover:text-primary-yellow transition-colors">
+                        </Link>
+                        <Link href="/returns-refunds" className="hover:text-primary-yellow transition-colors">
+                            Returns & Refunds
+                        </Link>
+                        <Link href="/terms-and-conditions" className="hover:text-primary-yellow transition-colors">
                             Terms & Conditions
-                        </a>
-                        <a href="#" className="hover:text-primary-yellow transition-colors">
+                        </Link>
+                        <Link href="/cookie-policy" className="hover:text-primary-yellow transition-colors">
                             Cookie Policy
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

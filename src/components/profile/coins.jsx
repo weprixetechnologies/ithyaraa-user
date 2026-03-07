@@ -20,6 +20,9 @@ const Coins = () => {
     const [showNoCoinsAlert, setShowNoCoinsAlert] = useState(false)
     const [showSuccessModal, setShowSuccessModal] = useState(false)
     const [successMessage, setSuccessMessage] = useState('')
+    const [showLockedBreakdownModal, setShowLockedBreakdownModal] = useState(false)
+    const [lockedBreakdownLoading, setLockedBreakdownLoading] = useState(false)
+    const [lockedCoinsBreakdown, setLockedCoinsBreakdown] = useState({ lockedBalance: 0, items: [] })
 
     const fetchData = async (p = 1) => {
         setLoading(true)
@@ -83,6 +86,26 @@ const Coins = () => {
 
     const totalPages = Math.max(1, Math.ceil(total / 20))
 
+    const openLockedCoinsBreakdown = async () => {
+        setShowLockedBreakdownModal(true)
+        setLockedBreakdownLoading(true)
+        try {
+            const res = await axiosInstance.get('/coins/locked-breakdown')
+            if (res.data?.success) {
+                setLockedCoinsBreakdown({
+                    lockedBalance: res.data.lockedBalance ?? 0,
+                    items: res.data.items ?? []
+                })
+            } else {
+                setLockedCoinsBreakdown({ lockedBalance: 0, items: [] })
+            }
+        } catch (e) {
+            setLockedCoinsBreakdown({ lockedBalance: 0, items: [] })
+        } finally {
+            setLockedBreakdownLoading(false)
+        }
+    }
+
     return (
         <>
         <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
@@ -106,11 +129,18 @@ const Coins = () => {
                 
                 {lockedBalance > 0 && (
                     <div className="mt-3 pt-3 border-t border-amber-200">
-                        <div className="flex items-center gap-2 text-sm">
-                            <FaLock className="text-amber-600" />
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                            <FaLock className="text-amber-600 shrink-0" />
                             <span className="text-gray-600">
                                 <span className="font-medium text-amber-700">{lockedBalance} coins</span> locked (available after 7 days)
                             </span>
+                            <button
+                                type="button"
+                                onClick={openLockedCoinsBreakdown}
+                                className="ml-1 inline-flex items-center gap-1 rounded-md border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-800 hover:bg-amber-50 transition"
+                            >
+                                Know more
+                            </button>
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
                             {redeemableBalance} coins available for redemption
@@ -334,6 +364,71 @@ const Coins = () => {
                 </div>
             </DialogContent>
         </Dialog>
+
+        {/* Locked coins breakdown modal */}
+        {showLockedBreakdownModal && (
+            <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+                    <div className="flex items-center justify-between p-6 border-b">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
+                                <FaLock className="text-xl text-amber-600" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Locked coins – unlock dates</h3>
+                                <p className="text-sm text-gray-500">Coins become redeemable on these dates (7 days after delivery)</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowLockedBreakdownModal(false)}
+                            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <div className="p-6 overflow-y-auto flex-1">
+                        {lockedBreakdownLoading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <ClipLoader size={32} color="#d97706" />
+                            </div>
+                        ) : !lockedCoinsBreakdown.items || lockedCoinsBreakdown.items.length === 0 ? (
+                            <p className="text-center text-gray-500 py-8">No locked coins at the moment.</p>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b text-left text-gray-600">
+                                            <th className="pb-3 font-medium">Order</th>
+                                            <th className="pb-3 font-medium">Coins</th>
+                                            <th className="pb-3 font-medium">Unlocks on</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {lockedCoinsBreakdown.items.map((row, idx) => (
+                                            <tr key={idx} className="border-b border-gray-100">
+                                                <td className="py-3 text-gray-700">{row.orderID ? `#${row.orderID}` : '—'}</td>
+                                                <td className="py-3 font-medium">{Number(row.coins)} coins</td>
+                                                <td className="py-3 text-gray-700">
+                                                    {row.redeemableAt ? new Date(row.redeemableAt).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : '—'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                    {lockedCoinsBreakdown.items?.length > 0 && (
+                        <div className="p-4 border-t bg-amber-50/50 rounded-b-2xl">
+                            <p className="text-sm text-gray-700">
+                                <strong>Total locked:</strong> {Number(lockedCoinsBreakdown.lockedBalance || 0)} coins
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
 
         {/* No Coins Available Alert */}
         <AlertDialog open={showNoCoinsAlert} onOpenChange={setShowNoCoinsAlert}>

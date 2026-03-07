@@ -546,9 +546,32 @@ const ProductDetail = () => {
 
                         {/* Pricing */}
                         <div className="pricing flex mt-4 items-center gap-3">
-                            <p className="text-xl font-medium">₹{variationSalePrice || variationPrice}</p>
-                            {variationSalePrice && variationSalePrice !== variationPrice && (
-                                <p className="text-xl font-medium line-through text-secondary-text-deep">₹{variationPrice}</p>
+                            {product.isFlashSale && product.salePrice && product.salePrice !== product.regularPrice ? (
+                                <>
+                                    {/* Flash Price */}
+                                    <p className="text-xl font-semibold text-red-600">
+                                        ₹{variationSalePrice || variationPrice}
+                                    </p>
+                                    {/* Original sale price (now struck through) */}
+                                    <p className="text-lg font-medium line-through text-secondary-text-deep">
+                                        ₹{product.salePrice}
+                                    </p>
+                                    {/* Regular price (also struck through) */}
+                                    {(variationPrice || product.regularPrice) && (
+                                        <p className="text-lg font-medium line-through text-secondary-text-deep">
+                                            ₹{variationPrice || product.regularPrice}
+                                        </p>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-xl font-medium">₹{variationSalePrice || variationPrice}</p>
+                                    {variationSalePrice && variationSalePrice !== variationPrice && (
+                                        <p className="text-xl font-medium line-through text-secondary-text-deep">
+                                            ₹{variationPrice}
+                                        </p>
+                                    )}
+                                </>
                             )}
                             {product.discountValue && (
                                 <p className="text-xl font-medium text-green-600">{product.discountValue}% Off</p>

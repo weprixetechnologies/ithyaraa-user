@@ -7,6 +7,9 @@ import HomeCategory from "@/components/categories/HomeCategory";
 const Slider = dynamic(() => import("@/components/ui/imageSlider"), {
   loading: () => <div className="h-64 bg-gray-200 animate-pulse rounded-lg" />
 });
+const DesktopCategories = dynamic(() => import("@/components/homeComponents/desktopCategories"), {
+  loading: () => <div className="h-64 bg-gray-200 animate-pulse rounded-lg" />
+});
 const TilledMiniCategories = dynamic(() => import("@/components/ui/tilledMiniCategories"), {
   loading: () => <div className="h-32 bg-gray-200 animate-pulse rounded-lg" />
 });
@@ -80,11 +83,32 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'vari
   };
 }
 
+async function getCategories(limit = 10) {
+  const res = await fetch(
+    "https://backend.ithyaraa.com/api/categories/public",
+    {
+      // Align with page ISR
+      next: { revalidate }
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch categories");
+  }
+
+  const data = await res.json();
+  const categories = data?.data || [];
+
+  // Ensure we never return more than the requested limit
+  return categories.slice(0, limit);
+}
+
 
 export default async function Home() {
   console.log("Rendering Home Page (ISR)");
 
   let section_one = [];
+  let categories = [];
   try {
     const section_one_raw = await getProducts({ sectionid: "HOME_HERO" });
     section_one = section_one_raw.data
@@ -93,6 +117,12 @@ export default async function Home() {
   } catch (error) {
     console.error(error);
     // Optionally render empty array or fallback data
+  }
+
+  try {
+    categories = await getCategories(10);
+  } catch (error) {
+    console.error(error);
   }
 
   return (
@@ -124,7 +154,11 @@ export default async function Home() {
       <RollingText text1="YOUNG ELEGANT SURPRISING" text2="PRIMARY DRESES" direction="left" />
       <FeaturingBlock />
       <RollingText text1="YOUNG ELEGANT SURPRISING" text2="PRIMARY DRESES" direction="right" />
-
+      <DesktopCategories
+        heading="Our Latest Collections"
+        subHeading="Browse by category"
+        categories={categories}
+      />
       <ProductSection
         heading="Picks Curated For You"
         subHeading="Collections You Will Definitely Love"
