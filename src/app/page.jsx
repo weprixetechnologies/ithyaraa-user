@@ -103,12 +103,29 @@ async function getCategories(limit = 10) {
   return categories.slice(0, limit);
 }
 
+async function getHomepageSections() {
+  const res = await fetch(
+    "https://backend.ithyaraa.com/api/homepage-sections/active",
+    {
+      next: { revalidate }
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch homepage sections");
+  }
+
+  const data = await res.json();
+  return data?.data || [];
+}
+
 
 export default async function Home() {
   console.log("Rendering Home Page (ISR)");
 
   let section_one = [];
   let categories = [];
+  let homepageSections = [];
   try {
     const section_one_raw = await getProducts({ sectionid: "HOME_HERO" });
     section_one = section_one_raw.data
@@ -125,9 +142,15 @@ export default async function Home() {
     console.error(error);
   }
 
+  try {
+    homepageSections = await getHomepageSections();
+  } catch (error) {
+    console.error(error);
+  }
+
   return (
     <>
-      <TilledMiniCategories />
+      <TilledMiniCategories sections={homepageSections} />
       <Slider
         aspectratio="aspect-[1/1]"
         showButtons={false}

@@ -6,6 +6,18 @@ import axiosInstance from '@/lib/axiosInstance'
 import { FaEye, FaTruck, FaCreditCard, FaCalendarAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { ClipLoader } from 'react-spinners'
 
+const RETURN_STATUS_LABELS = {
+    return_requested: 'Return requested',
+    return_initiated: 'Return initiated',
+    return_picked: 'Return picked',
+    replacement_processing: 'Replacement processing',
+    replacement_shipped: 'Replacement shipped',
+    replacement_complete: 'Replacement complete',
+    returned: 'Returned',
+    refund_pending: 'Refund pending',
+    refund_completed: 'Refund completed'
+}
+
 const OrderHistory = () => {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
@@ -13,6 +25,7 @@ const OrderHistory = () => {
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [totalOrders, setTotalOrders] = useState(0)
+    const [returnLoading, setReturnLoading] = useState(null) // 'orderID' or 'orderID-itemID' for which action is in progress
     const router = useRouter()
 
     const ORDERS_PER_PAGE = 10
@@ -34,7 +47,9 @@ const OrderHistory = () => {
                                 createdAt: item.orderCreatedAt || item.createdAt,
                                 paymentMode: item.paymentMode,
                                 paymentStatus: item.paymentStatus,
-                                orderStatus: item.orderStatus
+                                orderStatus: item.orderStatus,
+                                deliveredAt: item.deliveredAt || null,
+                                isReplacement: !!(item.isReplacement === 1 || item.isReplacement === true)
                             }
                         }
 
@@ -61,7 +76,9 @@ const OrderHistory = () => {
 
                         acc[orderId].items.push({
                             ...item,
-                            featuredImage: parsedFeaturedImage
+                            featuredImage: parsedFeaturedImage,
+                            orderItemID: item.orderItemID,
+                            returnStatus: item.returnStatus || 'none'
                         })
                         return acc
                     }, {})
@@ -126,27 +143,102 @@ const OrderHistory = () => {
         switch (orderStatus?.toLowerCase()) {
             case 'preparing':
                 return 'bg-blue-100 text-blue-800'
+            case 'shipped':
+                return 'bg-orange-100 text-orange-800'
             case 'shipping':
                 return 'bg-orange-100 text-orange-800'
             case 'delivered':
                 return 'bg-green-100 text-green-800'
+            case 'partially_returned':
+                return 'bg-amber-100 text-amber-800'
+            case 'returned':
+                return 'bg-gray-100 text-gray-800'
             default:
                 return 'bg-gray-100 text-gray-800'
         }
     }
 
-    const getOrderStatusText = (orderStatus) => {
-        switch (orderStatus?.toLowerCase()) {
+    const getOrderStatusText = (order, orderStatus) => {
+        const status = orderStatus?.toLowerCase()
+        if (status === 'returned' || status === 'partially_returned') {
+            const items = order?.items || []
+            const priority = ['refund_completed', 'refund_pending', 'returned', 'replacement_complete', 'replacement_shipped', 'return_picked', 'return_initiated', 'replacement_processing', 'return_requested']
+            for (const p of priority) {
+                const item = items.find(i => (i.returnStatus || '').toLowerCase() === p)
+                if (item) return RETURN_STATUS_LABELS[p] || p
+            }
+            return status === 'partially_returned' ? 'Partially returned' : 'Returned'
+        }
+        switch (status) {
             case 'pending':
                 return 'Getting Confirmed...'
             case 'preparing':
                 return 'Preparing'
+            case 'shipped':
             case 'shipping':
-                return 'Shipping'
+                return 'Shipped'
             case 'delivered':
                 return 'Delivered'
             default:
-                return 'Error'
+                return orderStatus || '—'
+        }
+    }
+
+    // Gradient background for order item row: from right to 30% from left, by status
+    const getItemRowStyle = (item) => {
+        const rs = (item.returnStatus || 'none').toLowerCase()
+        const isReturned = ['returned', 'refund_completed', 'refund_pending', 'replacement_complete', 'replacement_shipped', 'return_picked', 'return_initiated', 'replacement_processing'].includes(rs)
+        const status = isReturned ? 'returned' : (item.itemStatus || 'pending').toLowerCase()
+        const colors = {
+            pending: 'rgba(250, 204, 21, 0.35)',
+            shipped: 'rgba(59, 130, 246, 0.3)',
+            delivered: 'rgba(34, 197, 94, 0.3)',
+            returned: 'rgba(239, 68, 68, 0.25)'
+        }
+        const color = colors[status] || colors.pending
+        return {
+            background: `linear-gradient(to left, ${color} 0%, transparent 70%), rgb(249 250 251)`
+        }
+    }
+
+    const canReturnOrder = (order) => {
+        const status = order.orderStatus?.toLowerCase()
+        // Allow return window for delivered and partially_returned (so remaining items can still be returned)
+        if (status !== 'delivered' && status !== 'partially_returned') return false
+        const deliveredAt = order.deliveredAt ? new Date(order.deliveredAt) : null
+        if (!deliveredAt || isNaN(deliveredAt.getTime())) return false
+        const now = new Date()
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000
+        return now.getTime() <= deliveredAt.getTime() + sevenDaysMs
+    }
+
+    const handleReturnItem = async (orderID, orderItemID, reason = '') => {
+        const key = orderItemID ? `${orderID}-${orderItemID}` : `${orderID}-entire`
+        setReturnLoading(key)
+        try {
+            const payload = { orderID, reason: reason || undefined }
+            if (orderItemID) payload.orderItemID = orderItemID
+            const res = await axiosInstance.post('/order/return-order', payload)
+            if (res.data?.success) {
+                if (res.data.refundPending) {
+                    alert(res.data.message || 'Return requested. Our executive will contact you for some items.')
+                } else {
+                    alert(res.data.message || 'Return request submitted.')
+                }
+                window.location.reload()
+            } else {
+                alert(res.data?.message || 'Return request failed.')
+            }
+        } catch (err) {
+            alert(err.response?.data?.message || err.message || 'Return request failed.')
+        } finally {
+            setReturnLoading(null)
+        }
+    }
+
+    const handleReturnEntireOrder = (orderID) => {
+        if (confirm('Return entire order? This will request return for all eligible items.')) {
+            handleReturnItem(orderID, null)
         }
     }
 
@@ -246,13 +338,13 @@ const OrderHistory = () => {
 
             <div className="space-y-4">
                 {orders.map((order) => (
-                    <div key={order.orderID} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div key={order.orderID} className={`rounded-lg p-6 hover:shadow-md transition-shadow border ${order.isReplacement ? 'bg-sky-50 border-sky-200' : 'bg-white border-gray-200'}`}>
                         {/* Order Header */}
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center space-x-3">
-                                <FaTruck className="text-blue-500 text-lg" />
+                                <FaTruck className={order.isReplacement ? 'text-sky-500 text-lg' : 'text-blue-500 text-lg'} />
                                 <div>
-                                    <h3 className="font-medium text-gray-900">Order #{order.orderID}</h3>
+                                    <h3 className="font-medium text-gray-900">Order #{order.orderID}{order.isReplacement ? ' (Replacement)' : ''}</h3>
                                     <p className="text-sm text-gray-500 flex items-center">
                                         <FaCalendarAlt className="mr-1" />
                                         {formatDate(order.createdAt)}
@@ -262,7 +354,7 @@ const OrderHistory = () => {
                             <div className="flex items-center space-x-3">
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.orderStatus)}`}>
                                     <FaTruck className="mr-1" />
-                                    {getOrderStatusText(order.orderStatus)}
+                                    {getOrderStatusText(order, order.orderStatus)}
                                 </span>
                                 <button
                                     onClick={() => handleViewOrder(order.orderID)}
@@ -279,7 +371,7 @@ const OrderHistory = () => {
                             {order.items.map((item, index) => (
                                 <div key={index} className="space-y-2">
                                     {/* Main Item */}
-                                    <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center space-x-4 p-3 rounded-lg" style={getItemRowStyle(item)}>
                                         <img
                                             src={item.featuredImage?.[0]?.imgUrl || '/placeholder-product.jpg'}
                                             alt={item.name}
@@ -291,8 +383,13 @@ const OrderHistory = () => {
                                                 <p className="text-sm text-gray-500">Variant: {item.variationName}</p>
                                             )}
                                             <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                                            {(item.returnStatus && item.returnStatus !== 'none') && (
+                                                <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                                    {RETURN_STATUS_LABELS[item.returnStatus] || item.returnStatus}
+                                                </span>
+                                            )}
                                         </div>
-                                        <div className="text-right">
+                                        <div className="text-right flex flex-col items-end gap-1">
                                             <p className="font-semibold text-gray-900">
                                                 {formatPrice(item.lineTotalAfter || (item.salePrice || item.regularPrice || 0) * item.quantity)}
                                             </p>
@@ -300,6 +397,19 @@ const OrderHistory = () => {
                                                 <p className="text-xs text-gray-500 line-through">
                                                     {formatPrice(item.regularPrice * item.quantity)}
                                                 </p>
+                                            )}
+                                            {item.returnStatus === 'refund_pending' && (
+                                                <p className="text-xs font-medium text-amber-700">RETURN FAILED - OUR EXECUTIVE WILL CONTACT YOU</p>
+                                            )}
+                                            {!order.isReplacement && canReturnOrder(order) && (item.returnStatus || 'none') === 'none' && (item.itemStatus || '') === 'delivered' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleReturnItem(order.orderID, item.orderItemID)}
+                                                    disabled={!!returnLoading}
+                                                    className="text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                                                >
+                                                    {returnLoading === `${order.orderID}-${item.orderItemID}` ? 'Submitting...' : 'Return Item'}
+                                                </button>
                                             )}
                                         </div>
                                     </div>
@@ -328,6 +438,20 @@ const OrderHistory = () => {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Return Entire Order - only when delivered and within 7 days and at least one item delivered & eligible; no return for replacement orders */}
+                        {!order.isReplacement && canReturnOrder(order) && order.items.some(i => (i.returnStatus || 'none') === 'none' && (i.itemStatus || '') === 'delivered') && (
+                            <div className="mt-3 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => handleReturnEntireOrder(order.orderID)}
+                                    disabled={!!returnLoading}
+                                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                >
+                                    {returnLoading === `${order.orderID}-entire` ? 'Submitting...' : 'Return Entire Order'}
+                                </button>
+                            </div>
+                        )}
 
                         {/* Order Summary */}
                         <div className="mt-4 pt-4 border-t border-gray-200">

@@ -101,7 +101,16 @@ export default function Slider({
                         }}
                     >
                         <div className={`relative w-full h-full ${aspectratio} ${imgContainerClass}`}>
-                            <Image src={src} fill className={imgClass} alt={`Slide ${index + 1}`} />
+                            <Image
+                                src={src}
+                                fill
+                                className={imgClass}
+                                alt={`Slide ${index + 1}`}
+                                loading={index === 0 ? "eager" : "lazy"}
+                                fetchPriority={index === 0 ? "high" : undefined}
+                                sizes="100vw"
+                                quality={80}
+                            />
                         </div>
                     </div>
                 ))}

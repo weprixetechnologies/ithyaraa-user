@@ -8,16 +8,16 @@ const FeaturingBlock = () => {
                 <p className='text-lg md:text-xl font-medium'>Found a perfect place</p>
             </div>
             <div className="flex flex-wrap gap-2 justify-center">
-                <div className="w-[35%] md:w-[20%] h-50 md:h-100 bg-black rounded-2xl">
+                <div className="w-[40%] md:w-[20%] h-50 md:h-100 bg-black rounded-2xl">
 
                 </div>
-                <div className="w-[35%] md:w-[20%] h-50 md:h-100 bg-black rounded-2xl">
+                <div className="w-[40%] md:w-[20%] h-50 md:h-100 bg-black rounded-2xl">
 
                 </div>
-                <div className="w-[35%] md:w-[20%] h-50 md:h-100 bg-black rounded-2xl">
+                <div className="w-[40%] md:w-[20%] h-50 md:h-100 bg-black rounded-2xl">
 
                 </div>
-                <div className="w-[35%] md:w-[20%] h-50 md:h-100 bg-black rounded-2xl">
+                <div className="w-[40%] md:w-[20%] h-50 md:h-100 bg-black rounded-2xl">
 
                 </div>
             </div>

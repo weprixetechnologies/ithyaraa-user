@@ -17,6 +17,7 @@ const OrderSuccessPage = () => {
     const [error, setError] = useState(null);
     const [isCheckingPayment, setIsCheckingPayment] = useState(false);
     const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+    const [returnLoading, setReturnLoading] = useState(null); // 'item-{orderItemID}' or 'entire'
 
     const fetchOrderDetails = useCallback(async () => {
         try {
@@ -49,6 +50,8 @@ const OrderSuccessPage = () => {
                     quantity: it.quantity,
                     lineTotalAfter: it.lineTotalAfter,
                     comboItems: it.comboItems || [],
+                    orderItemID: it.orderItemID,
+                    returnStatus: it.returnStatus || 'none',
                 }));
 
                 // Prefer backend-provided totals and meta from orderDetail; fallback to compute when absent
@@ -81,6 +84,7 @@ const OrderSuccessPage = () => {
                     },
                     couponCode: detail.couponCode || '',
                     orderStatus: detail.orderStatus || first.orderStatus || 'Preparing',
+                    deliveredAt: detail.deliveredAt || null,
                     coinsEarned: detail.coinsEarned != null ? parseInt(detail.coinsEarned) : Math.floor(((detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal)) || 0) / 100),
                     isWalletUsed: detail.isWalletUsed ? Boolean(Number(detail.isWalletUsed)) : false,
                     paidWallet: detail.paidWallet != null ? parseFloat(detail.paidWallet) : 0,
@@ -128,10 +132,10 @@ const OrderSuccessPage = () => {
 
         const checkPaymentStatus = async () => {
             try {
-                setIsCheckingPayment(true);
-
                 // Use PhonePe status check API which also updates the database
-                const statusResponse = await axiosInstance.get(`/phonepe/order/${orderId}/status`);
+                const statusResponse = await axiosInstance.get(`/phonepe/order/${orderId}/status`, {
+                    timeout: 8000,
+                });
 
                 if (statusResponse.data?.success) {
                     const latestStatus = statusResponse.data.latestStatus;
@@ -144,27 +148,31 @@ const OrderSuccessPage = () => {
                         // Stop polling if payment is successful
                         if (updatedOrder && (updatedOrder.paymentStatus === 'successful' || updatedOrder.paymentStatus === 'paid')) {
                             isPolling = false;
-                            setIsCheckingPayment(false);
                             return true; // Payment confirmed
                         }
                     }
                 }
 
-                setIsCheckingPayment(false);
                 return false; // Still pending
             } catch (err) {
                 console.error('Error checking payment status:', err);
-                setIsCheckingPayment(false);
                 return false; // Continue polling on error
             }
         };
 
-        // Initial check after 5 seconds
+        // Initial check after 15 seconds so UI can settle
         const initialTimeout = setTimeout(async () => {
-            if (isPolling) {
+            if (!isPolling) return;
+
+            try {
+                setIsCheckingPayment(true);
                 await checkPaymentStatus();
+            } catch (err) {
+                console.error('Error during initial payment status check:', err);
+            } finally {
+                setIsCheckingPayment(false);
             }
-        }, 5000);
+        }, 15000);
 
         // Poll at intervals
         const pollPaymentStatus = setInterval(async () => {
@@ -174,7 +182,16 @@ const OrderSuccessPage = () => {
             }
 
             attempts++;
-            const paymentConfirmed = await checkPaymentStatus();
+
+            let paymentConfirmed = false;
+            try {
+                setIsCheckingPayment(true);
+                paymentConfirmed = await checkPaymentStatus();
+            } catch (err) {
+                console.error('Error during polling payment status check:', err);
+            } finally {
+                setIsCheckingPayment(false);
+            }
 
             // Stop polling if payment is successful or max attempts reached
             if (paymentConfirmed) {
@@ -185,7 +202,6 @@ const OrderSuccessPage = () => {
                 isPolling = false;
                 clearInterval(pollPaymentStatus);
                 clearTimeout(initialTimeout);
-                setIsCheckingPayment(false);
                 console.log('Payment status check stopped after max attempts');
             }
         }, pollInterval);
@@ -196,7 +212,7 @@ const OrderSuccessPage = () => {
             clearTimeout(initialTimeout);
             setIsCheckingPayment(false);
         };
-    }, [orderDetails?.paymentStatus, orderDetails?.paymentMode, orderId, fetchOrderDetails]);
+    }, [orderDetails?.paymentStatus, orderDetails?.paymentMode]);
 
     if (loading) {
         return (

@@ -8,6 +8,7 @@ import axiosInstance from "@/lib/axiosInstance";
 import Loading from "@/components/ui/loading";
 import { CardSkeleton } from "@/components/ui/skeleton";
 import OrderHistory from "@/components/profile/orderHistory";
+import ReturnHistory from "@/components/profile/returnHistory";
 import PreBookedHistory from "@/components/profile/preBookedHistory";
 
 // Lazy load profile components for code splitting
@@ -22,6 +23,13 @@ const ProfilePage = () => {
     const [user, setUser] = useState({})
     const [activeTab, setActiveTab] = useState("accountdetail")
     const router = useRouter()
+
+    useEffect(() => {
+        const tab = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('tab')
+        if (tab && ['accountdetail', 'addresses', 'orderhistory', 'returns', 'prebookedhistory', 'coins', 'giftcard', 'mycart', 'mywishlist', 'applyaffiliate', 'payout'].includes(tab)) {
+            setActiveTab(tab)
+        }
+    }, [])
     const redirectToLogin = () => {
         console.log('[redirectToLogin] Clearing cookies and redirecting to login');
         document.cookie = '_at=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
@@ -75,6 +83,7 @@ const ProfilePage = () => {
                                     { key: 'accountdetail', label: 'Account', icon: <CgProfile size={16} /> },
                                     { key: 'addresses', label: 'Addresses', icon: <CgProfile size={16} /> },
                                     { key: 'orderhistory', label: 'Orders', icon: <CgProfile size={16} /> },
+                                    { key: 'returns', label: 'Returns', icon: <CgProfile size={16} /> },
                                     { key: 'prebookedhistory', label: 'Pre-Booked', icon: <CgProfile size={16} /> },
                                     { key: 'coins', label: 'Ithyaraa Coins', icon: <CgProfile size={16} /> },
                                     { key: 'giftcard', label: 'Giftcard', icon: <CgProfile size={16} /> },
@@ -117,6 +126,12 @@ const ProfilePage = () => {
                                     <CgProfile size={20} />
                                     <p className="text-[15px] font-normal pl-4">
                                         Order History
+                                    </p>
+                                </section>
+                                <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg ${activeTab === 'returns' ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={() => { setActiveTab('returns') }} >
+                                    <CgProfile size={20} />
+                                    <p className="text-[15px] font-normal pl-4">
+                                        Returns
                                     </p>
                                 </section>
                                 <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg ${activeTab === 'prebookedhistory' ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={() => { setActiveTab('prebookedhistory') }} >
@@ -180,6 +195,7 @@ const ProfilePage = () => {
                                 {activeTab === "accountdetail" && <AccountDetail user={user} />}
                                 {activeTab === "addresses" && <Addresses />}
                                 {activeTab === "orderhistory" && <OrderHistory />}
+                                {activeTab === "returns" && <ReturnHistory />}
                                 {activeTab === "prebookedhistory" && <PreBookedHistory />}
                                 {activeTab === "coins" && <Coins />}
                                 {activeTab === "giftcard" && <GiftCard />}
