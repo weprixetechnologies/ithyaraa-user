@@ -8,6 +8,7 @@ import { CiHeart, CiRuler } from "react-icons/ci";
 import { useDispatch, useSelector } from "react-redux";
 import { addCartAsync } from "@/redux/slices/cartSlice";
 import Loading from "@/components/ui/loading";
+import BuyNowButton from "@/components/BuyNowButton";
 
 
 // Lazy load heavy components for better performance
@@ -519,12 +520,13 @@ const CustomProductDetail = () => {
                             >
                                 Add to Cart
                             </button>
-                            <button
-                                className="flex-1 py-2 rounded-lg bg-primary-yellow font-medium text-center cursor-pointer hover:bg-yellow-500"
-                                onClick={handleBuyNowClick}
-                            >
-                                Buy Now
-                            </button>
+                            <BuyNowButton
+                                product={product}
+                                productType="customproduct"
+                                customInputs={customInputValues}
+                                quantity={count}
+                                disabled={false}
+                            />
                         </div>
 
                         {/* Additional Actions */}

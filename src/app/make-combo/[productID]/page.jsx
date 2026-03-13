@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { BsFillStarFill } from "react-icons/bs";
@@ -13,6 +13,7 @@ import { addCartComboAsync } from "@/redux/slices/cartSlice";
 import SelectCombo from "@/components/products/selectCombo";
 import Image from "next/image";
 import axiosInstance from "../../../lib/axiosInstance";
+import BuyNowButton from "@/components/BuyNowButton";
 
 const ProductDetail = () => {
     const { productID } = useParams();
@@ -403,9 +404,18 @@ const ProductDetail = () => {
                             >
                                 Add to Cart
                             </button>
-                            <button className="flex-1 py-2 rounded-lg bg-primary-yellow font-medium text-center cursor-pointer">
-                                Buy Now
-                            </button>
+                            <BuyNowButton
+                                product={comboData}
+                                productType="make_combo"
+                                selectedItems={selectedProducts.map((p) => ({
+                                    productID: p.productID,
+                                    variationID: p.selectedVariationID || null,
+                                    productName: p.name,
+                                    variationName: p.selectedVariationName || null,
+                                }))}
+                                quantity={count}
+                                disabled={selectedProducts.length === 0}
+                            />
                         </div>
 
                         <div className="flex gap-4 pt-2">

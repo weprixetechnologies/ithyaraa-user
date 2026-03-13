@@ -12,6 +12,7 @@ import Reviews from "@/components/products/reviews";
 import { useDispatch, useSelector } from "react-redux";
 import { addCartAsync, addCartComboAsync } from "@/redux/slices/cartSlice";
 import SelectComboSimple from "@/components/products/selectComboSimple";
+import BuyNowButton from "@/components/BuyNowButton";
 const ProductDetail = () => {
     const { productID } = useParams();
     const [product, setProduct] = useState(null);
@@ -236,9 +237,12 @@ const ProductDetail = () => {
                             <button className="flex-1 py-2 rounded-lg border font-medium text-center cursor-pointer " onClick={addToCart}>
                                 Add to Cart
                             </button>
-                            <button className="flex-1 py-2 rounded-lg bg-primary-yellow font-medium text-center cursor-pointer  ">
-                                Buy Now
-                            </button>
+                            <BuyNowButton
+                                product={product}
+                                productType="combo"
+                                quantity={count}
+                                disabled={false}
+                            />
                         </div>
                         <div className="flex gap-4 pt-2">
                             <div className="flex items-center hover:text-secondary-text-deep cursor-pointer">
