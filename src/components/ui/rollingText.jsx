@@ -9,19 +9,18 @@ const RollingText = ({
 }) => {
     const duration = `${((text1.length + text2.length) / speed) + 10}s`;
 
-    // generate repeated text spans
-    const textItems = Array.from({ length: duplicates }).flatMap(() => [
+    const textItems = Array.from({ length: duplicates }).flatMap((_, i) => [
         <span
+            key={`roll-${direction}-${i}-1`}
             className="rolling-text-item font-bold text-[30px] md:text-5xl"
             style={{ fontFamily: 'var(--font-poppins)' }}
-            key={Math.random()}
         >
             {text1}
         </span>,
         <span
+            key={`roll-${direction}-${i}-2`}
             className="rolling-text-item text-stroke text-[30px] md:text-5xl"
             style={{ fontFamily: 'var(--font-poppins)' }}
-            key={Math.random()}
         >
             {text2}
         </span>

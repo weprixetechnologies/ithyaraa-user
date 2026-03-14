@@ -8,53 +8,45 @@ import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
 import axiosInstance from "@/lib/axiosInstance";
 
+const safeParseProduct = (product) => {
+    const parsed = { ...product };
+    const jsonFields = ["galleryImage", "featuredImage", "categories"];
+    jsonFields.forEach((field) => {
+        if (field in parsed && typeof parsed[field] === 'string') {
+            try {
+                parsed[field] = JSON.parse(parsed[field]);
+            } catch {
+                parsed[field] = parsed[field];
+            }
+        }
+    });
+    return parsed;
+};
+
 const TabbedProductSection = ({
     heading = "Featured Products",
     subHeading = "Discover amazing products",
+    categories: categoriesProp = [],
+    initialProducts = [],
+    initialPagination = null,
     initialLimit = 12,
     loadMoreLimit = 8
 }) => {
     const { isInWishlist, toggleWishlist, loading } = useWishlist();
     const [activeTab, setActiveTab] = useState('all');
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
+    const [products, setProducts] = useState(() => (initialProducts?.length ? initialProducts.map(safeParseProduct) : []));
+    const [categories, setCategories] = useState(categoriesProp?.length ? categoriesProp : []);
     const [loadingProducts, setLoadingProducts] = useState(false);
-    const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
-    const [pagination, setPagination] = useState({ page: 1, hasMore: true });
+    const [pagination, setPagination] = useState(() => {
+        if (initialPagination) {
+            return { page: initialPagination.currentPage ?? 1, hasMore: initialPagination.hasNextPage ?? false };
+        }
+        return { page: 1, hasMore: true };
+    });
     const [error, setError] = useState(null);
     const loadMoreRef = useRef(null);
 
-    // Helper to safely JSON.parse any field
-    const safeParse = (value) => {
-        try {
-            return typeof value === "string" ? JSON.parse(value) : value;
-        } catch {
-            return value;
-        }
-    };
-
-    // Fetch categories from API
-    const fetchCategories = useCallback(async () => {
-        try {
-            setLoadingCategories(true);
-            const { data } = await axiosInstance.get('/categories/public');
-
-            if (data?.success) {
-                setCategories(data.data || []);
-            } else {
-                console.error('Failed to fetch categories');
-                setCategories([]);
-            }
-        } catch (err) {
-            console.error('Error fetching categories:', err);
-            setCategories([]);
-        } finally {
-            setLoadingCategories(false);
-        }
-    }, []);
-
-    // Fetch products based on active tab
     const fetchProducts = useCallback(async (categoryID = '', page = 1, isLoadMore = false) => {
         try {
             if (isLoadMore) {
@@ -63,60 +55,29 @@ const TabbedProductSection = ({
                 setLoadingProducts(true);
                 setError(null);
             }
-
             const params = new URLSearchParams();
             params.append('limit', String(isLoadMore ? loadMoreLimit : initialLimit));
             params.append('page', String(page));
             if (categoryID) params.append('categoryID', categoryID);
-
             const { data } = await axiosInstance.get(`/products/shop?${params.toString()}`);
-
             if (data?.success) {
-                const rawProducts = data.data || [];
-
-                // Parse JSON fields like featuredImage, categories, etc.
-                const parsedProducts = rawProducts.map((product) => {
-                    const parsed = { ...product };
-
-                    // Parse JSON fields
-                    const jsonFields = ["galleryImage", "featuredImage", "categories"];
-                    jsonFields.forEach((field) => {
-                        if (field in parsed && typeof parsed[field] === 'string') {
-                            try {
-                                parsed[field] = JSON.parse(parsed[field]);
-                            } catch (e) {
-                                console.warn(`Failed to parse ${field}:`, e);
-                                parsed[field] = parsed[field];
-                            }
-                        }
-                    });
-
-                    return parsed;
-                });
-
+                const parsedProducts = (data.data || []).map(safeParseProduct);
                 if (isLoadMore) {
                     setProducts(prev => [...prev, ...parsedProducts]);
                 } else {
                     setProducts(parsedProducts);
                 }
-
-                // Use pagination from API response
                 setPagination({
                     page: data.pagination?.currentPage || page,
                     hasMore: data.pagination?.hasNextPage || false
                 });
             } else {
                 setError('Failed to load products');
-                if (!isLoadMore) {
-                    setProducts([]);
-                }
+                if (!isLoadMore) setProducts([]);
             }
         } catch (err) {
-            console.error('Error fetching products:', err);
             setError(`Failed to load products: ${err.message}`);
-            if (!isLoadMore) {
-                setProducts([]);
-            }
+            if (!isLoadMore) setProducts([]);
         } finally {
             setLoadingProducts(false);
             setLoadingMore(false);
@@ -136,11 +97,10 @@ const TabbedProductSection = ({
         fetchProducts(categoryID === 'all' ? '' : categoryID, 1, false);
     };
 
-    // Initial load - fetch categories first, then products
     useEffect(() => {
-        fetchCategories();
+        if (initialProducts?.length) return
         fetchProducts('', 1, false);
-    }, [fetchCategories, fetchProducts]);
+    }, []);
 
     // Scroll-based load more functionality
     useEffect(() => {
@@ -186,13 +146,7 @@ const TabbedProductSection = ({
                 >
                     All Products
                 </button>
-                {loadingCategories ? (
-                    <div className="flex items-center gap-2 text-gray-500">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500"></div>
-                        <span className="text-sm">Loading categories...</span>
-                    </div>
-                ) : (
-                    categories.map((category) => (
+                {categories.map((category) => (
                         <button
                             key={category.categoryID}
                             onClick={() => handleTabChange(category.categoryID)}
@@ -203,8 +157,7 @@ const TabbedProductSection = ({
                         >
                             {category.categoryName}
                         </button>
-                    ))
-                )}
+                    ))}
             </div>
 
             {/* Loading State */}

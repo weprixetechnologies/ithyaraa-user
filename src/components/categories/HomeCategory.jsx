@@ -1,22 +1,14 @@
-import React from 'react'
+"use client"
 
-const HomeCategory = () => {
-    const categories = [
-        { name: "T-Shirts", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/sh.jpg" },
-        { name: "Hoodies", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/t.jpg" },
-        { name: "Accessories", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/os.jpg" },
-        { name: "Footwear", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/ca.jpg" },
-        { name: "Bags", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/po.jpg" },
-        { name: "Bags", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/je.jpg" },
-        { name: "Bags", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/PTS.jpg" },
-        { name: "Bags", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/ptss.jpg" },
-        { name: "Bags", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/jg.jpg" },
-        { name: "Bags", image: "https://www.beyoung.in/api/catalog/HomePageJuly2025/box.jpg" }
-    ]
+import React from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+
+const HomeCategory = ({ categories = [] }) => {
     return (
         <div className="py-10">
             <div className="flex flex-col items-center mb-10">
-                <p className="text-lg font-medium md:text-xl mtext-center">Your Categories</p>
+                <p className="text-lg font-medium md:text-xl md:text-center">Your Categories</p>
                 <p className="text-xs font-medium text-secondary-text-deep md:text-center md:text-sm">Have fun with our extended collections</p>
             </div>
 
@@ -24,9 +16,19 @@ const HomeCategory = () => {
 
                 {
                     categories.map((category, index) => (
-                        <div className="col-span-1 border aspect-[219/281] w-full" key={index}>
-                            <img src={category.image} alt={category.name} className="w-full h-full object-cover" />
-                        </div>
+                        <Link
+                            key={category.categoryID ?? index}
+                            href={`/shop?categoryID=${category.categoryID ?? ''}`}
+                            className="col-span-1 border aspect-[219/281] w-full block overflow-hidden rounded cursor-pointer hover:opacity-90 transition-opacity"
+                        >
+                            <Image
+                                src={category.imageUrl}
+                                alt={category.categoryName || 'Category'}
+                                width={219}
+                                height={281}
+                                className="w-full h-full object-cover"
+                            />
+                        </Link>
                     ))
                 }
             </div>

@@ -11,7 +11,6 @@ import { useWishlist } from "@/contexts/WishlistContext";
 const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, products = [] }) => {
     const scrollRef = useRef(null)
     const { isInWishlist, toggleWishlist, loading } = useWishlist()
-    console.log(products);
 
 
     // const products = [
@@ -125,6 +124,8 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
             <div className="relative mb-5">
                 {/* Left Arrow (Desktop Only) */}
                 <button
+                    type="button"
+                    aria-label="Scroll left"
                     onClick={scrollLeft}
                     className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 
                     bg-white rounded-full shadow-md p-2 hover:shadow-lg transition"
@@ -217,6 +218,8 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
 
                 {/* Right Arrow (Desktop Only) */}
                 <button
+                    type="button"
+                    aria-label="Scroll right"
                     onClick={scrollRight}
                     className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 
                     bg-white rounded-full shadow-md p-2 hover:shadow-lg transition"
@@ -227,13 +230,13 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
 
             {/* Bottom CTA + Optional Arrows */}
             <div className={`justify-center items-center gap-4 pb-4 ${buttonWant ? 'flex' : 'hidden'}`}>
-                <button onClick={scrollLeft} className="p-2 rounded-full z-30 shadow-lg">
+                <button type="button" aria-label="Scroll left" onClick={scrollLeft} className="p-2 rounded-full z-30 shadow-lg">
                     <IoIosArrowBack size={20} />
                 </button>
                 <button className="bg-primary-yellow h-[30px] px-4 text-xs font-medium rounded">
                     Explore All
                 </button>
-                <button onClick={scrollRight} className="p-2 rounded-full z-30 shadow-lg">
+                <button type="button" aria-label="Scroll right" onClick={scrollRight} className="p-2 rounded-full z-30 shadow-lg">
                     <IoIosArrowForward size={20} />
                 </button>
             </div>

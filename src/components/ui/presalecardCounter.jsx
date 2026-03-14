@@ -49,19 +49,16 @@ const square = (val, label) => (
 );
 
 const PresaleCardCounter = ({ datetime }) => {
-    const [timeLeft, setTimeLeft] = useState(() => {
-        if (!datetime) return null;
-        const date = parseDateTime(datetime);
-        if (!date) {
-            console.warn('PresaleCardCounter: Failed to parse datetime:', datetime);
-            return null;
-        }
-        return getTimeLeft(date);
-    });
+    const [mounted, setMounted] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(null);
 
     useEffect(() => {
-        if (!datetime) {
-            setTimeLeft(null);
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!mounted || !datetime) {
+            if (!datetime) setTimeLeft(null);
             return;
         }
 
@@ -72,19 +69,45 @@ const PresaleCardCounter = ({ datetime }) => {
             return;
         }
 
+        setTimeLeft(getTimeLeft(futureDate));
         const timer = setInterval(() => {
             setTimeLeft(getTimeLeft(futureDate));
         }, 1000);
 
         return () => clearInterval(timer);
-
-    }, [datetime]);
+    }, [datetime, mounted]);
 
     if (!datetime) {
         return (
             <div className="flex items-center justify-center p-2">
                 <span className="text-gray-400 text-xs">No end date</span>
             </div>
+        );
+    }
+
+    if (!mounted) {
+        return (
+            <>
+                <div className="flex sm:hidden items-center justify-center">
+                    <div className="flex w-full flex-col items-center justify-center px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                        <span className="font-semibold text-xs text-red-500 tracking-[0.08em] uppercase mb-1">
+                            Ends in
+                        </span>
+                        <span className="font-bold text-[16px] text-gray-900 tracking-[0.2em]">
+                            00:00:00:00
+                        </span>
+                    </div>
+                </div>
+                <div className="hidden sm:flex items-center justify-center gap-1 sm:gap-1.5">
+                    {square(0, 'Days')}
+                    <span className="font-bold mx-1 text-sm sm:text-base">:</span>
+                    {square(0, 'Hrs')}
+                    <span className="font-bold mx-1 text-sm sm:text-base">:</span>
+                    {square(0, 'Min')}
+                    <span className="font-bold mx-1 text-sm sm:text-base">:</span>
+                    {square(0, 'Sec')}
+                </div>
+            </>
         );
     }
 

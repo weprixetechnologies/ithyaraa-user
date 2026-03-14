@@ -28,10 +28,10 @@ const ShopWithUs = () => {
                 <div className="col-span-2 p-2">
                     <div className=" w-full max-w-full grid grid-cols-2 gap-1">
                         <Suspense>
-                            <img src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg" alt="" className="rounded-2xl" />
+                            <Image src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg" alt="Category" width={222} height={333} className="rounded-2xl" />
                         </Suspense>
                         <Suspense>
-                            <img src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg" alt="" className="rounded-2xl" />
+                            <Image src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg" alt="Category" width={222} height={333} className="rounded-2xl" />
                         </Suspense>
                     </div>
                 </div>
@@ -145,32 +145,14 @@ const Header = () => {
     });
 
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
     const [searchDrawerOpen, setSearchDrawerOpen] = useState(false)
 
     const dispatch = useDispatch()
     const cartCounter = useSelector((state) => state.cart.cartCount)
-    const { user } = useAuth()
+    const { user, isAuthenticated } = useAuth()
+    const isLoggedIn = isAuthenticated
 
-    // console.log(cartCounter);
-
-    useEffect(() => {
-        setIsLoggedIn(false)
-
-        try {
-            const iil = document.cookie.split('; ').find(c => c.startsWith('_iil='))?.split('=')[1];
-            const at = document.cookie.split('; ').find(c => c.startsWith('_at='))?.split('=')[1];
-            const rt = document.cookie.split('; ').find(c => c.startsWith('_rt='))?.split('=')[1];
-
-            if (iil === 'true' && at && rt) {
-                setIsLoggedIn(true)
-            }
-        } catch (error) {
-            console.error('Error parsing cookies in header:', error);
-        }
-
-    }, []);
     useEffect(() => {
         if (isLoggedIn && pathname !== '/login') {
             dispatch(getCartAsync())

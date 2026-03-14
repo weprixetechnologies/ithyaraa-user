@@ -36,17 +36,24 @@ export default function Slider({
             }
         };
         measure();
+        const raf = requestAnimationFrame(measure);
+        const t = setTimeout(measure, 100);
         window.addEventListener("resize", measure);
-        return () => window.removeEventListener("resize", measure);
+        return () => {
+            cancelAnimationFrame(raf);
+            clearTimeout(t);
+            window.removeEventListener("resize", measure);
+        };
     }, [slides, slideWidthPercent]);
 
     useEffect(() => {
-        if (!autoplay) return;
-        autoplayRef.current = setInterval(() => {
+        if (!autoplay || !slides?.length) return;
+        const id = setInterval(() => {
             setCurrent(prev => (prev < slides.length - 1 ? prev + 1 : 0));
         }, autoplayInterval);
-        return () => clearInterval(autoplayRef.current);
-    }, [autoplay, autoplayInterval, slides.length]);
+        autoplayRef.current = id;
+        return () => clearInterval(id);
+    }, [autoplay, autoplayInterval, slides?.length]);
 
     const prevSlide = () => setCurrent(prev => (prev > 0 ? prev - 1 : 0));
     const nextSlide = () => setCurrent(prev => (prev < slides.length - 1 ? prev + 1 : prev));
@@ -106,6 +113,7 @@ export default function Slider({
                                 fill
                                 className={imgClass}
                                 alt={`Slide ${index + 1}`}
+                                priority={index === 0}
                                 loading={index === 0 ? "eager" : "lazy"}
                                 fetchPriority={index === 0 ? "high" : undefined}
                                 sizes="100vw"
@@ -144,9 +152,14 @@ export default function Slider({
                     {slides.map((_, index) => (
                         <button
                             key={index}
+                            type="button"
                             onClick={() => goToSlide(index)}
-                            className={`w-3 h-3 rounded-full ${current === index ? "bg-gray p-1 border-1 border-white" : "bg-white"}`}
-                        />
+                            aria-label={`Go to slide ${index + 1}`}
+                            aria-current={current === index ? 'true' : undefined}
+                            className="p-4 flex items-center justify-center"
+                        >
+                            <span className={`block w-3 h-3 rounded-full ${current === index ? 'bg-white' : 'bg-white/50'}`} />
+                        </button>
                     ))}
                 </div>
             )}

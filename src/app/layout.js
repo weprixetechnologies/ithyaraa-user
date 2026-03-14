@@ -12,8 +12,26 @@ const roboto = Roboto({ variable: "--font-roboto", subsets: ["latin"], weight: [
 const poppins = Poppins({ variable: "--font-poppins", subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
 
 export const metadata = {
-  title: "ITHYARAA - ULTIMATE STOP",
-  description: "The All New Great Stop for Genz and Millenials",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://ithyaraa.com'),
+  title: {
+    default: 'ITHYARAA – Fashion for GenZ & Millennials',
+    template: '%s | ITHYARAA',
+  },
+  description: 'Discover the latest trends in fashion at ITHYARAA.',
+  openGraph: {
+    title: 'ITHYARAA – Fashion for GenZ & Millennials',
+    description: 'Discover the latest trends in fashion at ITHYARAA.',
+    url: '/',
+    siteName: 'ITHYARAA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ITHYARAA',
+    description: 'Discover the latest trends in fashion at ITHYARAA.',
+    images: ['/og-image.jpg'],
+  },
 };
 
 export default function RootLayout({ children }) {

@@ -3,6 +3,7 @@ import axiosInstance from '../lib/axiosInstance';
 import { getCookie, setCookieEasy } from '../lib/setCookie';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import EnterOtp from './ui/enterOtp';
 
 const INDIAN_STATES = [
     'Andhra Pradesh',
@@ -88,6 +89,15 @@ const BuyNowModal = ({
     const [couponAnimKey, setCouponAnimKey] = useState(0);
     const [offerAnimKey, setOfferAnimKey] = useState(0);
 
+    // Guest OTP gate: 'phone' | 'otp' | 'creating' (only when !isLoggedIn and no account for phone)
+    const [guestStep, setGuestStep] = useState('phone');
+    const [guestPhoneForOtp, setGuestPhoneForOtp] = useState('');
+    const [otp, setOtp] = useState('');
+    const [otpCooldown, setOtpCooldown] = useState(0);
+    const [sendOtpLoading, setSendOtpLoading] = useState(false);
+    const [verifyOtpLoading, setVerifyOtpLoading] = useState(false);
+    const [otpError, setOtpError] = useState('');
+
     const safeQuantity = Math.max(1, Number(initialQuantity) || 1);
 
     const unitPrice = useMemo(() => {
@@ -159,8 +169,21 @@ const BuyNowModal = ({
             setAddresses([]);
             setSelectedAddressID('');
             setUseNewAddress(true);
+            setGuestStep('phone');
+            setOtp('');
+            setOtpError('');
+            setGuestPhoneForOtp('');
         }
     }, [isOpen]);
+
+    // OTP resend cooldown
+    useEffect(() => {
+        let timer;
+        if (otpCooldown > 0) {
+            timer = setInterval(() => setOtpCooldown((c) => c - 1), 1000);
+        }
+        return () => clearInterval(timer);
+    }, [otpCooldown]);
 
     useEffect(() => {
         const pid = product?.productID || product?.id;
@@ -287,17 +310,11 @@ const BuyNowModal = ({
         }
     };
 
-    const handleConfirmOrder = async () => {
-        const fieldErrors = validateFields();
-        if (Object.keys(fieldErrors).length > 0) {
-            setError('Please fix highlighted fields');
-            toast.error('Please correct the errors before continuing.');
-            return;
-        }
-
+    const submitOrder = useCallback(async (afterOtpVerify = false) => {
         setLoading(true);
         setError('');
         setStep('processing');
+        if (afterOtpVerify) setGuestStep('creating');
 
         try {
             const hasSession = !!getCookie('_at');
@@ -321,6 +338,8 @@ const BuyNowModal = ({
                     : null,
                 address: (!isLoggedIn || useNewAddress)
                     ? {
+                        name: formData.name,
+                        fullName: formData.name,
                         line1: formData.line1,
                         line2: formData.line2,
                         city: formData.city,
@@ -377,11 +396,168 @@ const BuyNowModal = ({
             }
         } catch (err) {
             console.error('Buy Now order failed', err);
-            setError(err.response?.data?.message || err.message || 'Failed to place order');
+            const serverMsg = err.response?.data?.message || err.message || 'Failed to place order';
+            setError(serverMsg);
+            toast.error(serverMsg);
             setStep('details');
+            setGuestStep((s) => (s === 'creating' ? 'otp' : s));
         } finally {
             setLoading(false);
         }
+    }, [
+        productType, product, safeQuantity, selectedVariation, selectedItems, customInputs,
+        couponApplied, couponCode, paymentMode, isLoggedIn, formData, useNewAddress, selectedAddressID,
+    ]);
+
+    const handleConfirmOrder = async () => {
+        const fieldErrors = validateFields();
+        if (Object.keys(fieldErrors).length > 0) {
+            setError('Please fix highlighted fields');
+            toast.error('Please correct the errors before continuing.');
+            return;
+        }
+
+        setError('');
+        setOtpError('');
+
+        if (isLoggedIn) {
+            await submitOrder();
+            return;
+        }
+
+        const phone = (formData.phone || '').replace(/\D/g, '').slice(-10);
+        if (phone.length !== 10) {
+            setError('Phone must be 10 digits');
+            toast.error('Enter a valid 10-digit phone number');
+            return;
+        }
+
+        try {
+            const checkRes = await axiosInstance.get('/user/check-phone', { params: { phone } });
+            const data = checkRes.data || {};
+            if (data.exists) {
+                await submitOrder();
+                return;
+            }
+        } catch (err) {
+            console.error('Check phone failed', err);
+            setError(err.response?.data?.message || 'Could not verify phone. Try again.');
+            toast.error('Could not verify phone. Try again.');
+            return;
+        }
+
+        setSendOtpLoading(true);
+        setOtpError('');
+        try {
+            const phoneForApi = `+91${phone}`;
+            const res = await axiosInstance.post('/user/send-otp', {
+                phoneNumber: phoneForApi,
+            });
+            const data = res.data || {};
+            if (res.status !== 200 || !data.success) {
+                setOtpError(data.message || 'Failed to send OTP. Try again.');
+                toast.error(data.message || 'Failed to send OTP. Try again.');
+                return;
+            }
+            setGuestPhoneForOtp(phone);
+            setGuestStep('otp');
+            setOtpCooldown(60);
+            setOtp('');
+            toast.success('OTP sent to your number');
+        } catch (err) {
+            console.error('Send OTP failed', err);
+            const msg = err.response?.data?.message || err.message || 'Failed to send OTP. Try again.';
+            setOtpError(msg);
+            toast.error(msg);
+        } finally {
+            setSendOtpLoading(false);
+        }
+    };
+
+    const handleVerifyOtp = async () => {
+        const trimmed = (otp || '').replace(/\D/g, '');
+        if (trimmed.length < 6) {
+            setOtpError('Enter complete 6-digit OTP');
+            toast.error('Enter complete 6-digit OTP');
+            return;
+        }
+        const phone = (guestPhoneForOtp || '').replace(/\D/g, '').slice(-10);
+        if (phone.length !== 10) {
+            setOtpError('Session issue. Please go back and enter your number again.');
+            toast.error('Please use "Change number" and enter your phone again.');
+            return;
+        }
+        setVerifyOtpLoading(true);
+        setOtpError('');
+        try {
+            const res = await axiosInstance.post('/user/verify-otp', {
+                phoneNumber: `+91${phone}`,
+                otp: trimmed,
+            });
+            const data = res.data || {};
+            if (res.status !== 200 || !data.success) {
+                const msg = data.message || 'OTP verification failed';
+                if (/expired/i.test(msg)) {
+                    setOtpError('OTP expired. Please request a new one.');
+                    toast.error('OTP expired. Please request a new one.');
+                } else {
+                    setOtpError(msg);
+                    toast.error(msg);
+                }
+                return;
+            }
+            await submitOrder(true);
+        } catch (err) {
+            console.error('Verify OTP failed', err);
+            const msg = err.response?.data?.message || err.message || 'Could not verify OTP.';
+            const hint = err.response?.status === 400
+                ? ' You can use "Resend OTP" to get a new code.'
+                : '';
+            setOtpError(msg + hint);
+            toast.error(msg);
+        } finally {
+            setVerifyOtpLoading(false);
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (otpCooldown > 0) return;
+        const phone = (guestPhoneForOtp || '').replace(/\D/g, '').slice(-10);
+        if (phone.length !== 10) {
+            setOtpError('Session issue. Please use "Change number" and enter your phone again.');
+            toast.error('Please use "Change number" and enter your phone again.');
+            return;
+        }
+        setSendOtpLoading(true);
+        setOtpError('');
+        try {
+            const res = await axiosInstance.post('/user/send-otp', {
+                phoneNumber: `+91${phone}`,
+            });
+            const data = res.data || {};
+            if (res.status !== 200 || !data.success) {
+                setOtpError(data.message || 'Failed to send OTP.');
+                toast.error(data.message || 'Failed to send OTP.');
+                return;
+            }
+            setOtpCooldown(60);
+            setOtp('');
+            toast.success('New OTP sent');
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Failed to send OTP.';
+            setOtpError(msg);
+            toast.error(msg);
+        } finally {
+            setSendOtpLoading(false);
+        }
+    };
+
+    const handleChangeNumber = () => {
+        setGuestStep('phone');
+        setOtp('');
+        setOtpError('');
+        setGuestPhoneForOtp('');
+        setOtpCooldown(0);
     };
 
     const renderOrderSummary = () => {
@@ -628,6 +804,47 @@ const BuyNowModal = ({
     };
 
     const renderDetailsStep = () => {
+        if (!isLoggedIn && guestStep === 'otp') {
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <h2 className="text-lg font-semibold">Verify your number</h2>
+                        <p className="text-sm text-gray-600">
+                            Enter the OTP sent to <span className="font-semibold">{guestPhoneForOtp}</span>
+                        </p>
+                        <EnterOtp length={6} onChange={(val) => { setOtp(val); setOtpError(''); }} />
+                        {otpError && <p className="text-xs text-red-600">{otpError}</p>}
+                        <div className="flex flex-col gap-2">
+                            <button
+                                type="button"
+                                onClick={handleVerifyOtp}
+                                disabled={verifyOtpLoading || (otp || '').replace(/\D/g, '').length < 6}
+                                className="w-full py-2.5 rounded-md bg-black text-white text-sm font-medium hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {verifyOtpLoading ? 'Verifying...' : 'Verify OTP'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleResendOtp}
+                                disabled={otpCooldown > 0 || sendOtpLoading}
+                                className="w-full py-2 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {otpCooldown > 0 ? `Resend OTP in ${otpCooldown}s` : 'Resend OTP'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleChangeNumber}
+                                className="text-sm text-blue-600 hover:underline"
+                            >
+                                Change number
+                            </button>
+                        </div>
+                    </div>
+                    <div className="space-y-4">{renderOrderSummary()}</div>
+                </div>
+            );
+        }
+
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
@@ -979,10 +1196,10 @@ const BuyNowModal = ({
                     <button
                         type="button"
                         onClick={handleConfirmOrder}
-                        disabled={loading}
+                        disabled={loading || sendOtpLoading}
                         className="w-full py-2.5 rounded-md bg-black text-white text-sm font-medium hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {loading ? 'Placing your order...' : 'Confirm Order'}
+                        {loading ? 'Placing your order...' : sendOtpLoading ? 'Sending OTP...' : 'Confirm Order'}
                     </button>
                 </div>
             </div>

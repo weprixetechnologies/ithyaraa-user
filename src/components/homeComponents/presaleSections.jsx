@@ -3,62 +3,47 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import PrebookingProductCardMap from '../ui/prebookingProductCardMap'
 
-const PresaleSection = ({ heading, subHeading }) => {
-    const [products, setProducts] = useState([])
-    const [loading, setLoading] = useState(true)
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://backend.ithyaraa.com/api'
+
+const defaultPagination = {
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 5,
+    hasNextPage: false,
+    hasPreviousPage: false
+}
+
+const PresaleSection = ({ heading, subHeading, initialProducts = [], initialPagination = null }) => {
+    const [products, setProducts] = useState(initialProducts)
+    const [loading, setLoading] = useState(false)
     const [loadingMore, setLoadingMore] = useState(false)
     const [error, setError] = useState(null)
     const [currentPage, setCurrentPage] = useState(1)
-    const [pagination, setPagination] = useState({
-        currentPage: 1,
-        totalPages: 1,
-        totalItems: 0,
-        itemsPerPage: 5,
-        hasNextPage: false,
-        hasPreviousPage: false
-    })
+    const [pagination, setPagination] = useState(initialPagination || defaultPagination)
 
     useEffect(() => {
-        const fetchPresaleProducts = async () => {
+        if (currentPage === 1) return
+        const fetchMore = async () => {
             try {
-                // Only show main loading on first page load
-                if (currentPage === 1) {
-                    setLoading(true)
-                } else {
-                    setLoadingMore(true)
-                }
+                setLoadingMore(true)
                 setError(null)
-
-                const response = await axios.get('https://backend.ithyaraa.com/api/presale/products/paginated', {
-                    params: {
-                        page: currentPage,
-                        limit: 5
-                    }
+                const response = await axios.get(`${API_BASE}/presale/products/paginated`, {
+                    params: { page: currentPage, limit: 5 }
                 })
-
                 if (response.data?.success) {
-                    // If loading more, append to existing products; otherwise replace
-                    if (currentPage > 1) {
-                        setProducts(prev => [...prev, ...(response.data.data || [])])
-                    } else {
-                        setProducts(response.data.data || [])
-                    }
-                    if (response.data.pagination) {
-                        setPagination(response.data.pagination)
-                    }
+                    setProducts(prev => [...prev, ...(response.data.data || [])])
+                    if (response.data.pagination) setPagination(response.data.pagination)
                 } else {
                     setError('Failed to fetch products')
                 }
             } catch (err) {
-                console.error('Error fetching presale products:', err)
                 setError(err.message || 'Failed to fetch presale products')
             } finally {
-                setLoading(false)
                 setLoadingMore(false)
             }
         }
-
-        fetchPresaleProducts()
+        fetchMore()
     }, [currentPage])
 
     return (

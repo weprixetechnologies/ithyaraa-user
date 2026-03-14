@@ -107,6 +107,7 @@ export const AuthProvider = ({ children }) => {
         // Clear cookies
         document.cookie = '_at=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         document.cookie = '_rt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = '_iil=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         document.cookie = 'isLoggedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         document.cookie = 'newsletter_joined=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 

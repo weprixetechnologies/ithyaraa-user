@@ -1,5 +1,3 @@
-import Image from "next/image";
-import logo from "../../public/ithyaraa-logo.png";
 import dynamic from "next/dynamic";
 import HomeCategory from "@/components/categories/HomeCategory";
 
@@ -32,7 +30,7 @@ const PresaleSection = dynamic(() => import("@/components/homeComponents/presale
   loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
 });
 
-// ISR: regenerate this page every 10 seconds
+// ISR: regenerate this page every 3600 seconds (1 hour)
 export const revalidate = 3600;
 
 async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'variable', sectionid = "" } = {}) {
@@ -44,7 +42,8 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'vari
   if (sectionid) params.append("sectionid", sectionid);
 
   const res = await fetch(
-    `https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`
+    `https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`,
+    { next: { revalidate } }
   );
 
   if (!res.ok) {
@@ -119,18 +118,92 @@ async function getHomepageSections() {
   return data?.data || [];
 }
 
+async function getSliderBanners() {
+  const res = await fetch(
+    "https://backend.ithyaraa.com/api/slider-banners/active",
+    { next: { revalidate } }
+  );
+
+  if (!res.ok) {
+    return { mobile: [], desktop: [] };
+  }
+
+  const data = await res.json();
+  return data?.data ?? { mobile: [], desktop: [] };
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
+
+async function getPresaleProducts() {
+  try {
+    const res = await fetch(
+      `${API_BASE}/presale/products/paginated?page=1&limit=5`,
+      { next: { revalidate } }
+    );
+    if (!res.ok) return { data: [], pagination: null };
+    const json = await res.json();
+    return {
+      data: json?.data ?? [],
+      pagination: json?.pagination ?? null
+    };
+  } catch {
+    return { data: [], pagination: null };
+  }
+}
+
+async function getHomeCategories() {
+  try {
+    const res = await fetch(
+      `${API_BASE}/home-categories`
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    console.log('hello', data);
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+async function getInitialTabbedProducts(limit = 12) {
+  try {
+    const res = await fetch(
+      `${API_BASE}/products/shop?limit=${limit}&page=1`,
+      { next: { revalidate } }
+    );
+    if (!res.ok) return { data: [], pagination: null };
+    const json = await res.json();
+    if (!json?.success) return { data: [], pagination: null };
+    return {
+      data: json.data ?? [],
+      pagination: json.pagination ?? null
+    };
+  } catch {
+    return { data: [], pagination: null };
+  }
+}
+
 
 export default async function Home() {
-  console.log("Rendering Home Page (ISR)");
-
   let section_one = [];
+  let section_two = [];
   let categories = [];
+  let homeCategories = [];
   let homepageSections = [];
+  let sliderBanners = { mobile: [], desktop: [] };
+
   try {
     const section_one_raw = await getProducts({ sectionid: "HOME_HERO" });
     section_one = section_one_raw.data
     // console.log(section_one);
 
+  } catch (error) {
+    console.error(error);
+    // Optionally render empty array or fallback data
+  }
+  try {
+    const section_two_raw = await getProducts({ brandID: "IBR304499S" });
+    section_two = section_two_raw.data
+    // console.log(section_two);
   } catch (error) {
     console.error(error);
     // Optionally render empty array or fallback data
@@ -143,13 +216,56 @@ export default async function Home() {
   }
 
   try {
+    homeCategories = await getHomeCategories();
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
     homepageSections = await getHomepageSections();
   } catch (error) {
     console.error(error);
   }
 
+  try {
+    sliderBanners = await getSliderBanners();
+  } catch (error) {
+    console.error(error);
+  }
+
+  let presaleInitial = { data: [], pagination: null };
+  try {
+    presaleInitial = await getPresaleProducts();
+  } catch (error) {
+    console.error(error);
+  }
+
+  let tabbedInitial = { data: [], pagination: null };
+  try {
+    tabbedInitial = await getInitialTabbedProducts(12);
+  } catch (error) {
+    console.error(error);
+  }
+
+  const mobileSlides = sliderBanners.mobile?.length
+    ? sliderBanners.mobile
+    : [
+      "https://images.bewakoof.com/uploads/grid/app/1x1-July25-MadIniNdiaSale-Extended-72hours-IK-1755187851.gif",
+      "https://images.bewakoof.com/uploads/grid/app/1x1---CFT-men-1755188060.jpg",
+      "https://images.bewakoof.com/uploads/grid/app/1x1-Shirts-Men-Sale-BANNER-1755188012.jpg",
+    ];
+  const desktopSlides = sliderBanners.desktop?.length
+    ? sliderBanners.desktop
+    : [
+      "https://www.beyoung.in/api/catalog/HomePageJuly2025/new-shirt-banner-desktop-view.jpg",
+      "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg",
+      "https://www.beyoung.in/api/catalog/HomePageJuly2025/Combo-banner2-desktop-view.jpg",
+      "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg",
+    ];
+
   return (
     <>
+      <h1 className="sr-only">ITHYARAA – Your Ultimate Fashion Destination</h1>
       <TilledMiniCategories sections={homepageSections} />
       <Slider
         aspectratio="aspect-[1/1]"
@@ -158,21 +274,14 @@ export default async function Home() {
         autoplay={true}
         autoplayInterval={3000}
         slideWidthPercent={0.9}
-        slides={[
-          "https://images.bewakoof.com/uploads/grid/app/1x1-July25-MadIniNdiaSale-Extended-72hours-IK-1755187851.gif",
-          "https://images.bewakoof.com/uploads/grid/app/1x1---CFT-men-1755188060.jpg",
-          "https://images.bewakoof.com/uploads/grid/app/1x1-Shirts-Men-Sale-BANNER-1755188012.jpg",
-        ]}
+        slides={mobileSlides}
       />
       <Slider
         slideWidthPercent={1}
         showButtons={false}
-        slides={[
-          "https://www.beyoung.in/api/catalog/HomePageJuly2025/new-shirt-banner-desktop-view.jpg",
-          "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg",
-          "https://www.beyoung.in/api/catalog/HomePageJuly2025/Combo-banner2-desktop-view.jpg",
-          "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg",
-        ]}
+        autoplay={true}
+        autoplayInterval={3000}
+        slides={desktopSlides}
       />
       <RollingText text1="YOUNG ELEGANT SURPRISING" text2="PRIMARY DRESES" direction="left" />
       <FeaturingBlock />
@@ -187,12 +296,22 @@ export default async function Home() {
         subHeading="Collections You Will Definitely Love"
         products={section_one}
       />
+      <ProductSection
+        heading="Picks Curated For You"
+        subHeading="Collections You Will Definitely Love"
+        products={section_two}
+      />
       {/* <hr /> */}
       <UnderSections />
       {/* <hr /> */}
 
 
-      <PresaleSection heading="Pre-Booking Available" subHeading="Found a perfect place" />
+      <PresaleSection
+        heading="Pre-Booking Available"
+        subHeading="Found a perfect place"
+        initialProducts={presaleInitial.data}
+        initialPagination={presaleInitial.pagination}
+      />
 
       <ProductSection
         heading="Another Section"
@@ -201,11 +320,14 @@ export default async function Home() {
       />
 
 
-      <HomeCategory />
+      <HomeCategory categories={homeCategories} />
       {/* Tabbed Product Section with Categories */}
       <TabbedProductSection
         heading="Shop by Category"
         subHeading="Explore our amazing collection"
+        categories={categories}
+        initialProducts={tabbedInitial.data}
+        initialPagination={tabbedInitial.pagination}
         initialLimit={2}
         loadMoreLimit={2}
       />

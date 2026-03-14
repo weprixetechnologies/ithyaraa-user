@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 const TilledMiniCategories = ({ isMobile = true, sections = [] }) => {
@@ -38,9 +39,11 @@ const TilledMiniCategories = ({ isMobile = true, sections = [] }) => {
                     onClick={() => handleClick(section)}
                     className="flex flex-col items-center p-2 focus:outline-none"
                 >
-                    <img
+                    <Image
                         src={section.image}
                         alt={section.title}
+                        width={80}
+                        height={80}
                         className="w-20 h-20 min-w-20 min-h-20 object-cover mb-2 rounded-lg"
                     />
                     <p className="text-xs text-center font-medium max-w-20">

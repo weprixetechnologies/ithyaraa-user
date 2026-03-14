@@ -4,6 +4,7 @@ import Image from "next/image"
 import { CgProfile } from "react-icons/cg";
 import { IoExitOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import axiosInstance from "@/lib/axiosInstance";
 import Loading from "@/components/ui/loading";
 import { CardSkeleton } from "@/components/ui/skeleton";
@@ -23,6 +24,7 @@ const ProfilePage = () => {
     const [user, setUser] = useState({})
     const [activeTab, setActiveTab] = useState("accountdetail")
     const router = useRouter()
+    const { handleLogout } = useAuth()
 
     useEffect(() => {
         const tab = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('tab')
@@ -30,15 +32,10 @@ const ProfilePage = () => {
             setActiveTab(tab)
         }
     }, [])
-    const redirectToLogin = () => {
-        console.log('[redirectToLogin] Clearing cookies and redirecting to login');
-        document.cookie = '_at=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = '_rt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = 'isLoggedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 
-        // Full page reload — no SPA history
-        router.push('/login')
-    };
+    const onLogout = () => {
+        handleLogout()
+    }
 
     useEffect(() => {
         const fetchUserDetails = async () => {
@@ -178,7 +175,7 @@ const ProfilePage = () => {
                                         </p>
                                     </section>
                                 )}
-                                <button className="flex justify-between text-white border-none items-center w-full cursor-pointer bg-red-500 p-3 rounded-lg" onClick={redirectToLogin}>
+                                <button className="flex justify-between text-white border-none items-center w-full cursor-pointer bg-red-500 p-3 rounded-lg" onClick={onLogout}>
                                     <p className="text-[15px] text-white hover:text-gray-500 font-normal ">
                                         Logout
                                     </p>
