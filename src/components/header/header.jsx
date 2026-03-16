@@ -247,11 +247,11 @@ const Header = () => {
                                     Combo
                                 </Link>
                             </li>
-                            <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
+                            {/* <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
                                 <Link href="/shop?type=combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                                     Our Combos
                                 </Link>
-                            </li>
+                            </li> */}
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
                                 <Link href="/shop?type=make_combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                                     Make Your Combo
