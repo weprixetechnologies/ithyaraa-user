@@ -48,7 +48,7 @@ const SignUpAction = () => {
             });
             const data = await res.json();
             if (res.ok) {
-                // toast.success("OTP sent successfully");
+                toast.success("OTP sent successfully");
                 setShowOtpScreen(true);
                 setCooldown(60); // start cooldown on each OTP send
             } else {
@@ -117,7 +117,7 @@ const SignUpAction = () => {
             });
             const createData = await createRes.json();
             if (createRes.ok) {
-                // toast.success("User created successfully");
+                toast.success("User created successfully");
                 setTimeout(() => {
                     router.push('/login');
                 }, 2000); // 2000ms = 2 seconds

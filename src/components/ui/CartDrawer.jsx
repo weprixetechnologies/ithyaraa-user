@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import Link from 'next/link';
 import axiosInstance from '@/lib/axiosInstance';
 import { useRef } from 'react';
+import logo from "../../../public/ithyaraa-logo.png";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -306,7 +307,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                     const featuredImage = Array.isArray(item?.featuredImage)
                                         ? item.featuredImage
                                         : (item?.featuredImage?.[0] ? item.featuredImage : []);
-                                    const imgUrl = featuredImage?.[0]?.imgUrl || '/placeholder-product.jpg';
+                                    const imgUrl = featuredImage?.[0]?.imgUrl || logo;
 
                                     // Check if item is selected
                                     const isSelected = isInitialized
@@ -458,7 +459,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                                                 <div className="block">
                                                                     <div className="relative aspect-[170/222] w-[80px] min-w-[80px]">
                                                                         <Image
-                                                                            src={p.featuredImage?.[0]?.imgUrl || '/placeholder-product.jpg'}
+                                                                            src={p.featuredImage?.[0]?.imgUrl || logo}
                                                                             fill
                                                                             alt='Combo Item Image'
                                                                             className='rounded-lg'

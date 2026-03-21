@@ -55,13 +55,19 @@ const BrandProductsPage = () => {
 
     // Filter products by status and search query
     const filteredProducts = products.filter(product => {
-        const matchesFilter = filter === 'all' || product.status === filter
+        const matchesFilter = filter === 'all' || product.status === filter;
+        const search = searchQuery.toLowerCase();
+        const productName = (product.name || product.title || "").toLowerCase();
+        const productDesc = (product.description || "").toLowerCase();
+        const productSku = (product.productID || product.sku || "").toLowerCase();
+
         const matchesSearch =
-            product.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.sku?.toLowerCase().includes(searchQuery.toLowerCase())
-        return matchesFilter && matchesSearch
-    })
+            productName.includes(search) ||
+            productDesc.includes(search) ||
+            productSku.includes(search);
+
+        return matchesFilter && matchesSearch;
+    });
 
     if (loading) {
         return (

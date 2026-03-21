@@ -7,6 +7,7 @@ import Link from "next/link";
 import axiosInstance from "@/lib/axiosInstance";
 import { RxCross2 } from "react-icons/rx";
 import { CiSearch } from "react-icons/ci";
+import logo from "../../../public/ithyaraa-logo.png";
 
 const parseJSON = (val) => {
     try { return typeof val === 'string' ? JSON.parse(val) : (val || []); } catch { return []; }
@@ -192,7 +193,7 @@ const SearchDrawer = ({ isOpen, onClose }) => {
                             <div className="p-4 space-y-2">
                                 {results.map((product) => {
                                     const images = parseJSON(product?.featuredImage);
-                                    const imgUrl = images?.[0]?.imgUrl || "/placeholder-product.jpg";
+                                    const imgUrl = images?.[0]?.imgUrl || logo;
                                     const salePrice = Number(product?.salePrice ?? product?.regularPrice ?? 0);
                                     const regularPrice = Number(product?.regularPrice ?? salePrice);
                                     const discount = regularPrice > salePrice 

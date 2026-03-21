@@ -2,6 +2,7 @@
 import React, { useRef, useState } from "react";
 import Image from "next/image";
 import { IoChevronDownSharp, IoChevronUpSharp } from "react-icons/io5";
+import logo from "../../../public/ithyaraa-logo.png";
 
 const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
     const galleryRef = useRef(null);
@@ -26,7 +27,7 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
 
                     <Image
                         src={
-                            featuredImage || "/next.svg"
+                            featuredImage || logo
                         }
                         alt="Featured Image"
                         fill
@@ -50,9 +51,9 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
                         <div
                             key={index}
                             className="flex-shrink-0 relative w-full aspect-[437/540] cursor-pointer"
-                            onClick={() => setFeaturedImage(i.imgUrl || '/next.svg')}
+                            onClick={() => setFeaturedImage(i.imgUrl || logo)}
                         >
-                            <Image src={i.imgUrl || '/next.svg'} alt={i.imgAlt || 'Product image'} fill className="rounded-lg" />
+                            <Image src={i.imgUrl || logo} alt={i.imgAlt || 'Product image'} fill className="rounded-lg" />
                         </div>
                     ))}
                 </div>
@@ -71,9 +72,9 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
                     <div
                         key={index}
                         className="flex-shrink-0 relative w-[70px] aspect-[437/540] cursor-pointer"
-                        onClick={() => setFeaturedImage(i.imgUrl || '/next.svg')}
+                        onClick={() => setFeaturedImage(i.imgUrl || logo)}
                     >
-                        <Image src={i.imgUrl || '/next.svg'} alt={i.imgAlt || 'Product image'} fill className="rounded-lg" />
+                        <Image src={i.imgUrl || logo} alt={i.imgAlt || 'Product image'} fill className="rounded-lg" />
 
                     </div>
                 ))}

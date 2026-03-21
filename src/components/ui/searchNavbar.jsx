@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import axiosInstance from "@/lib/axiosInstance";
+import logo from "../../../public/ithyaraa-logo.png";
 
 const parseJSON = (val) => {
     try { return typeof val === 'string' ? JSON.parse(val) : (val || []); } catch { return []; }
@@ -176,7 +177,7 @@ const SearchNavbar = () => {
                         <div className="py-2">
                             {results.map((product) => {
                                 const images = parseJSON(product?.featuredImage);
-                                const imgUrl = images?.[0]?.imgUrl || "/placeholder-product.jpg";
+                                const imgUrl = images?.[0]?.imgUrl || logo;
                                 const salePrice = Number(product?.salePrice ?? product?.regularPrice ?? 0);
                                 const regularPrice = Number(product?.regularPrice ?? salePrice);
                                 const discount = regularPrice > salePrice 

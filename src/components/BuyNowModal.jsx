@@ -4,6 +4,7 @@ import { getCookie, setCookieEasy } from '../lib/setCookie';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import EnterOtp from './ui/enterOtp';
+import logo from '../../public/ithyaraa-logo.png';
 
 const INDIAN_STATES = [
     'Andhra Pradesh',
@@ -566,7 +567,7 @@ const BuyNowModal = ({
                 <h3 className="font-semibold mb-2">Order Summary</h3>
                 <div className="flex items-center gap-3 mb-2">
                     <img
-                        src={product?.featuredImage?.[0]?.imgUrl || product?.featuredImage?.[0] || '/placeholder.jpg'}
+                        src={product?.featuredImage?.[0]?.imgUrl || product?.featuredImage?.[0] || logo.src || logo}
                         alt={product?.name}
                         className="w-16 h-16 rounded object-cover"
                     />

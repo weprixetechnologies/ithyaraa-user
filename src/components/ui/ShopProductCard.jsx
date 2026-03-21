@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
+import logo from "../../../public/ithyaraa-logo.png";
 
 const parseJSON = (val) => {
     try { return typeof val === 'string' ? JSON.parse(val) : (val || []); } catch { return []; }
@@ -18,8 +19,8 @@ const ShopProductCard = ({ product }) => {
     const isWishlisted = isInWishlist(product?.productID);
 
     const images = parseJSON(product?.featuredImage);
-    const img1 = images?.[0]?.imgUrl || "/placeholder-product.jpg";
-    const img2 = images?.[1]?.imgUrl || images?.[0]?.imgUrl || "/placeholder-product.jpg";
+    const img1 = images?.[0]?.imgUrl || logo;
+    const img2 = images?.[1]?.imgUrl || images?.[0]?.imgUrl || logo;
 
     const sale = Number(product?.salePrice ?? product?.regularPrice ?? 0);
     const mrp = Number(product?.regularPrice ?? sale);

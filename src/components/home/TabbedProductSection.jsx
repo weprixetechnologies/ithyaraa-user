@@ -7,6 +7,7 @@ import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
 import axiosInstance from "@/lib/axiosInstance";
+import logo from "../../../public/ithyaraa-logo.png";
 
 const safeParseProduct = (product) => {
     const parsed = { ...product };
@@ -46,9 +47,23 @@ const TabbedProductSection = ({
     });
     const [error, setError] = useState(null);
     const loadMoreRef = useRef(null);
+    const isFetchingRef = useRef(false);
+    
+    // Refs for observer checking to avoid dependencies and recreation
+    const paginationRef = useRef(pagination);
+    const loadingProductsRef = useRef(loadingProducts);
+    const loadingMoreRef = useRef(loadingMore);
+
+    useEffect(() => {
+        paginationRef.current = pagination;
+        loadingProductsRef.current = loadingProducts;
+        loadingMoreRef.current = loadingMore;
+    }, [pagination, loadingProducts, loadingMore]);
 
     const fetchProducts = useCallback(async (categoryID = '', page = 1, isLoadMore = false) => {
+        if (isFetchingRef.current) return;
         try {
+            isFetchingRef.current = true;
             if (isLoadMore) {
                 setLoadingMore(true);
             } else {
@@ -56,8 +71,11 @@ const TabbedProductSection = ({
                 setError(null);
             }
             const params = new URLSearchParams();
-            params.append('limit', String(isLoadMore ? loadMoreLimit : initialLimit));
+            // Use consistent limit to maintain backend offset
+            const activeLimit = isLoadMore ? (loadMoreLimit || initialLimit) : initialLimit;
+            params.append('limit', String(activeLimit));
             params.append('page', String(page));
+            params.append('stock', 'in'); // Filter for 'In Stock' products
             if (categoryID) params.append('categoryID', categoryID);
             const { data } = await axiosInstance.get(`/products/shop?${params.toString()}`);
             if (data?.success) {
@@ -81,14 +99,9 @@ const TabbedProductSection = ({
         } finally {
             setLoadingProducts(false);
             setLoadingMore(false);
+            isFetchingRef.current = false;
         }
     }, [initialLimit, loadMoreLimit]);
-
-    const loadMore = () => {
-        if (pagination.hasMore && !loadingMore) {
-            fetchProducts(activeTab === 'all' ? '' : activeTab, pagination.page + 1, true);
-        }
-    };
 
     const handleTabChange = (categoryID) => {
         setActiveTab(categoryID);
@@ -102,15 +115,24 @@ const TabbedProductSection = ({
         fetchProducts('', 1, false);
     }, []);
 
-    // Scroll-based load more functionality
+    // Stable Scroll-based load more functionality
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && pagination.hasMore && !loadingMore && !loadingProducts) {
-                    loadMore();
+                const entry = entries[0];
+                if (
+                    entry.isIntersecting && 
+                    paginationRef.current.hasMore && 
+                    !loadingMoreRef.current && 
+                    !loadingProductsRef.current &&
+                    !isFetchingRef.current
+                ) {
+                    // Calculate next page based on stable ref
+                    const nextPage = paginationRef.current.page + 1;
+                    fetchProducts(activeTab === 'all' ? '' : activeTab, nextPage, true);
                 }
             },
-            { threshold: 0.5 }
+            { threshold: 0.1, rootMargin: '100px' } // Trigger slightly before it reaches the view
         );
 
         if (loadMoreRef.current) {
@@ -118,11 +140,9 @@ const TabbedProductSection = ({
         }
 
         return () => {
-            if (loadMoreRef.current) {
-                observer.unobserve(loadMoreRef.current);
-            }
+            observer.disconnect();
         };
-    }, [pagination.hasMore, loadingMore, loadingProducts]);
+    }, [activeTab, fetchProducts]); // Only depend on tab and stable fetch function
 
     const handleToggleWishlist = async (productID) => {
         await toggleWishlist(productID);
@@ -193,14 +213,14 @@ const TabbedProductSection = ({
                                         <div className="relative w-1/2 h-full">
                                             <Link href={`/products/${product.productID}`}>
                                                 <Image
-                                                    src={product.featuredImage?.[0]?.imgUrl || product.featuredImage?.[0] || '/placeholder.jpg'}
+                                                    src={product.featuredImage?.[0]?.imgUrl || product.featuredImage?.[0] || logo}
                                                     alt={product.name}
                                                     fill
                                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 16vw"
                                                     className="object-cover"
                                                     onError={(e) => {
                                                         console.warn('Image failed to load:', product.featuredImage?.[0]);
-                                                        e.target.src = '/placeholder.jpg';
+                                                        e.target.src = logo.src || logo;
                                                     }}
                                                 />
                                             </Link>
@@ -209,14 +229,14 @@ const TabbedProductSection = ({
                                         <div className="relative w-1/2 h-full">
                                             <Link href={`/products/${product.productID}`}>
                                                 <Image
-                                                    src={product.featuredImage?.[1]?.imgUrl || product.featuredImage?.[1] || product.featuredImage?.[0]?.imgUrl || product.featuredImage?.[0] || '/placeholder.jpg'}
+                                                    src={product.featuredImage?.[1]?.imgUrl || product.featuredImage?.[1] || product.featuredImage?.[0]?.imgUrl || product.featuredImage?.[0] || logo}
                                                     alt={`${product.name} - alt`}
                                                     fill
                                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 16vw"
                                                     className="object-cover"
                                                     onError={(e) => {
                                                         console.warn('Hover image failed to load:', product.featuredImage?.[1]);
-                                                        e.target.src = '/placeholder.jpg';
+                                                        e.target.src = logo.src || logo;
                                                     }}
                                                 />
                                             </Link>

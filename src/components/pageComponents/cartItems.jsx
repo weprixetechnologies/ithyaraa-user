@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { RxCross2 } from "react-icons/rx";
 import Image from 'next/image'
+import logo from "../../../public/ithyaraa-logo.png"
 import { useSelector, useDispatch } from 'react-redux';
 import { removeCartItemAsync, getCartAsync } from '@/redux/slices/cartSlice';
 import { toast } from 'react-toastify';
@@ -319,7 +320,7 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                 <div className="flex gap-2 pl-7">
                                     <div className="block">
                                         <div className="relative aspect-[170/222] md:w-[120px] md:min-w-[120px] w-[100px] min-w-[100px]">
-                                            <Image src={i.featuredImage[0].imgUrl} fill alt='Cart Item Image' className='rounded-lg' />
+                                            <Image src={i.featuredImage?.[0]?.imgUrl || logo} fill alt='Cart Item Image' className='rounded-lg' />
                                         </div>
                                     </div>
                                     <div className="flex flex-col md:pl-3 w-full">
@@ -410,7 +411,7 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                             <div className="flex gap-2 ">
                                                 <div className="block">
                                                     <div className="relative aspect-[170/222] md:w-[80px] md:min-w-[80px] w-[80px] min-w-[80px]">
-                                                        <Image src={p.featuredImage[0].imgUrl} fill alt='Cart Item Image' className='rounded-lg' />
+                                                        <Image src={p.featuredImage?.[0]?.imgUrl || logo} fill alt='Cart Item Image' className='rounded-lg' />
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col md:pl-3">

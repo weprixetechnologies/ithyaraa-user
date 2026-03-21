@@ -2,12 +2,13 @@ import React from 'react'
 import Image from 'next/image'
 import PresaleCardCounter from './presalecardCounter'
 import { useRouter } from 'next/navigation'
+import logo from "../../../public/ithyaraa-logo.png"
 
 const PreBookingProductCard = ({ product }) => {
     const router = useRouter()
 
     const featuredImage = product?.featuredImage || [];
-    const imageUrl = featuredImage?.[0]?.imgUrl || "/placeholder-product.jpg";
+    const imageUrl = featuredImage?.[0]?.imgUrl || logo;
 
     const handleCardClick = () => {
         router.push(`/presale/product/${product.presaleProductID}`)

@@ -26,12 +26,26 @@ const ShopWithUs = () => {
         <div className="absolute bg-transaparent w-full top-full p-5 z-10">
             <div className="bg-muted rounded-2xl grid grid-cols-4 gap-4 ">
                 <div className="col-span-2 p-2">
-                    <div className=" w-full max-w-full grid grid-cols-2 gap-1">
-                        <Suspense>
-                            <Image src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg" alt="Category" width={222} height={333} className="rounded-2xl" />
+                    <div className="w-full max-w-full grid grid-cols-2 gap-2">
+                        <Suspense fallback={<div className="w-full aspect-[222/333] bg-gray-200 animate-pulse rounded-2xl" />}>
+                            <div className="relative w-full aspect-[222/333]">
+                                <Image
+                                    src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg"
+                                    alt="Category"
+                                    fill
+                                    className="rounded-2xl object-cover"
+                                />
+                            </div>
                         </Suspense>
-                        <Suspense>
-                            <Image src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg" alt="Category" width={222} height={333} className="rounded-2xl" />
+                        <Suspense fallback={<div className="w-full aspect-[222/333] bg-gray-200 animate-pulse rounded-2xl" />}>
+                            <div className="relative w-full aspect-[222/333]">
+                                <Image
+                                    src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg"
+                                    alt="Category"
+                                    fill
+                                    className="rounded-2xl object-cover"
+                                />
+                            </div>
                         </Suspense>
                     </div>
                 </div>

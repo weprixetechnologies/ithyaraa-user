@@ -7,6 +7,7 @@ import { TiStarFullOutline } from "react-icons/ti";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import Link from 'next/link';
 import { useWishlist } from "@/contexts/WishlistContext";
+import logo from "../../../public/ithyaraa-logo.png";
 
 const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, products = [] }) => {
     const scrollRef = useRef(null)
@@ -149,7 +150,7 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                         <div className="relative w-1/2 h-full">
                                             <Link href={`/products/${i.productID}`}>
                                                 <Image
-                                                    src={i.featuredImage?.[0]?.imgUrl}
+                                                    src={i.featuredImage?.[0]?.imgUrl || logo}
                                                     alt={i.name || 'Product image'}
                                                     fill
                                                     sizes="(max-width: 768px) 40vw, 18vw"
@@ -163,7 +164,7 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                         <div className="relative w-1/2 h-full">
                                             <Link href={`/products/${i.productID}`}>
                                                 <Image
-                                                    src={i.featuredImage?.[1]?.imgUrl || i.featuredImage?.[0]?.imgUrl}
+                                                    src={i.featuredImage?.[1]?.imgUrl || i.featuredImage?.[0]?.imgUrl || logo}
                                                     alt={`${i.name || 'Product'} - alt`}
                                                     fill
                                                     sizes="(max-width: 768px) 40vw, 18vw"

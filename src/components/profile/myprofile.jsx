@@ -63,12 +63,13 @@ const MyProfile = ({ user }) => {
     };
 
     const verifyEmailOtp = async () => {
-        if (!emailOtp || emailOtp.length < 6) {
+        const cleaned = (emailOtp || '').replace(/\D/g, '').slice(0, 6);
+        if (!cleaned || cleaned.length < 6) {
             toast.error('Please enter complete OTP');
             return;
         }
         try {
-            const res = await axiosInstance.post('/user/verify-email-otp', { otp: emailOtp });
+            const res = await axiosInstance.post('/user/verify-email-otp', { otp: cleaned });
             if (res.data.success) {
                 // toast.success(res.data.message);
                 setIsVerifyingEmail(false);
@@ -79,7 +80,7 @@ const MyProfile = ({ user }) => {
             }
         } catch (err) {
             console.error(err);
-            toast.error('Failed to verify email');
+            toast.error(err.response?.data?.message || 'Failed to verify email');
         }
     };
 
@@ -99,12 +100,13 @@ const MyProfile = ({ user }) => {
     };
 
     const verifyPhoneOtp = async () => {
-        if (!phoneOtp || phoneOtp.length < 6) {
+        const cleaned = (phoneOtp || '').replace(/\D/g, '').slice(0, 6);
+        if (!cleaned || cleaned.length < 6) {
             toast.error('Please enter complete OTP');
             return;
         }
         try {
-            const res = await axiosInstance.post('/user/verify-phone-otp', { otp: phoneOtp });
+            const res = await axiosInstance.post('/user/verify-phone-otp', { otp: cleaned });
             if (res.data.success) {
                 // toast.success(res.data.message);
                 setIsVerifyingPhone(false);
@@ -115,7 +117,7 @@ const MyProfile = ({ user }) => {
             }
         } catch (err) {
             console.error(err);
-            toast.error('Failed to verify phone');
+            toast.error(err.response?.data?.message || 'Failed to verify phone');
         }
     };
 

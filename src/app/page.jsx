@@ -29,6 +29,9 @@ const UnderSections = dynamic(() => import("@/components/homeComponents/underSec
 const PresaleSection = dynamic(() => import("@/components/homeComponents/presaleSections"), {
   loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
 });
+const ReelsSection = dynamic(() => import("@/components/home/ReelsSection"), {
+  loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
+});
 
 // ISR: regenerate this page every 3600 seconds (1 hour)
 export const revalidate = 3600;
@@ -321,6 +324,10 @@ export default async function Home() {
 
 
       <HomeCategory categories={homeCategories} />
+      <ReelsSection
+        heading="Our Stories"
+        subHeading="Watch and be inspired"
+      />
       {/* Tabbed Product Section with Categories */}
       <TabbedProductSection
         heading="Shop by Category"
@@ -328,9 +335,10 @@ export default async function Home() {
         categories={categories}
         initialProducts={tabbedInitial.data}
         initialPagination={tabbedInitial.pagination}
-        initialLimit={2}
-        loadMoreLimit={2}
+        initialLimit={12}
+        loadMoreLimit={12}
       />
+
     </>
   );
 }
