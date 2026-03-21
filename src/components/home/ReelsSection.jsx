@@ -15,7 +15,10 @@ const ReelItem = ({ reel }) => {
             ([entry]) => {
                 setIsIntersecting(entry.isIntersecting);
             },
-            { threshold: 0.6 }
+            { 
+                threshold: 0.4, // Reduced threshold for better responsiveness
+                rootMargin: '50px 0px' // Start loading slightly before it enters the viewport
+            }
         );
 
         if (videoRef.current) {
@@ -26,12 +29,18 @@ const ReelItem = ({ reel }) => {
     }, []);
 
     useEffect(() => {
-        if (!videoRef.current) return;
+        const video = videoRef.current;
+        if (!video) return;
 
         if (isIntersecting) {
-            videoRef.current.play().catch(err => console.log("Autoplay blocked", err));
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
+                    console.log("Autoplay prevented:", err);
+                });
+            }
         } else {
-            videoRef.current.pause();
+            video.pause();
         }
     }, [isIntersecting]);
 
@@ -44,15 +53,20 @@ const ReelItem = ({ reel }) => {
                 loop
                 muted
                 playsInline
-                className="w-full h-full object-cover"
+                preload="metadata"
+                className={`w-full h-full object-cover transition-opacity duration-500 ${isIntersecting ? 'opacity-100' : 'opacity-80'}`}
             />
-            {!isIntersecting && reel.thumbnail_url && (
-                <img
-                    src={reel.thumbnail_url}
-                    alt="Thumbnail"
-                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 pointer-events-none"
-                />
+            
+            {/* Overlay if not intersecting - can be a placeholder if needed, 
+                but let's trust video poster for now and just add a play icon overlay on hover */}
+            {!isIntersecting && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/5 pointer-events-none">
+                     <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+                     </div>
+                </div>
             )}
+            
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
         </div>
     );
