@@ -70,7 +70,7 @@ const ProductDetail = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`http://localhost:7885/api/combo/detail-user/${productID}`);
+                const res = await axios.get(`https://backend.ithyaraa.com/api/combo/detail-user/${productID}`);
                 let data = res.data.data;
                 setFeaturedImage(data.featuredImage?.[0]?.imgUrl || "");
                 setGalleryImages(data.featuredImage || []);
@@ -97,7 +97,7 @@ const ProductDetail = () => {
         if (type) params.append("type", type);
 
         const res = await fetch(
-            `http://localhost:7885/api/products/all-products?${params.toString()}`
+            `https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`
         );
         console.log(res);
 

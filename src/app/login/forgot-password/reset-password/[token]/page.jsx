@@ -41,7 +41,7 @@ const ResetPasswordToken = () => {
 
         try {
             setLoading(true);
-            const response = await axios.post("http://localhost:7885/api/user/reset-password-tokenised", {
+            const response = await axios.post("https://backend.ithyaraa.com/api/user/reset-password-tokenised", {
                 token,
                 newPassword: password
             });
