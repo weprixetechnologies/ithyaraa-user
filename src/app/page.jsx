@@ -45,7 +45,7 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'vari
   if (sectionid) params.append("sectionid", sectionid);
 
   const res = await fetch(
-    `https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`,
+    `http://localhost:7885/api/products/all-products?${params.toString()}`,
     { next: { revalidate } }
   );
 
@@ -87,7 +87,7 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'vari
 
 async function getCategories(limit = 10) {
   const res = await fetch(
-    "https://backend.ithyaraa.com/api/categories/public",
+    "http://localhost:7885/api/categories/public",
     {
       // Align with page ISR
       next: { revalidate }
@@ -107,7 +107,7 @@ async function getCategories(limit = 10) {
 
 async function getHomepageSections() {
   const res = await fetch(
-    "https://backend.ithyaraa.com/api/homepage-sections/active",
+    "http://localhost:7885/api/homepage-sections/active",
     {
       next: { revalidate }
     }
@@ -123,7 +123,7 @@ async function getHomepageSections() {
 
 async function getSliderBanners() {
   const res = await fetch(
-    "https://backend.ithyaraa.com/api/slider-banners/active",
+    "http://localhost:7885/api/slider-banners/active",
     { next: { revalidate } }
   );
 
@@ -135,7 +135,7 @@ async function getSliderBanners() {
   return data?.data ?? { mobile: [], desktop: [] };
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7885/api";
 
 async function getPresaleProducts() {
   try {
