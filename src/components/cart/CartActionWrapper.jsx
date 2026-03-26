@@ -9,8 +9,8 @@ const CartActionWrapper = ({ children }) => {
     const dispatch = useDispatch();
     const { requireAuth } = useAuthActions();
 
-    const handleAddToCart = requireAuth(({ productID, quantity, variationName, variationID, referBy }) => {
-        dispatch(addCartAsync({ productID, quantity, variationName, variationID, referBy }))
+    const handleAddToCart = requireAuth(({ productID, quantity, variationName, variationID, referBy, customInputs, selectedDressType }) => {
+        dispatch(addCartAsync({ productID, quantity, variationName, variationID, referBy, customInputs, selectedDressType }))
             .unwrap()
             .then(() => {
                 toast.success('Added to cart successfully!');

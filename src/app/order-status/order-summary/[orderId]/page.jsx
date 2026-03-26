@@ -52,6 +52,7 @@ const OrderSuccessPage = () => {
                     comboItems: it.comboItems || [],
                     orderItemID: it.orderItemID,
                     returnStatus: it.returnStatus || 'none',
+                    custom_inputs: it.custom_inputs, // Added custom_inputs
                 }));
 
                 // Prefer backend-provided totals and meta from orderDetail; fallback to compute when absent
@@ -365,6 +366,15 @@ const OrderSuccessPage = () => {
                                                     {item.variationName && (
                                                         <p className="text-xs text-gray-500 mt-1">{item.variationName}</p>
                                                     )}
+                                                    {item.custom_inputs && Object.keys(item.custom_inputs).length > 0 && (
+                                                        <div className="mt-2 flex flex-wrap gap-1">
+                                                            {Object.entries(item.custom_inputs).map(([key, value]) => (
+                                                                <span key={key} className="inline-block px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[10px] sm:text-xs">
+                                                                    {key}: {value}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                     <div className="flex justify-between items-center mt-2">
                                                         <span className="bg-gray-100 px-2 py-1 rounded text-xs">
                                                             Qty: {item.quantity}
@@ -439,6 +449,15 @@ const OrderSuccessPage = () => {
                                                                     )}
                                                                     {item.variationName && (
                                                                         <p className="text-sm text-gray-500">{item.variationName}</p>
+                                                                    )}
+                                                                    {item.custom_inputs && Object.keys(item.custom_inputs).length > 0 && (
+                                                                        <div className="mt-2 flex flex-wrap gap-1">
+                                                                            {Object.entries(item.custom_inputs).map(([key, value]) => (
+                                                                                <span key={key} className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-xs">
+                                                                                    {key}: {value}
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
                                                                     )}
                                                                 </div>
                                                             </div>

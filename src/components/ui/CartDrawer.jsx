@@ -520,7 +520,9 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                 )}
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-600">Shipping</span>
-                                    <span className="font-medium">Free</span>
+                                    <span className={`font-medium ${!cartDetail.shipping || cartDetail.shipping === 0 ? 'text-green-600' : ''}`}>
+                                        {!cartDetail.shipping || cartDetail.shipping === 0 ? 'Free' : `₹${cartDetail.shipping}`}
+                                    </span>
                                 </div>
                                 {/* Note: Handling fee will be shown on cart page when COD is selected */}
                                 <div className="border-t border-gray-300 pt-2 mt-2">

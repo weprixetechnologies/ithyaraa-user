@@ -1,31 +1,141 @@
 "use client";
 import axios from "axios";
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect, useRef, Suspense, lazy } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { BsFillStarFill } from "react-icons/bs";
+import { BsFillStarFill, BsStar } from "react-icons/bs";
 import { toast } from "react-toastify";
 import { CiHeart, CiRuler } from "react-icons/ci";
-import { useDispatch, useSelector } from "react-redux";
+import { FaHeart } from "react-icons/fa";
+import { useDispatch } from "react-redux";
 import { addCartAsync } from "@/redux/slices/cartSlice";
 import Loading from "@/components/ui/loading";
 import BuyNowButton from "@/components/BuyNowButton";
+import { useWishlist } from "@/contexts/WishlistContext";
 
-
-// Lazy load heavy components for better performance
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
 const ProductTabs = lazy(() => import("@/components/products/tabsAccordion"));
 const ProductSection = lazy(() => import("@/components/home/ProductSection"));
 const Reviews = lazy(() => import("@/components/products/reviews"));
 const CrossSellModal = lazy(() => import("@/components/products/crossSellModal"));
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+const SECTION_POOL = ["HOME_HERO", "MUST_TRY", "FEATURING", "NEW_ARRIVAL", "TOP_DEALS"];
+const SECTION_META = {
+    HOME_HERO: { heading: "Picks Curated For You", subHeading: "Collections You Will Definitely Love" },
+    MUST_TRY: { heading: "Must Try Outfits", subHeading: "Curated Choice Now" },
+    FEATURING: { heading: "Featured Collections", subHeading: "Handpicked for your style" },
+    NEW_ARRIVAL: { heading: "New Arrivals", subHeading: "The latest trends just for you" },
+    TOP_DEALS: { heading: "Top Deals", subHeading: "Unbeatable prices on favorites" },
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
+
+async function fetchSectionProducts({ limit = 12, sectionid = "" } = {}) {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (sectionid) params.append("sectionid", sectionid);
+    const res = await fetch(`https://backend.ithyaraa.com/api/products/all-products?${params}`);
+    if (!res.ok) throw new Error("Failed");
+    const data = await res.json();
+    return (data?.data || []).map(p => {
+        const out = { ...p };
+        ["galleryImage", "featuredImage", "categories"].forEach(f => { if (f in out) out[f] = safeParse(out[f]); });
+        return out;
+    });
+}
+
+// ─── Shared sub-components ────────────────────────────────────────────────────
+const Divider = () => (
+    <div className="pdp-divider"><span className="pdp-divider-gem">◆</span></div>
+);
+
+const SectionBlock = ({ section }) => (
+    <Suspense fallback={<div className="pdp-skeleton" style={{ height: 360, borderRadius: 16 }} />}>
+        <ProductSection products={section.products} heading={section.heading} subHeading={section.subHeading} />
+    </Suspense>
+);
+
+const ReviewsBlock = ({ reviewStats }) => (
+    <Suspense fallback={<div className="pdp-skeleton" style={{ height: 240, borderRadius: 16 }} />}>
+        <Reviews reviewStats={reviewStats} />
+    </Suspense>
+);
+
+// ─── Confirm Drawer ───────────────────────────────────────────────────────────
+const ConfirmDrawer = ({ open, onClose, product, count, customInputs, customInputValues, selectedDressType, isBuyNow, onConfirm }) => {
+    useEffect(() => {
+        if (!open) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = prev; };
+    }, [open]);
+
+    if (!open) return null;
+
+    return (
+        <div className="cpd-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+            <div className="cpd-drawer">
+                <div className="cpd-drawer-hd">
+                    <div>
+                        <p className="cpd-eyebrow">Almost there</p>
+                        <h2 className="cpd-title">{isBuyNow ? "Review Your Order" : "Confirm Customisation"}</h2>
+                    </div>
+                    <button className="cpd-x" onClick={onClose}>×</button>
+                </div>
+
+                <div className="cpd-drawer-bd">
+                    <div className="cpd-product-row">
+                        <div className="cpd-thumb">
+                            <img
+                                src={product?.featuredImage?.[0]?.imgUrl || ""}
+                                alt={product?.name}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                onError={e => { e.target.style.display = "none"; }}
+                            />
+                        </div>
+                        <div className="cpd-product-meta">
+                            <p className="cpd-product-name">{product?.name}</p>
+                            <p className="cpd-product-qty">Qty: {count}</p>
+                            {selectedDressType && (
+                                <p className="cpd-product-dress">{selectedDressType.label} · ₹{selectedDressType.price}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {Array.isArray(customInputs) && customInputs.length > 0 && (
+                        <div className="cpd-inputs-summary">
+                            <p className="cpd-summary-lbl">Your Customisations</p>
+                            {customInputs.map(inp => (
+                                <div key={inp.id} className="cpd-summary-row">
+                                    <span className="cpd-summary-key">{inp.label}</span>
+                                    <span className="cpd-summary-val">
+                                        {customInputValues[inp.id] || <em style={{ color: "#c5bdb3", fontStyle: "normal" }}>Not provided</em>}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="cpd-drawer-ft">
+                    <button className="cpd-btn-ghost" onClick={onClose}>← Edit</button>
+                    <button className="cpd-btn-dark" onClick={onConfirm}>
+                        {isBuyNow ? "Proceed to Checkout →" : "Confirm & Add to Cart →"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 const CustomProductDetail = () => {
     const { productID } = useParams();
     const searchParams = useSearchParams();
-    const referBy = searchParams.get('referBy');
-
-    // Debug: Log the referBy parameter
-    console.log('URL referBy parameter:', referBy);
-    console.log('All search params:', Object.fromEntries(searchParams.entries()));
+    const referBy = searchParams.get("referBy");
+    const dispatch = useDispatch();
+    const { toggleWishlist, isInWishlist, loading: wishlistLoading } = useWishlist();
+    const isWishlisted = productID ? isInWishlist(productID) : false;
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -37,604 +147,771 @@ const CustomProductDetail = () => {
     const [uploadingImage, setUploadingImage] = useState(false);
     const [count, setCount] = useState(1);
     const [productQuantity, setProductQuantity] = useState(100);
-    const [buyMore, setBuyMore] = useState([]);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [dressTypes, setDressTypes] = useState([]);
+    const [selectedDressType, setSelectedDressType] = useState(null);
+
+    const [showConfirm, setShowConfirm] = useState(false);
     const [isBuyNow, setIsBuyNow] = useState(false);
-    const [showCrossSellModal, setShowCrossSellModal] = useState(false);
+    const [addingToCart, setAddingToCart] = useState(false);
+    const [cartSuccess, setCartSuccess] = useState(false);
+    const [showCrossSell, setShowCrossSell] = useState(false);
     const [crossSellProducts, setCrossSellProducts] = useState([]);
-    const dispatch = useDispatch();
-    const cart = useSelector((state) => state.cart.cartCount);
-    console.log(cart);
+    const cartBtnRef = useRef(null);
 
-    // Increment
-    const handleIncrement = () => {
-        if (count < productQuantity) setCount(prev => prev + 1);
-    };
+    const [sections, setSections] = useState([]);
+    const [isMounted, setIsMounted] = useState(false);
+    const [reviewStats, setReviewStats] = useState({
+        totalReviews: 0, averageRating: 0,
+        ratingBreakdown: [5, 4, 3, 2, 1].map(r => ({ rating: r, count: 0 })),
+    });
+    const sectionsFetched = useRef(false);
 
-    // Decrement
-    const handleDecrement = () => {
-        if (count > 1) setCount(prev => prev - 1);
-    };
-
-    // Handle custom input changes
-    const handleCustomInputChange = (inputId, value) => {
-        setCustomInputValues(prev => ({
-            ...prev,
-            [inputId]: value
-        }));
-    };
-
-    // Validate custom inputs
-    const validateCustomInputs = () => {
-        if (!Array.isArray(customInputs)) return true; // Skip validation if not an array
-        for (const input of customInputs) {
-            if (input.required && (!customInputValues[input.id] || customInputValues[input.id].trim() === '')) {
-                toast.error(`${input.label} is required`);
-                return false;
+    // ── Fetch product ──────────────────────────────────────────────────────
+    useEffect(() => {
+        if (!productID) return;
+        (async () => {
+            try {
+                setLoading(true);
+                const res = await axios.get(`https://backend.ithyaraa.com/api/products/details/${productID}`);
+                const raw = res.data.product;
+                const data = {
+                    ...raw,
+                    featuredImage: safeParse(raw.featuredImage) || [],
+                    galleryImage: safeParse(raw.galleryImage) || [],
+                    custom_inputs: safeParse(raw.custom_inputs) || [],
+                };
+                setProduct(data);
+                setCustomInputs(data.custom_inputs || []);
+                const dts = safeParse(raw.dressTypes) || [];
+                setDressTypes(dts);
+                if (dts.length === 1) setSelectedDressType(dts[0]);
+                setFeaturedImage(data.featuredImage?.[0]?.imgUrl || "");
+                setGalleryImages(data.galleryImage || []);
+                setProductQuantity(data.stock || 100);
+            } catch {
+                toast.error("Failed to load product details");
+            } finally {
+                setLoading(false);
             }
+        })();
+    }, [productID]);
+
+    // ── Review stats ───────────────────────────────────────────────────────
+    useEffect(() => {
+        if (!productID) return;
+        axios.get(`https://backend.ithyaraa.com/api/reviews/product/${productID}/stats`)
+            .then(r => { if (r.data.success) setReviewStats(r.data.data); })
+            .catch(() => { });
+    }, [productID]);
+
+    // ── Sections ───────────────────────────────────────────────────────────
+    useEffect(() => {
+        if (sectionsFetched.current) return;
+        sectionsFetched.current = true;
+        (async () => {
+            const shuffled = [...SECTION_POOL].sort(() => Math.random() - 0.5);
+            const out = []; const seen = new Set();
+            for (const id of shuffled) {
+                if (out.length >= 3 || seen.has(id)) continue;
+                seen.add(id);
+                try {
+                    const prods = await fetchSectionProducts({ sectionid: id });
+                    if (prods.length) out.push({ id, products: prods, ...SECTION_META[id] });
+                } catch { }
+            }
+            setSections(out);
+        })();
+    }, []);
+
+    useEffect(() => { setIsMounted(true); }, []);
+
+    // ── Handlers ───────────────────────────────────────────────────────────
+    const handleIncrement = () => { if (count < productQuantity) setCount(p => p + 1); };
+    const handleDecrement = () => { if (count > 1) setCount(p => p - 1); };
+    const handleInputChange = (id, val) => setCustomInputValues(p => ({ ...p, [id]: val }));
+    const handleDressType = (label) => setSelectedDressType(dressTypes.find(d => d.label === label) || null);
+
+    const validate = () => {
+        if (dressTypes.length > 0 && !selectedDressType) {
+            toast.error("Please select a dress type");
+            return false;
         }
         return true;
     };
 
-    // Show confirmation modal
     const handleAddToCartClick = () => {
-        if (!validateCustomInputs()) {
-            return;
-        }
+        if (!validate()) return;
         setIsBuyNow(false);
-        setShowConfirmModal(true);
+        setShowConfirm(true);
     };
 
-    // Handle Buy Now click
-    const handleBuyNowClick = () => {
-        if (!validateCustomInputs()) {
-            return;
-        }
-        setIsBuyNow(true);
-        setShowConfirmModal(true);
-    };
-
-    // Handle customer image upload
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            toast.error('Please upload an image file');
-            return;
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error('Image size should be less than 5MB');
-            return;
-        }
-
+        if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
+        if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
         setUploadingImage(true);
         try {
-            // Upload to BunnyCDN (same as admin panel)
-            const storageZone = 'ithyaraa';
-            const storageRegion = 'sg.storage.bunnycdn.com';
-            const pullZoneUrl = 'https://ithyaraa.b-cdn.net';
-            const apiKey = '7017f7c4-638b-48ab-add3858172a8-f520-4b88'; // ⚠️ Dev only
-
-            const timestamp = Date.now();
-            const fileName = `customer-upload-${timestamp}-${encodeURIComponent(file.name)}`;
-            const uploadUrl = `https://${storageRegion}/${storageZone}/${fileName}`;
-            const publicUrl = `${pullZoneUrl}/${fileName}`;
-
-            const res = await fetch(uploadUrl, {
-                method: 'PUT',
-                headers: {
-                    AccessKey: apiKey,
-                    'Content-Type': file.type
-                },
-                body: file
+            const zone = "ithyaraa";
+            const region = "sg.storage.bunnycdn.com";
+            const cdn = "https://ithyaraa.b-cdn.net";
+            const key = "7017f7c4-638b-48ab-add3858172a8-f520-4b88";
+            const name = `customer-upload-${Date.now()}-${encodeURIComponent(file.name)}`;
+            const res = await fetch(`https://${region}/${zone}/${name}`, {
+                method: "PUT",
+                headers: { AccessKey: key, "Content-Type": file.type },
+                body: file,
             });
-
-            if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
-
-            setCustomerUploadedImage(publicUrl);
-            toast.success('Image uploaded successfully');
-        } catch (error) {
-            console.error('Error uploading image:', error);
-            toast.error('Failed to upload image. Please try again.');
+            if (!res.ok) throw new Error();
+            setCustomerUploadedImage(`${cdn}/${name}`);
+            toast.success("Image uploaded successfully");
+        } catch {
+            toast.error("Failed to upload image. Please try again.");
         } finally {
             setUploadingImage(false);
         }
     };
 
-    // Actually add to cart after confirmation
     const addToCart = async () => {
+        const inputs = { ...customInputValues };
+        if (customerUploadedImage) inputs.customerUploadedImage = customerUploadedImage;
+        setAddingToCart(true);
         try {
-            // Include uploaded image URL in customInputs if available
-            const customInputsWithImage = { ...customInputValues };
-            if (customerUploadedImage) {
-                customInputsWithImage.customerUploadedImage = customerUploadedImage;
-            }
-
-            const cartData = {
+            const result = await dispatch(addCartAsync({
                 productID: product.productID,
                 quantity: count,
-                customInputs: customInputsWithImage,
-                referBy: referBy
-            };
-
-            console.log('Adding custom product to cart:', cartData);
-
-            const cartResult = await dispatch(addCartAsync(cartData)).unwrap();
-
+                customInputs: inputs,
+                selectedDressType,
+                referBy,
+            })).unwrap();
+            setShowConfirm(false);
             if (isBuyNow) {
-                // toast.success('Added to cart! Redirecting to checkout...');
-                // Redirect to cart after a short delay
-                setTimeout(() => {
-                    window.location.href = '/cart';
-                }, 1000);
+                setTimeout(() => { window.location.href = "/cart"; }, 1000);
             } else {
-                // toast.success('Custom product added to cart successfully!');
-
-                // Check if cart response has cross-sell products
-                if (cartResult && cartResult.crossSellProducts && Array.isArray(cartResult.crossSellProducts) && cartResult.crossSellProducts.length > 0) {
-                    setCrossSellProducts(cartResult.crossSellProducts);
-                    setShowCrossSellModal(true);
-                } else {
-                    // No cross-sell products, don't show modal
-                    setCrossSellProducts([]);
+                setCartSuccess(true);
+                setTimeout(() => setCartSuccess(false), 2000);
+                if (result?.crossSellProducts?.length) {
+                    setCrossSellProducts(result.crossSellProducts);
+                    setShowCrossSell(true);
                 }
             }
-
-            setShowConfirmModal(false);
-        } catch (error) {
-            console.error('Error adding to cart:', error);
-            console.error('Error details:', {
-                message: error.message,
-                response: error.response?.data,
-                status: error.response?.status
-            });
-
-            if (error.response?.status === 401) {
-                toast.error('Please login to add items to cart.');
-                // Redirect to login page
-                window.location.href = '/login';
+        } catch (err) {
+            if (err.response?.status === 401) {
+                toast.error("Please login to add items to cart.");
+                window.location.href = "/login";
             } else {
-                toast.error('Failed to add item to cart.');
+                toast.error("Failed to add item to cart.");
             }
+        } finally {
+            setAddingToCart(false);
         }
     };
 
-    // Fetch product details
-    useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                setLoading(true);
-                console.log('🔍 Fetching product with ID:', productID);
-                console.log('🔍 API URL:', `https://backend.ithyaraa.com/api/products/details/${productID}`);
+    // ── Derived ────────────────────────────────────────────────────────────
+    const activePrice = selectedDressType
+        ? selectedDressType.price
+        : (product?.salePrice || product?.regularPrice);
 
-                const response = await axios.get(`https://backend.ithyaraa.com/api/products/details/${productID}`);
+    const showStrike = !selectedDressType
+        && product?.salePrice
+        && product.salePrice !== product.regularPrice;
 
-                console.log('✅ API Response:', response);
-                console.log('✅ Response data:', response.data);
+    const discountPct = (() => {
+        if (!product || selectedDressType) return 0;
+        const reg = Number(product.regularPrice), sale = Number(product.salePrice);
+        if (reg > 0 && sale < reg) return Math.round((1 - sale / reg) * 100);
+        return Number(product.discountValue) || 0;
+    })();
 
-                const productData = response.data.product; // Extract product from response
+    const sectionAbove = sections[0] ?? null;
+    const sectionsBelow = sections.slice(1);
 
-                console.log('Fetched custom product:', productData);
-
-                // Helper to safely JSON.parse any field
-                const safeParse = (value) => {
-                    try {
-                        return typeof value === "string" ? JSON.parse(value) : value;
-                    } catch {
-                        return value;
-                    }
-                };
-
-                // Parse JSON fields
-                const parsedProduct = {
-                    ...productData,
-                    featuredImage: safeParse(productData.featuredImage) || [],
-                    galleryImage: safeParse(productData.galleryImage) || [],
-                    custom_inputs: safeParse(productData.custom_inputs) || []
-                };
-
-                setProduct(parsedProduct);
-                setCustomInputs(parsedProduct.custom_inputs || []);
-
-                // Set featured image
-                if (parsedProduct.featuredImage && parsedProduct.featuredImage.length > 0) {
-                    setFeaturedImage(parsedProduct.featuredImage[0].imgUrl);
-                }
-
-                // Set gallery images
-                if (parsedProduct.galleryImage && parsedProduct.galleryImage.length > 0) {
-                    setGalleryImages(parsedProduct.galleryImage);
-                }
-
-                // Set product quantity
-                setProductQuantity(parsedProduct.stock || 100);
-
-            } catch (error) {
-                console.error('❌ Error fetching product:', error);
-                console.error('❌ Error details:', {
-                    message: error.message,
-                    response: error.response?.data,
-                    status: error.response?.status,
-                    statusText: error.response?.statusText
-                });
-                toast.error('Failed to load product details');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (productID) {
-            fetchProduct();
-        }
-    }, [productID]);
-
-    // Optimised fetchRelatedProducts to decode product images and categories
-    useEffect(() => {
-        const fetchRelatedProducts = async () => {
-            try {
-                const response = await axios.get(`https://backend.ithyaraa.com/api/products/shop?limit=8`);
-                // Helper to safely JSON.parse any field
-                const safeParse = (value) => {
-                    try {
-                        return typeof value === "string" ? JSON.parse(value) : value;
-                    } catch {
-                        return value;
-                    }
-                };
-
-                const jsonFields = ["galleryImage", "featuredImage", "categories"];
-                const parsedProducts = (response.data?.data || []).map((product) => {
-                    const parsed = { ...product };
-                    jsonFields.forEach((field) => {
-                        if (field in parsed) {
-                            parsed[field] = safeParse(parsed[field]);
-                        }
-                    });
-                    return parsed;
-                });
-
-                setBuyMore(parsedProducts);
-            } catch (error) {
-                console.error('Error fetching related products:', error);
-            }
-        };
-
-        fetchRelatedProducts();
-    }, []);
-
-    if (loading) {
-        return <Loading />;
-    }
-
-    if (!product) {
-        return (
-            <div className="w-full flex flex-col items-center justify-center min-h-[400px]">
-                <p className="text-lg text-gray-500">Product not found</p>
-            </div>
-        );
-    }
+    if (loading) return <Loading />;
+    if (!product) return <p style={{ textAlign: "center", marginTop: 40 }}>Product not found</p>;
 
     return (
-        <div className="w-full flex flex-col items-center">
-            <div className="md:w-[80%] md:mt-10 w-full mb-5">
-                <div className="md:grid md:grid-cols-2 md:gap-4 md:w-full flex flex-col gap-4">
-                    {/* Product Gallery */}
-                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
-                        <ProductGallery
-                            featuredImage={featuredImage}
-                            setFeaturedImage={setFeaturedImage}
-                            galleryImages={galleryImages}
-                        />
-                    </Suspense>
+        <>
+            <style>{`
+                :root {
+                    --pdp-cream:     #faf8f4;
+                    --pdp-warm:      #f4f0e8;
+                    --pdp-gold:      #b8943a;
+                    --pdp-gold-lt:   #e0c97a;
+                    --pdp-gold-glow: rgba(184,148,58,.12);
+                    --pdp-ink:       #1c1812;
+                    --pdp-muted:     #7a7265;
+                    --pdp-border:    #e6e0d6;
+                    --pdp-red:       #b03030;
+                    --pdp-green:     #2e6e49;
+                    --pdp-shadow:    0 2px 24px rgba(28,24,18,.07);
+                }
 
-                    {/* Product Info */}
-                    <div className="product-data-tab px-3">
-                        <p className="text-xs font-medium uppercase text-secondary-text-deep">{product.brand}</p>
-                        <p className="text-xl md:text-2xl font-medium">{product.name}</p>
+                .pdp-root { background: var(--pdp-cream); min-height: 100vh; color: var(--pdp-ink); }
 
-                        {/* Rating */}
-                        <div className="flex flex-row items-center gap-2 mt-2 md:mt-4">
-                            <div className="flex items-center gap-1">
-                                <div className="flex items-center gap-[2px]">
-                                    {[...Array(5)].map((_, i) => (
-                                        <BsFillStarFill key={i} className="text-primary-yellow" />
-                                    ))}
-                                </div>
-                                <p className="text-primary-yellow font-medium text-xs ml-1 md:text-sm">{product.rating || 4.5}</p>
+                /* shimmer */
+                .pdp-skeleton {
+                    background: linear-gradient(90deg,#ede8df 25%,#f5f1ea 50%,#ede8df 75%);
+                    background-size: 200% 100%;
+                    animation: pdpShimmer 1.5s ease-in-out infinite;
+                }
+                @keyframes pdpShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+                /* entrance */
+                .pdp-fade-up { animation: pdpFadeUp .65s cubic-bezier(.22,1,.36,1) both; }
+                .pdp-d1 { animation-delay:.08s } .pdp-d2 { animation-delay:.16s }
+                .pdp-d3 { animation-delay:.24s } .pdp-d4 { animation-delay:.32s }
+                .pdp-d5 { animation-delay:.42s }
+                @keyframes pdpFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+                
+                .pdp-gallery-col {
+                    position: sticky;
+                    top: 20px;
+                    align-self: start;
+                }
+
+                /*
+                 * Top grid: gallery column is 1.1fr so the image naturally
+                 * gets more horizontal room — combined with the ProductGallery
+                 * component rendering taller (it fills its container), images
+                 * appear bigger while maintaining aspect ratio.
+                 */
+                .pdp-top-grid {
+                    display: grid;
+                    grid-template-columns: 1.15fr 1fr;
+                    gap: 52px;
+                    align-items: start;
+                }
+                @media (max-width: 880px) {
+                    .pdp-top-grid { grid-template-columns: 1fr; gap: 28px; }
+                    .pdp-gallery-col { position: relative; top: 0; }
+                }
+
+                /* brand pill */
+                .pdp-brand-pill {
+                    display: inline-block;
+                    font-size: 9.5px; font-weight: 500; letter-spacing: 2.8px;
+                    text-transform: uppercase; color: var(--pdp-gold);
+                    border: 1px solid var(--pdp-gold-lt);
+                    background: linear-gradient(135deg,rgba(184,148,58,.06),rgba(184,148,58,.13));
+                    padding: 4px 14px; border-radius: 99px; margin-bottom: 12px;
+                }
+
+                /* name */
+                .pdp-name {
+                    font-size: clamp(1.5rem, 3vw, 2rem);
+                    font-weight: 500; line-height: 1.12;
+                    color: var(--pdp-ink); letter-spacing: -.02em; margin: 0;
+                }
+
+                /* mto tag */
+                .pdp-mto-tag {
+                    display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
+                    font-size: 10px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase;
+                    color: var(--pdp-gold);
+                    background: linear-gradient(135deg,rgba(184,148,58,.08),rgba(184,148,58,.14));
+                    border: 1px solid rgba(184,148,58,.3);
+                    padding: 5px 13px; border-radius: 99px;
+                }
+
+                /* rating */
+                .pdp-rating-row { display:flex; align-items:center; gap:10px; margin-top:14px; flex-wrap:wrap; }
+                .pdp-stars { display:flex; gap:3px; }
+                .pdp-star.on  { font-size:11px; color:var(--pdp-gold); }
+                .pdp-star.off { font-size:11px; color:var(--pdp-border); }
+                .pdp-rating-num { font-size:12px; font-weight:500; color:var(--pdp-gold); }
+                .pdp-sep { width:1px; height:11px; background:var(--pdp-border); }
+                .pdp-review-ct { font-size:12px; color:var(--pdp-muted); }
+
+                /* price */
+                .pdp-price-block  { display:flex; align-items:baseline; gap:12px; margin-top:20px; flex-wrap:wrap; }
+                .pdp-price-main   { font-size:2.2rem; font-weight:600; color:var(--pdp-ink); line-height:1; transition:color .2s; }
+                .pdp-price-strike { font-size:1.05rem; color:var(--pdp-muted); text-decoration:line-through; }
+                .pdp-price-badge  {
+                    font-size:10px; font-weight:600; letter-spacing:.6px; text-transform:uppercase;
+                    color:#fff; background:var(--pdp-green); padding:3px 10px; border-radius:99px;
+                }
+
+                /*
+                 * Section heading used OUTSIDE the white card — renders with
+                 * the page's cream background so there is no white box visible.
+                 */
+                .pdp-out-hd {
+                    font-size: 9.5px; font-weight: 600; letter-spacing: 2.8px;
+                    text-transform: uppercase; color: var(--pdp-muted);
+                    display: flex; align-items: center; gap: 10px;
+                    margin: 22px 0 12px;
+                }
+                .pdp-out-hd::after {
+                    content:''; flex:1; height:1px;
+                    background: linear-gradient(to right, var(--pdp-border), transparent);
+                }
+
+                /* dress type pills */
+                .pdp-dt-grid { display:flex; flex-wrap:wrap; gap:8px; }
+                .pdp-dt-btn {
+                    padding: 9px 18px; border-radius: 10px;
+                    border: 1.5px solid var(--pdp-border); background: #fff;
+                    color: var(--pdp-ink); cursor: pointer; transition: all .18s ease;
+                    display: flex; flex-direction: column; align-items: center; gap: 1px;
+                    font-family: inherit;
+                }
+                .pdp-dt-btn:hover { border-color: var(--pdp-gold-lt); background: var(--pdp-warm); }
+                .pdp-dt-btn.active {
+                    background: var(--pdp-ink); color: #fff; border-color: var(--pdp-ink);
+                    box-shadow: 0 4px 14px rgba(28,24,18,.18);
+                }
+                .pdp-dt-label { font-size: 13px; font-weight: 400; }
+                .pdp-dt-price { font-size: 11px; font-weight: 500; opacity: .65; }
+                .pdp-dt-btn.active .pdp-dt-price { color: var(--pdp-gold-lt); opacity: 1; }
+
+                /* upload zone */
+                .pdp-upload-zone {
+                    border: 2px dashed var(--pdp-border); border-radius: 12px;
+                    padding: 28px 20px; text-align: center; cursor: pointer;
+                    transition: all .2s ease; background: var(--pdp-cream); display: block;
+                }
+                .pdp-upload-zone:hover { border-color: var(--pdp-gold-lt); background: var(--pdp-warm); }
+                .pdp-upload-icon { font-size: 30px; margin-bottom: 8px; opacity: .45; }
+                .pdp-upload-text { font-size: 13px; color: var(--pdp-muted); margin: 0; }
+                .pdp-upload-sub  { font-size: 11px; color: var(--pdp-border); margin: 4px 0 0; }
+                .pdp-uploaded-wrap { display:flex; flex-direction:column; align-items:center; gap:12px; padding:14px 0; }
+                .pdp-uploaded-img  { width:110px; height:110px; border-radius:12px; object-fit:cover; border:1px solid var(--pdp-border); box-shadow:var(--pdp-shadow); }
+                .pdp-upload-actions { display:flex; gap:8px; }
+                .pdp-upload-btn { padding:6px 14px; border-radius:7px; font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; transition:all .15s; }
+                .pdp-upload-btn.remove { border:1.5px solid rgba(176,48,48,.3); color:var(--pdp-red); background:rgba(176,48,48,.06); }
+                .pdp-upload-btn.remove:hover { background:rgba(176,48,48,.13); }
+                .pdp-upload-btn.change { border:1.5px solid var(--pdp-border); color:var(--pdp-ink); background:var(--pdp-warm); }
+                .pdp-upload-btn.change:hover { background:var(--pdp-border); }
+
+                /* custom input fields */
+                .pdp-input-block { margin-bottom: 14px; }
+                .pdp-input-lbl {
+                    display: block; font-size: 10px; font-weight: 600;
+                    letter-spacing: 1.5px; text-transform: uppercase;
+                    color: var(--pdp-muted); margin-bottom: 6px;
+                }
+                .pdp-input-lbl em { color: var(--pdp-red); font-style: normal; margin-left: 2px; }
+                .pdp-field, .pdp-select, .pdp-textarea {
+                    width: 100%; padding: 10px 13px; box-sizing: border-box;
+                    border: 1.5px solid var(--pdp-border); border-radius: 8px;
+                    font-size: 13.5px; color: var(--pdp-ink); background: var(--pdp-cream);
+                    outline: none; transition: all .2s ease; font-family: inherit;
+                }
+                .pdp-textarea { resize: vertical; min-height: 84px; }
+                .pdp-field::placeholder, .pdp-textarea::placeholder { color: #c5bdb3; }
+                .pdp-field:focus, .pdp-select:focus, .pdp-textarea:focus {
+                    border-color: var(--pdp-gold); background: #fff;
+                    box-shadow: 0 0 0 3px var(--pdp-gold-glow);
+                }
+
+                /* action card — only wraps qty/CTA/trust */
+                .pdp-action-card {
+                    background: #fff; border: 1px solid var(--pdp-border);
+                    border-radius: 16px; padding: 22px;
+                    box-shadow: var(--pdp-shadow); margin-top: 22px;
+                }
+
+                /* qty + CTA row */
+                .pdp-btn-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+                .pdp-qty {
+                    display:flex; align-items:center; height:46px;
+                    border:1.5px solid var(--pdp-border); border-radius:10px;
+                    overflow:hidden; background:#fff; flex-shrink:0;
+                }
+                .pdp-qty-btn {
+                    width:40px; height:100%; display:flex; align-items:center; justify-content:center;
+                    font-size:20px; font-weight:300; cursor:pointer; color:var(--pdp-muted);
+                    background:transparent; border:none; transition:all .15s; line-height:1;
+                }
+                .pdp-qty-btn:hover { background:var(--pdp-warm); color:var(--pdp-ink); }
+                .pdp-qty-val { width:44px; text-align:center; font-size:14px; font-weight:500; user-select:none; }
+
+                /* cart button (identical to variable PDP) */
+                .pdp-btn-cart {
+                    position:relative; overflow:hidden;
+                    flex:1; min-width:0; height:46px; border-radius:10px;
+                    border:1.5px solid var(--pdp-ink); background:#fff;
+                    color:var(--pdp-ink); font-size:13px; font-weight:500; letter-spacing:.4px;
+                    cursor:pointer; padding:0 12px;
+                    display:flex; align-items:center; justify-content:center; gap:6px;
+                    white-space:nowrap; transition:border-color .2s, box-shadow .2s;
+                }
+                .pdp-btn-cart:hover:not(:disabled):not(.loading):not(.success) {
+                    background:var(--pdp-ink); color:#fff; box-shadow:0 4px 18px rgba(28,24,18,.2);
+                }
+                .pdp-btn-cart:disabled { opacity:.45; cursor:not-allowed; }
+                .pdp-btn-cart .pdp-ripple { position:absolute; border-radius:50%; background:rgba(28,24,18,.15); width:10px; height:10px; transform:scale(0); pointer-events:none; animation:pdpRipple .5s ease-out forwards; }
+                @keyframes pdpRipple { to{transform:scale(28);opacity:0} }
+                .pdp-btn-cart.loading { background:var(--pdp-warm); color:var(--pdp-muted); border-color:var(--pdp-border); cursor:not-allowed; }
+                .pdp-btn-cart .pdp-cart-label { display:flex; align-items:center; gap:7px; transition:opacity .15s,transform .15s; }
+                .pdp-btn-cart.loading .pdp-cart-label,.pdp-btn-cart.success .pdp-cart-label { opacity:0;transform:translateY(-8px); }
+                .pdp-btn-cart .pdp-cart-loading { position:absolute; display:flex; gap:5px; align-items:center; opacity:0; transition:opacity .15s; }
+                .pdp-btn-cart.loading .pdp-cart-loading { opacity:1; }
+                .pdp-cart-dot { width:6px; height:6px; border-radius:50%; background:var(--pdp-muted); animation:pdpDotBounce .9s ease-in-out infinite; }
+                .pdp-cart-dot:nth-child(2){animation-delay:.15s}.pdp-cart-dot:nth-child(3){animation-delay:.3s}
+                @keyframes pdpDotBounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+                .pdp-btn-cart.success { background:var(--pdp-green); border-color:var(--pdp-green); color:#fff; animation:pdpBtnPop .35s cubic-bezier(.34,1.56,.64,1); }
+                @keyframes pdpBtnPop{0%{transform:scale(1)}45%{transform:scale(.96)}100%{transform:scale(1)}}
+                .pdp-btn-cart .pdp-cart-success { position:absolute; display:flex; align-items:center; gap:7px; opacity:0; transform:translateY(8px); transition:opacity .2s .05s,transform .2s .05s; font-size:13px; font-weight:500; }
+                .pdp-btn-cart.success .pdp-cart-success { opacity:1; transform:translateY(0); }
+                .pdp-check-svg  { width:16px; height:16px; }
+                .pdp-check-path { stroke:#fff; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; fill:none; stroke-dasharray:20; stroke-dashoffset:20; }
+                .pdp-btn-cart.success .pdp-check-path { animation:pdpDrawCheck .35s ease .1s forwards; }
+                @keyframes pdpDrawCheck{to{stroke-dashoffset:0}}
+                .pdp-cart-particles { position:absolute; inset:0; pointer-events:none; overflow:visible; }
+                .pdp-particle { position:absolute; width:5px; height:5px; border-radius:50%; top:50%; left:50%; opacity:0; }
+                .pdp-btn-cart.success .pdp-particle { animation:pdpParticle .6s ease-out forwards; }
+                .pdp-particle:nth-child(1){background:#f59e0b;animation-delay:.05s;--dx:-38px;--dy:-28px}
+                .pdp-particle:nth-child(2){background:#3a7a55;animation-delay:.07s;--dx:38px;--dy:-28px}
+                .pdp-particle:nth-child(3){background:#b03030;animation-delay:.09s;--dx:-44px;--dy:2px}
+                .pdp-particle:nth-child(4){background:#b8943a;animation-delay:.06s;--dx:44px;--dy:2px}
+                .pdp-particle:nth-child(5){background:#3a7a55;animation-delay:.08s;--dx:-24px;--dy:30px}
+                .pdp-particle:nth-child(6){background:#f59e0b;animation-delay:.10s;--dx:24px;--dy:30px}
+                @keyframes pdpParticle{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0)}}
+
+                .pdp-buynow-wrap { display:contents; }
+
+                /* icon actions */
+                .pdp-icon-row { display:flex; gap:20px; margin-top:14px; }
+                .pdp-icon-btn {
+                    display:flex; align-items:center; gap:6px; font-size:12px;
+                    color:var(--pdp-muted); cursor:pointer; background:none; border:none;
+                    padding:4px 0; transition:color .18s; font-family:inherit;
+                }
+                .pdp-icon-btn:hover { color:var(--pdp-ink); }
+                .pdp-icon-btn.wishlisted { color:var(--pdp-red); }
+                .pdp-icon-btn:disabled { opacity:.45; cursor:not-allowed; }
+
+                /* trust strip */
+                .pdp-trust { display:flex; gap:18px; flex-wrap:wrap; padding:14px 0 0; border-top:1px solid var(--pdp-border); margin-top:16px; }
+                .pdp-trust-item { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--pdp-muted); }
+
+                /* divider */
+                .pdp-divider { display:flex; align-items:center; gap:14px; margin:48px 0; }
+                .pdp-divider::before,.pdp-divider::after { content:''; flex:1; height:1px; background:var(--pdp-border); }
+                .pdp-divider-gem { color:var(--pdp-gold); font-size:9px; flex-shrink:0; }
+
+                /* ── Confirm drawer ── */
+                .cpd-overlay {
+                    position:fixed; inset:0; z-index:9999;
+                    background:rgba(14,12,10,.65); backdrop-filter:blur(6px);
+                    display:flex; align-items:flex-end; justify-content:center;
+                    animation:cpdIn .2s ease both;
+                }
+                @keyframes cpdIn{from{opacity:0}to{opacity:1}}
+                .cpd-drawer {
+                    background:#fff; width:100%; max-height:88vh;
+                    border-radius:20px 20px 0 0;
+                    display:flex; flex-direction:column; overflow:hidden;
+                    box-shadow:0 -16px 60px rgba(14,12,10,.22);
+                    animation:cpdSlide .32s cubic-bezier(.22,1,.36,1) both;
+                }
+                @keyframes cpdSlide{from{transform:translateY(100%)}to{transform:none}}
+                @media(min-width:600px){
+                    .cpd-overlay{align-items:center;}
+                    .cpd-drawer{max-width:480px;border-radius:20px;animation:cpdPop .32s cubic-bezier(.22,1,.36,1) both;}
+                    @keyframes cpdPop{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+                }
+                .cpd-drawer-hd {
+                    display:flex; align-items:center; justify-content:space-between;
+                    padding:20px 24px 16px; border-bottom:1px solid var(--pdp-border);
+                    background:var(--pdp-cream); flex-shrink:0;
+                }
+                .cpd-eyebrow  { font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--pdp-gold); margin:0 0 3px; }
+                .cpd-title    { font-size:20px; font-weight:400; color:var(--pdp-ink); letter-spacing:-.02em; margin:0; }
+                .cpd-x        { width:32px; height:32px; border-radius:50%; border:1px solid var(--pdp-border); background:#fff; font-size:20px; cursor:pointer; color:var(--pdp-muted); display:flex; align-items:center; justify-content:center; transition:all .15s; }
+                .cpd-x:hover  { background:var(--pdp-warm); color:var(--pdp-ink); transform:rotate(90deg); }
+                .cpd-drawer-bd { flex:1; overflow-y:auto; padding:20px 24px; scrollbar-width:thin; scrollbar-color:var(--pdp-border) transparent; }
+                .cpd-product-row  { display:flex; gap:14px; margin-bottom:20px; }
+                .cpd-thumb        { width:76px; height:76px; border-radius:12px; overflow:hidden; flex-shrink:0; border:1px solid var(--pdp-border); background:var(--pdp-warm); }
+                .cpd-product-meta { display:flex; flex-direction:column; justify-content:center; }
+                .cpd-product-name { font-size:15px; font-weight:500; color:var(--pdp-ink); margin:0 0 5px; }
+                .cpd-product-qty  { font-size:12px; color:var(--pdp-muted); margin:0 0 3px; }
+                .cpd-product-dress{ font-size:12.5px; color:var(--pdp-gold); font-weight:500; margin:0; }
+                .cpd-inputs-summary { border-top:1px solid var(--pdp-border); padding-top:16px; }
+                .cpd-summary-lbl  { font-size:9px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--pdp-muted); margin:0 0 12px; }
+                .cpd-summary-row  { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid var(--pdp-border); font-size:12.5px; }
+                .cpd-summary-row:last-child { border-bottom:none; }
+                .cpd-summary-key  { color:var(--pdp-muted); flex-shrink:0; }
+                .cpd-summary-val  { color:var(--pdp-ink); font-weight:500; text-align:right; }
+                .cpd-drawer-ft  { display:flex; gap:10px; padding:16px 24px; border-top:1px solid var(--pdp-border); background:var(--pdp-cream); flex-shrink:0; }
+                .cpd-btn-ghost  { padding:11px 18px; border:1.5px solid var(--pdp-border); border-radius:10px; font-size:13px; font-weight:500; cursor:pointer; background:#fff; color:var(--pdp-ink); transition:all .15s; font-family:inherit; }
+                .cpd-btn-ghost:hover { background:var(--pdp-warm); }
+                .cpd-btn-dark   { flex:1; padding:11px 18px; border:none; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; background:var(--pdp-ink); color:#fff; transition:all .18s; letter-spacing:.3px; font-family:inherit; }
+                .cpd-btn-dark:hover { background:#2d2820; box-shadow:0 4px 18px rgba(28,24,18,.22); transform:translateY(-1px); }
+
+                /* responsive */
+                @media(max-width:480px){
+                    .pdp-btn-row { flex-direction:column; gap:8px; }
+                    .pdp-qty     { width:100%; }
+                    .pdp-btn-cart { width:100%; font-size:14px; height:48px; padding:0 16px; }
+                    .pdp-buynow-wrap { display:block; width:100%; }
+                    .pdp-buynow-wrap > * { width:100% !important; height:48px !important; padding:0 16px !important; box-sizing:border-box; }
+                }
+            `}</style>
+
+            <div className="pdp-root">
+                <div className="md:py-[30px] max-w-[1200px] mx-auto">
+
+                    {/* ── Two-column layout ── */}
+                    <div className="pdp-top-grid">
+
+                        {/* Gallery — wider column so images render larger */}
+                        <div className="pdp-fade-up pdp-gallery-col">
+                            <Suspense fallback={<div className="pdp-skeleton" style={{ height: 600, borderRadius: 16 }} />}>
+                                <ProductGallery
+                                    featuredImage={featuredImage}
+                                    setFeaturedImage={setFeaturedImage}
+                                    galleryImages={galleryImages}
+                                />
+                            </Suspense>
+                        </div>
+
+                        {/* Info column */}
+                        <div style={{ padding: "0 10px" }}>
+
+                            {/* Brand + name + tag */}
+                            <div className="pdp-fade-up pdp-d1">
+                                <span className="pdp-brand-pill">{product.brand || "Custom"}</span>
+                                <h1 className="pdp-name">{product.name}</h1>
+                                <span className="pdp-mto-tag">✦ Made-to-Order</span>
                             </div>
 
-                            <div className="w-px h-3 bg-secondary-text-deep" />
+                            {/* Rating */}
+                            <div className="pdp-rating-row pdp-fade-up pdp-d2">
+                                <div className="pdp-stars">
+                                    {[1, 2, 3, 4, 5].map(s => (
+                                        <span key={s} className={`pdp-star ${s <= Math.round(reviewStats.averageRating) ? "on" : "off"}`}>
+                                            {s <= Math.round(reviewStats.averageRating) ? <BsFillStarFill /> : <BsStar />}
+                                        </span>
+                                    ))}
+                                </div>
+                                <span className="pdp-rating-num">{reviewStats.averageRating.toFixed(1)}</span>
+                                <span className="pdp-sep" />
+                                <span className="pdp-review-ct">
+                                    {reviewStats.totalReviews} {reviewStats.totalReviews === 1 ? "review" : "reviews"}
+                                </span>
+                            </div>
 
-                            <p className="text-black font-medium text-xs md:text-sm">98 Comments</p>
-                        </div>
+                            {/* Price */}
+                            <div className="pdp-price-block pdp-fade-up pdp-d2">
+                                <span className="pdp-price-main">₹{activePrice}</span>
+                                {showStrike && <span className="pdp-price-strike">₹{product.regularPrice}</span>}
+                                {discountPct > 0 && <span className="pdp-price-badge">{discountPct}% off</span>}
+                            </div>
 
-                        {/* Pricing */}
-                        <div className="pricing flex mt-4 items-center gap-3">
-                            <p className="text-xl font-medium">₹{product.salePrice || product.regularPrice}</p>
-                            {product.salePrice && product.salePrice !== product.regularPrice && (
-                                <p className="text-xl font-medium line-through text-secondary-text-deep">₹{product.regularPrice}</p>
+                            {/* ─ Dress types — NO white card, page background shows through ─ */}
+                            {dressTypes.length > 0 && (
+                                <div className="pdp-fade-up pdp-d3">
+                                    <p className="pdp-out-hd">Select Dress Type</p>
+                                    <div className="pdp-dt-grid">
+                                        {dressTypes.map((dt, i) => (
+                                            <button
+                                                key={i}
+                                                className={`pdp-dt-btn${selectedDressType?.label === dt.label ? " active" : ""}`}
+                                                onClick={() => handleDressType(dt.label)}
+                                            >
+                                                <span className="pdp-dt-label">{dt.label}</span>
+                                                <span className="pdp-dt-price">₹{dt.price}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
-                            {product.discountValue && (
-                                <p className="text-xl font-medium text-green-600">{product.discountValue}% Off</p>
-                            )}
-                        </div>
 
-                        {/* Customer Image Upload Section */}
-                        {product?.allowCustomerImageUpload ? (
-                            <div className="mt-5 mb-5">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Upload Your Image
-                                    <span className="text-gray-500 text-xs ml-2">(Optional)</span>
-                                </label>
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                            {/* ─ Image upload — only renders when truthy (!! prevents 0 render) ─ */}
+                            {!!product.allowCustomerImageUpload && (
+                                <div className="pdp-fade-up pdp-d3">
+                                    <p className="pdp-out-hd">
+                                        Upload Your Image
+                                        <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400, fontSize: 9, marginLeft: 4 }}>(optional)</span>
+                                    </p>
                                     {customerUploadedImage ? (
-                                        <div className="flex flex-col items-center gap-3">
-                                            <img
-                                                src={customerUploadedImage}
-                                                alt="Uploaded"
-                                                className="w-[100px] h-[100px] rounded-lg object-cover"
-                                            />
-                                            <div className="flex gap-2">
+                                        <div className="pdp-uploaded-wrap">
+                                            <img src={customerUploadedImage} alt="Uploaded" className="pdp-uploaded-img" />
+                                            <div className="pdp-upload-actions">
                                                 <button
-                                                    type="button"
+                                                    className="pdp-upload-btn remove"
                                                     onClick={() => {
                                                         setCustomerUploadedImage(null);
-                                                        // Reset file input
-                                                        const fileInput = document.getElementById('customer-image-upload');
-                                                        if (fileInput) fileInput.value = '';
+                                                        const fi = document.getElementById("cpd-file");
+                                                        if (fi) fi.value = "";
                                                     }}
-                                                    className="px-4 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-                                                >
-                                                    Remove Image
-                                                </button>
-                                                <label
-                                                    htmlFor="customer-image-upload"
-                                                    className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
-                                                >
-                                                    Change Image
-                                                </label>
+                                                >Remove</button>
+                                                <label htmlFor="cpd-file" className="pdp-upload-btn change" style={{ cursor: "pointer" }}>Change</label>
                                             </div>
                                         </div>
                                     ) : (
-                                        <label
-                                            htmlFor="customer-image-upload"
-                                            className="flex flex-col items-center justify-center cursor-pointer"
-                                        >
-                                            <div className="text-center">
-                                                <svg
-                                                    className="mx-auto h-12 w-12 text-gray-400"
-                                                    stroke="currentColor"
-                                                    fill="none"
-                                                    viewBox="0 0 48 48"
-                                                    aria-hidden="true"
-                                                >
-                                                    <path
-                                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                                        strokeWidth={2}
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                    />
-                                                </svg>
-                                                <div className="mt-4 flex text-sm leading-6 text-gray-600">
-                                                    <span className="relative cursor-pointer rounded-md font-semibold text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2">
-                                                        {uploadingImage ? 'Uploading...' : 'Upload an image'}
-                                                    </span>
-                                                    <p className="pl-1">or drag and drop</p>
-                                                </div>
-                                                <p className="text-xs leading-5 text-gray-600">PNG, JPG, GIF up to 5MB</p>
-                                            </div>
+                                        <label htmlFor="cpd-file" className="pdp-upload-zone">
+                                            <div className="pdp-upload-icon">🖼️</div>
+                                            <p className="pdp-upload-text">{uploadingImage ? "Uploading…" : "Click to upload an image"}</p>
+                                            <p className="pdp-upload-sub">PNG, JPG, GIF · max 5MB</p>
                                         </label>
                                     )}
-                                    <input
-                                        id="customer-image-upload"
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageUpload}
-                                        disabled={uploadingImage}
-                                        className="hidden"
-                                    />
+                                    <input id="cpd-file" type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} style={{ display: "none" }} />
                                 </div>
-                            </div>
-                        ) : null}
+                            )}
 
-                        {/* Custom Input Fields */}
-                        {customInputs.length > 0 && (
-                            <div className="customInputs mt-5">
-                                <div className="flex gap-2 items-center mb-3">
-                                    <p className="font-medium text-secondary-text-deep">Customize Your Product</p>
-                                </div>
-                                <div className="flex flex-col gap-4">
-                                    {Array.isArray(customInputs) && customInputs.map((input, index) => (
-                                        <div className="custom-input-field" key={input.id || index}>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                {input.label}
-                                                {input.required && <span className="text-red-500 ml-1">*</span>}
+                            {/* ─ Custom inputs — NO white card ─ */}
+                            {customInputs.length > 0 && (
+                                <div className="pdp-fade-up pdp-d3">
+                                    <p className="pdp-out-hd">Customise Your Product</p>
+                                    {customInputs.map((inp, idx) => (
+                                        <div className="pdp-input-block" key={inp.id || idx}>
+                                            <label className="pdp-input-lbl">
+                                                {inp.label}{inp.required && <em>*</em>}
                                             </label>
-
-                                            {input.type === 'select' ? (
-                                                <select
-                                                    value={customInputValues[input.id] || ''}
-                                                    onChange={(e) => handleCustomInputChange(input.id, e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    required={input.required}
-                                                >
-                                                    <option value="">{input.placeholder || `Select ${input.label}`}</option>
-                                                    {input.options && input.options.map((option, optionIndex) => (
-                                                        <option key={optionIndex} value={option}>
-                                                            {option}
-                                                        </option>
-                                                    ))}
+                                            {inp.type === "select" ? (
+                                                <select className="pdp-select" value={customInputValues[inp.id] || ""} onChange={e => handleInputChange(inp.id, e.target.value)} required={inp.required}>
+                                                    <option value="">{inp.placeholder || `Select ${inp.label}`}</option>
+                                                    {(inp.options || []).map((o, oi) => <option key={oi} value={o}>{o}</option>)}
                                                 </select>
-                                            ) : input.type === 'textarea' ? (
-                                                <textarea
-                                                    value={customInputValues[input.id] || ''}
-                                                    onChange={(e) => handleCustomInputChange(input.id, e.target.value)}
-                                                    placeholder={input.placeholder || `Enter ${input.label}`}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    rows={3}
-                                                    required={input.required}
-                                                />
+                                            ) : inp.type === "textarea" ? (
+                                                <textarea className="pdp-textarea" value={customInputValues[inp.id] || ""} onChange={e => handleInputChange(inp.id, e.target.value)} placeholder={inp.placeholder || `Enter ${inp.label}`} rows={3} required={inp.required} />
                                             ) : (
-                                                <input
-                                                    type={input.type === 'number' ? 'number' : input.type === 'email' ? 'email' : input.type === 'tel' ? 'tel' : 'text'}
-                                                    value={customInputValues[input.id] || ''}
-                                                    onChange={(e) => handleCustomInputChange(input.id, e.target.value)}
-                                                    placeholder={input.placeholder || `Enter ${input.label}`}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    required={input.required}
-                                                />
+                                                <input type={["number", "email", "tel"].includes(inp.type) ? inp.type : "text"} className="pdp-field" value={customInputValues[inp.id] || ""} onChange={e => handleInputChange(inp.id, e.target.value)} placeholder={inp.placeholder || `Enter ${inp.label}`} required={inp.required} />
                                             )}
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Quantity and Action Buttons */}
-                        <div className="flex gap-2 items-center mt-6">
-                            {/* Quantity selector */}
-                            <div className="flex items-center border rounded-lg overflow-hidden w-[120px]">
-                                <button
-                                    onClick={handleDecrement}
-                                    className="flex-1 text-center py-2 border-r select-none cursor-pointer hover:bg-gray-100"
-                                >
-                                    -
-                                </button>
-                                <span className="flex-1 text-center py-2">{count.toString().padStart(2, "0")}</span>
-                                <button
-                                    onClick={handleIncrement}
-                                    className="flex-1 text-center py-2 border-l select-none cursor-pointer hover:bg-gray-100"
-                                >
-                                    +
-                                </button>
+                            {/* ─ Action card — ONLY qty + CTAs + wishlist + trust ─ */}
+                            <div className="pdp-action-card pdp-fade-up pdp-d4">
+                                <div className="pdp-btn-row">
+                                    <div className="pdp-qty">
+                                        <button className="pdp-qty-btn" onClick={handleDecrement}>−</button>
+                                        <span className="pdp-qty-val">{count.toString().padStart(2, "0")}</span>
+                                        <button className="pdp-qty-btn" onClick={handleIncrement}>+</button>
+                                    </div>
+
+                                    <button
+                                        ref={cartBtnRef}
+                                        className={`pdp-btn-cart${addingToCart ? " loading" : ""}${cartSuccess ? " success" : ""}`}
+                                        onClick={e => {
+                                            const btn = cartBtnRef.current;
+                                            if (btn) {
+                                                const r = document.createElement("span");
+                                                r.className = "pdp-ripple";
+                                                const rect = btn.getBoundingClientRect();
+                                                r.style.left = `${e.clientX - rect.left - 5}px`;
+                                                r.style.top = `${e.clientY - rect.top - 5}px`;
+                                                btn.appendChild(r);
+                                                setTimeout(() => r.remove(), 600);
+                                            }
+                                            handleAddToCartClick();
+                                        }}
+                                        disabled={addingToCart || cartSuccess}
+                                    >
+                                        <span className="pdp-cart-label">🛒 Add to Cart</span>
+                                        <span className="pdp-cart-loading">
+                                            <span className="pdp-cart-dot" />
+                                            <span className="pdp-cart-dot" />
+                                            <span className="pdp-cart-dot" />
+                                        </span>
+                                        <span className="pdp-cart-success">
+                                            <svg className="pdp-check-svg" viewBox="0 0 16 16">
+                                                <polyline className="pdp-check-path" points="2,8 6.5,12.5 14,4" />
+                                            </svg>
+                                            Added!
+                                        </span>
+                                        <span className="pdp-cart-particles" aria-hidden="true">
+                                            {[1, 2, 3, 4, 5, 6].map(i => <span key={i} className="pdp-particle" />)}
+                                        </span>
+                                    </button>
+
+                                    <div className="pdp-buynow-wrap">
+                                        <BuyNowButton
+                                            product={product}
+                                            productType="customproduct"
+                                            customInputs={customInputValues}
+                                            selectedDressType={selectedDressType}
+                                            quantity={count}
+                                            disabled={false}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pdp-icon-row">
+                                    <button
+                                        className={`pdp-icon-btn${isWishlisted ? " wishlisted" : ""}`}
+                                        onClick={() => productID && toggleWishlist(productID)}
+                                        disabled={wishlistLoading}
+                                    >
+                                        {isWishlisted ? <FaHeart size={13} /> : <CiHeart size={15} />}
+                                        {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
+                                    </button>
+                                    <button className="pdp-icon-btn">
+                                        <CiRuler size={15} /> Size Guide
+                                    </button>
+                                </div>
+
+                                <div className="pdp-trust">
+                                    <div className="pdp-trust-item">🚚 Free delivery above ₹499</div>
+                                    <div className="pdp-trust-item">↩️ Easy 7-day returns</div>
+                                    <div className="pdp-trust-item">🔒 Secure checkout</div>
+                                </div>
                             </div>
 
-                            {/* Action buttons */}
-                            <button
-                                className="flex-1 py-2 rounded-lg border font-medium text-center cursor-pointer hover:bg-gray-50"
-                                onClick={handleAddToCartClick}
-                            >
-                                Add to Cart
-                            </button>
-                            <BuyNowButton
-                                product={product}
-                                productType="customproduct"
-                                customInputs={customInputValues}
-                                quantity={count}
-                                disabled={false}
-                            />
+                            {/* Tabs */}
+                            <div className="pdp-fade-up pdp-d5" style={{ marginTop: 20 }}>
+                                <Suspense fallback={<div className="pdp-skeleton" style={{ height: 120, borderRadius: 12 }} />}>
+                                    <ProductTabs
+                                        tabHeading1="Description"
+                                        tabData1={product.description || "No description available."}
+                                        tab1={product.tab1}
+                                        tab2={product.tab2}
+                                    />
+                                </Suspense>
+                            </div>
                         </div>
-
-                        {/* Additional Actions */}
-                        <div className="flex gap-4 pt-2">
-                            <div className="flex items-center hover:text-secondary-text-deep cursor-pointer">
-                                <CiHeart />  <p className="pl-1">Add to Wishlist</p>
-                            </div>
-                            <div className="flex items-center hover:text-secondary-text-deep cursor-pointer">
-                                <CiRuler />  <p className="pl-1">Size Guide</p>
-                            </div>
-                        </div>
-
-                        {/* Product Tabs */}
-                        <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
-                            <ProductTabs
-                                tabHeading1="Description"
-                                tabData1={product.description || "No description available."}
-                                tab1={product.tab1}
-                                tab2={product.tab2}
-                            />
-                        </Suspense>
                     </div>
-                </div>
 
-                <hr className="mt-5 border-gray-200" />
-
-                {/* Related Products */}
-                <div className="w-full col-span-2">
-                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
-                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
-                    </Suspense>
-                </div>
-
-                <hr className="mt-5 mb-5 border-gray-200" />
-
-                {/* Reviews */}
-                <div className="w-full col-span-2">
-                    <Reviews />
-                </div>
-
-                {/* Additional Product Sections */}
-                <div className="w-full col-span-2 mt-3">
-                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
-                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
-                    </Suspense>
-                </div>
-
-                <div className="w-full col-span-2">
-                    <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-lg" />}>
-                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
-                    </Suspense>
+                    {/* ── Randomised sections + reviews ── */}
+                    {isMounted && (
+                        <>
+                            {sectionAbove && (
+                                <>
+                                    <Divider />
+                                    <SectionBlock section={sectionAbove} />
+                                </>
+                            )}
+                            <Divider />
+                            <ReviewsBlock reviewStats={reviewStats} />
+                            {sectionsBelow.map(section => (
+                                <div key={section.id}>
+                                    <Divider />
+                                    <SectionBlock section={section} />
+                                </div>
+                            ))}
+                        </>
+                    )}
                 </div>
             </div>
 
-            {/* Confirmation Modal */}
-            {showConfirmModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold mb-4">
-                            {isBuyNow ? 'Review Before Purchase' : 'Confirm Your Customization'}
-                        </h2>
+            {/* Confirm drawer */}
+            <ConfirmDrawer
+                open={showConfirm}
+                onClose={() => setShowConfirm(false)}
+                product={product}
+                count={count}
+                customInputs={customInputs}
+                customInputValues={customInputValues}
+                selectedDressType={selectedDressType}
+                isBuyNow={isBuyNow}
+                onConfirm={addToCart}
+            />
 
-                        <div className="mb-4">
-                            <h3 className="font-medium mb-2">Product: {product.name}</h3>
-                            <p className="text-sm text-gray-600">Quantity: {count}</p>
-                        </div>
-
-                        <div className="mb-4">
-                            <h3 className="font-medium mb-2">Your Custom Inputs:</h3>
-                            <div className="space-y-2">
-                                {Array.isArray(customInputs) && customInputs.map((input) => {
-                                    const value = customInputValues[input.id] || 'Not provided';
-                                    return (
-                                        <div key={input.id} className="border-b pb-2">
-                                            <p className="text-sm font-medium text-gray-700">{input.label}:</p>
-                                            <p className="text-sm text-gray-600">{value}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowConfirmModal(false)}
-                                className="flex-1 py-2 px-4 border border-gray-300 rounded-lg font-medium hover:bg-gray-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={addToCart}
-                                className="flex-1 py-2 px-4 bg-primary-yellow rounded-lg font-medium hover:bg-yellow-500"
-                            >
-                                {isBuyNow ? 'Proceed to Checkout' : 'Confirm & Add to Cart'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Cross-sell modal */}
             <Suspense fallback={null}>
                 <CrossSellModal
-                    isOpen={showCrossSellModal}
-                    onClose={() => setShowCrossSellModal(false)}
+                    isOpen={showCrossSell}
+                    onClose={() => setShowCrossSell(false)}
                     products={crossSellProducts}
                     loading={false}
                 />
             </Suspense>
-        </div>
+        </>
     );
 };
 

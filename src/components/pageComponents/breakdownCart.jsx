@@ -34,7 +34,9 @@ const BreakdownCart = ({ breakdownData, couponDiscount = 0, appliedCoupon = null
                 )}
 
                 <div className='font-medium text-sm'>Shipping Charges</div>
-                <div className="text-right font-medium text-sm">Free</div>
+                <div className="text-right font-medium text-sm font-bold text-green-600">
+                    {breakdownData.shipping > 0 ? `₹${breakdownData.shipping}` : 'Free'}
+                </div>
 
                 {isCOD && (
                     <>

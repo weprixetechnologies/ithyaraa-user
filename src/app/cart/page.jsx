@@ -201,7 +201,7 @@ const Page = () => {
                 <CartItems />
               </Suspense>
               <div className="border border-gray-200 rounded-lg">
-                {cartRedux.cartDetail.total > 499 &&
+                {(!cartRedux.cartDetail.shipping || cartRedux.cartDetail.shipping === 0) &&
                   <p className='text-xs text-green-500 p-4 flex gap-2 items-center font-medium'>
                     <CiDeliveryTruck size={16} /> Yay! Your order is eligible for free delivery...
                   </p>

@@ -4,14 +4,15 @@ import axiosInstance from "@/lib/axiosInstance";
 // Add to cart
 export const addCartAsync = createAsyncThunk(
     "cart/addCartAsync",
-    async ({ productID, quantity, variationName, variationID, referBy, customInputs }) => {
+    async ({ productID, quantity, variationName, variationID, referBy, customInputs, selectedDressType }) => {
         const response = await axiosInstance.post("/cart/add-cart", {
             productID,
             quantity,
             variationName,
             variationID,
             referBy,
-            customInputs
+            customInputs,
+            selectedDressType
         });
         return response.data; // available as action.payload
     }
