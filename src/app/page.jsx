@@ -34,7 +34,7 @@ const ReelsSection = dynamic(() => import("@/components/home/ReelsSection"), {
 });
 
 // ISR: regenerate this page every 3600 seconds (1 hour)
-export const revalidate = 3600;
+export const revalidate = 1;
 
 async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'variable', sectionid = "" } = {}) {
   const params = new URLSearchParams();
