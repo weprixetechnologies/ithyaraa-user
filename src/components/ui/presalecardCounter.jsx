@@ -48,7 +48,7 @@ const square = (val, label) => (
     </div>
 );
 
-const PresaleCardCounter = ({ datetime }) => {
+const PresaleCardCounter = ({ datetime, label = "Ends in" }) => {
     const [mounted, setMounted] = useState(false);
     const [timeLeft, setTimeLeft] = useState(null);
 
@@ -91,7 +91,7 @@ const PresaleCardCounter = ({ datetime }) => {
                 <div className="flex sm:hidden items-center justify-center">
                     <div className="flex w-full flex-col items-center justify-center px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-sm">
                         <span className="font-semibold text-xs text-red-500 tracking-[0.08em] uppercase mb-1">
-                            Ends in
+                            {label}
                         </span>
                         <span className="font-bold text-[16px] text-gray-900 tracking-[0.2em]">
                             00:00:00:00
@@ -132,7 +132,7 @@ const PresaleCardCounter = ({ datetime }) => {
             <div className="flex sm:hidden items-center justify-center">
                 <div className="flex w-full flex-col items-center justify-center px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-sm">
                     <span className="font-semibold text-xs text-red-500 tracking-[0.08em] uppercase mb-1">
-                        Ends in
+                        {label}
                     </span>
                     <span className="font-bold text-[16px] text-gray-900 tracking-[0.2em]">
                         {pad(timeLeft.days)}:{pad(timeLeft.hours)}:{pad(timeLeft.minutes)}:{pad(timeLeft.seconds)}

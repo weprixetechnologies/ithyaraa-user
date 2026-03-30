@@ -48,8 +48,8 @@ const ModalShell = ({ onClose, children }) => {
                 }
                 @keyframes bnBackdropIn { from { opacity: 0; } to { opacity: 1; } }
                 .bn-modal-shell {
-                    position: relative; width: 100%; max-width: 860px; max-height: 90vh;
-                    min-height: 800px; min-width: 320px;
+                    position: relative; width: 100%; max-width: 1000px; max-height: 94vh;
+                    min-height: 700px; min-width: 320px;
                     overflow-y: auto; border-radius: 18px; background: #fff;
                     box-shadow: 0 24px 80px rgba(15,12,8,.3), 0 4px 16px rgba(15,12,8,.12);
                     animation: bnModalIn .28s cubic-bezier(.22,1,.36,1) both;
@@ -81,6 +81,7 @@ const BuyNowButton = ({
     disabled = false,
     productType,
     selectedDressType = null,
+    brandID = null,
 }) => {
     const [open, setOpen] = useState(false);
     const btnRef = useRef(null);
@@ -94,7 +95,7 @@ const BuyNowButton = ({
             return;
         }
 
-        console.log("⚡ Buy Now clicked", { productID: product?.productID, quantity });
+        console.log("⚡ Buy Now clicked", { productID: product?.productID, brandID, quantity });
 
         // Ripple logic
         const btn = btnRef.current;
@@ -174,6 +175,7 @@ const BuyNowButton = ({
                             customInputs={customInputs}
                             initialQuantity={quantity}
                             selectedDressType={selectedDressType || null}
+                            brandID={ brandID || product?.brandID || product?.uid }
                         />
                     </ModalShell>
                 </ModalPortal>

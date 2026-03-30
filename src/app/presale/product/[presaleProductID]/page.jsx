@@ -16,6 +16,7 @@ import CountdownTimer from "@/components/products/CountdownTimer";
 import CrossSellModal from "@/components/products/crossSellModal";
 import RollingText from "@/components/ui/rollingText";
 import CheckoutLoadingModal from "@/components/ui/CheckoutLoadingModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Lazy load heavy components for better performance
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
@@ -70,6 +71,7 @@ const ProductDetail = () => {
     const dispatch = useDispatch()
     const cart = useSelector((state) => state.cart.cartCount)
     const { toggleWishlist, isInWishlist, loading: wishlistLoading, wishlistProductIds } = useWishlist()
+    const [showSizeChart, setShowSizeChart] = useState(false);
 
     // Check wishlist status - use wishlistProductIds to avoid dependency issues
     const isWishlisted = presaleProductID ? isInWishlist(presaleProductID) : false
@@ -686,9 +688,15 @@ const ProductDetail = () => {
                                 )}
                                 <p className="pl-1">{isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}</p>
                             </button>
-                            <div className="flex items-center hover:text-secondary-text-deep cursor-pointer">
-                                <CiRuler />  <p className="pl-1">Size Guide</p>
-                            </div>
+                            {product?.sizeChartUrl && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSizeChart(true)}
+                                    className="flex items-center hover:text-secondary-text-deep cursor-pointer"
+                                >
+                                    <CiRuler /> <p className="pl-1">Size Guide</p>
+                                </button>
+                            )}
                         </div>
                         <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
                             <ProductTabs
@@ -730,6 +738,24 @@ const ProductDetail = () => {
                 products={crossSellProducts}
                 loading={false}
             />
+
+            {/* Size Chart Modal */}
+            {product?.sizeChartUrl && (
+                <Dialog open={showSizeChart} onOpenChange={(open) => !open && setShowSizeChart(false)}>
+                    <DialogContent className="max-w-md w-full max-h-[80vh] overflow-y-auto bg-white p-6 rounded-2xl">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold">Size Guide</DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4">
+                            <img
+                                src={product.sizeChartUrl}
+                                alt="Size chart"
+                                className="w-full h-auto object-contain rounded-lg shadow-sm"
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
 
             {/* Prebooking Modal */}
             {showPrebookingModal && (

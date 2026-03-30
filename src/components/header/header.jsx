@@ -76,7 +76,7 @@ const ShopWithUs = () => {
                             <li className="text-lg mb-1 text-black hover:text-primary-logo-yellow whitespace-nowrap"><Link href={'/'}>Under 199</Link> </li>
                             <li className="text-lg mb-1 text-black hover:text-primary-logo-yellow whitespace-nowrap"><Link href={'/'}>Under 399</Link> </li>
                             <li className="text-lg mb-1 text-black hover:text-primary-logo-yellow whitespace-nowrap"><Link href={'/'}>Under 599</Link> </li>
-                            <li className="text-lg mb-1 text-black hover:text-primary-logo-yellow whitespace-nowrap"><Link href={'/'}>Under 799</Link> </li>
+                            <li className="text-lg mb-1 text-black hover:text-primary-logo-yellow whitespace-nowrap"><Link href={'/'}>Under 999</Link> </li>
                             <li className="text-lg mb-1 text-black hover:text-primary-logo-yellow whitespace-nowrap"><Link href={'/'}>Under 999</Link> </li>
                             <li className="text-lg mb-1 text-black hover:text-primary-logo-yellow whitespace-nowrap"><Link href={'/'}>Under 1099</Link> </li>
 
@@ -180,7 +180,7 @@ const Header = () => {
                 <div className="w-full bg-primary py-3 flex flex-row justify-between items-center px-4">
                     <div className="flex-row flex items-center gap-2">
                         <p className="text-xs text-white">
-                            Enjoy Free Delivery on Orders Over 500 INR
+                            Enjoy Free Delivery on Orders Over 999 INR
                         </p>
                     </div>
                     <div className="flex flex-row items-center gap-4">

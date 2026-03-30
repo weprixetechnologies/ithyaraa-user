@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addCartAsync, addCartComboAsync } from "@/redux/slices/cartSlice";
 import SelectComboSimple from "@/components/products/selectComboSimple";
 import BuyNowButton from "@/components/BuyNowButton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 const ProductDetail = () => {
     const { productID } = useParams();
     const [product, setProduct] = useState(null);
@@ -29,6 +30,7 @@ const ProductDetail = () => {
     const [buyMore, setBuyMore] = useState([])
     const dispatch = useDispatch()
     const cart = useSelector((state) => state.cart.cartCount)
+    const [showSizeChart, setShowSizeChart] = useState(false);
     // console.log(cart);
     const [currentProduct, setCurrentProduct] = useState({
         quantity: 1,
@@ -355,9 +357,15 @@ const ProductDetail = () => {
                                 <div className="pdp-icon-btn">
                                     <CiHeart /> <span>Add to Wishlist</span>
                                 </div>
-                                <div className="pdp-icon-btn">
-                                    <CiRuler /> <span>Size Guide</span>
-                                </div>
+                                {product?.sizeChartUrl && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSizeChart(true)}
+                                        className="pdp-icon-btn"
+                                    >
+                                        <CiRuler /> <span>Size Guide</span>
+                                    </button>
+                                )}
                             </div>
 
                             {/* Tabs */}
@@ -389,6 +397,24 @@ const ProductDetail = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Size Chart Modal */}
+                {product?.sizeChartUrl && (
+                    <Dialog open={showSizeChart} onOpenChange={(open) => !open && setShowSizeChart(false)}>
+                        <DialogContent className="max-w-md w-full max-h-[80vh] overflow-y-auto bg-white p-6 rounded-2xl">
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-bold">Size Guide</DialogTitle>
+                            </DialogHeader>
+                            <div className="mt-4">
+                                <img
+                                    src={product.sizeChartUrl}
+                                    alt="Size chart"
+                                    className="w-full h-auto object-contain rounded-lg shadow-sm"
+                                />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
         </>
     );

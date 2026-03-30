@@ -11,6 +11,12 @@ import { addCartAsync } from "@/redux/slices/cartSlice";
 import Loading from "@/components/ui/loading";
 import BuyNowButton from "@/components/BuyNowButton";
 import { useWishlist } from "@/contexts/WishlistContext";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
 const ProductTabs = lazy(() => import("@/components/products/tabsAccordion"));
@@ -136,6 +142,7 @@ const CustomProductDetail = () => {
     const dispatch = useDispatch();
     const { toggleWishlist, isInWishlist, loading: wishlistLoading } = useWishlist();
     const isWishlisted = productID ? isInWishlist(productID) : false;
+    const [showSizeChart, setShowSizeChart] = useState(false);
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -828,6 +835,7 @@ const CustomProductDetail = () => {
                                             selectedDressType={selectedDressType}
                                             quantity={count}
                                             disabled={false}
+                                            brandID={product?.brandID}
                                         />
                                     </div>
                                 </div>
@@ -841,9 +849,15 @@ const CustomProductDetail = () => {
                                         {isWishlisted ? <FaHeart size={13} /> : <CiHeart size={15} />}
                                         {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
                                     </button>
-                                    <button className="pdp-icon-btn">
-                                        <CiRuler size={15} /> Size Guide
-                                    </button>
+                                    {product?.sizeChartUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowSizeChart(true)}
+                                            className="pdp-icon-btn"
+                                        >
+                                            <CiRuler size={15} /> Size Guide
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="pdp-trust">
@@ -911,6 +925,23 @@ const CustomProductDetail = () => {
                     loading={false}
                 />
             </Suspense>
+            {/* Size Chart Modal */}
+            {product?.sizeChartUrl && (
+                <Dialog open={showSizeChart} onOpenChange={(open) => !open && setShowSizeChart(false)}>
+                    <DialogContent className="max-w-md w-full max-h-[80vh] overflow-y-auto bg-white p-6 rounded-2xl">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold">Size Guide</DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4">
+                            <img
+                                src={product.sizeChartUrl}
+                                alt="Size chart"
+                                className="w-full h-auto object-contain rounded-lg shadow-sm"
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
         </>
     );
 };

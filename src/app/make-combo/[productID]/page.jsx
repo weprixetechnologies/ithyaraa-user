@@ -13,6 +13,7 @@ import BuyNowButton from "@/components/BuyNowButton";
 import SelectCombo from "@/components/products/selectCombo";
 import { useWishlist } from "@/contexts/WishlistContext";
 import Loading from "@/components/ui/loading";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
 const ProductTabs = lazy(() => import("@/components/products/tabsAccordion"));
@@ -214,6 +215,7 @@ const ProductDetail = () => {
     const [addingToCart, setAddingToCart] = useState(false);
     const [cartSuccess, setCartSuccess] = useState(false);
     const cartBtnRef = useRef(null);
+    const [showSizeChart, setShowSizeChart] = useState(false);
 
     // ── Sections + reviews ─────────────────────────────────────────────────
     const [sections, setSections] = useState([]);
@@ -963,9 +965,15 @@ const ProductDetail = () => {
                                         {isWishlisted ? <FaHeart size={13} /> : <CiHeart size={15} />}
                                         {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
                                     </button>
-                                    <button className="pdp-icon-btn">
-                                        <CiRuler size={15} /> Size Guide
-                                    </button>
+                                    {comboData?.sizeChartUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowSizeChart(true)}
+                                            className="pdp-icon-btn"
+                                        >
+                                            <CiRuler size={15} /> Size Guide
+                                        </button>
+                                    )}
                                 </div>
 
                                 {/* Trust strip */}
@@ -1026,6 +1034,26 @@ const ProductDetail = () => {
                 onAttributeSelect={handleAttributeSelect}
                 onConfirm={handleConfirmModal}
             />
+
+            {/* Size Chart Modal */}
+            {comboData?.sizeChartUrl && (
+                <Dialog open={showSizeChart} onOpenChange={(open) => !open && setShowSizeChart(false)}>
+                    <DialogContent className="max-w-md w-full max-h-[80vh] overflow-y-auto bg-white p-6 rounded-2xl">
+                        <DialogHeader>
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-bold">Size Guide</DialogTitle>
+                            </DialogHeader>
+                        </DialogHeader>
+                        <div className="mt-4">
+                            <img
+                                src={comboData.sizeChartUrl}
+                                alt="Size chart"
+                                className="w-full h-auto object-contain rounded-lg shadow-sm"
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
         </>
     );
 };

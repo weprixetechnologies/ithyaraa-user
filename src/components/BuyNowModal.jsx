@@ -1,4 +1,3 @@
-"use client";
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import axiosInstance from '../lib/axiosInstance';
 import { getCookie, setCookieEasy } from '../lib/setCookie';
@@ -7,23 +6,59 @@ import { toast } from 'react-toastify';
 import EnterOtp from './ui/enterOtp';
 import logo from '../../public/ithyaraa-logo.png';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 const INDIAN_STATES = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat',
-    'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh',
-    'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
-    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh',
-    'Uttarakhand', 'West Bengal', 'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Puducherry',
-    'Chandigarh', 'Andaman and Nicobar Islands',
-    'Dadra and Nagar Haveli and Daman and Diu', 'Lakshadweep',
+    'Andhra Pradesh',
+    'Arunachal Pradesh',
+    'Assam',
+    'Bihar',
+    'Chhattisgarh',
+    'Goa',
+    'Gujarat',
+    'Haryana',
+    'Himachal Pradesh',
+    'Jharkhand',
+    'Karnataka',
+    'Kerala',
+    'Madhya Pradesh',
+    'Maharashtra',
+    'Manipur',
+    'Meghalaya',
+    'Mizoram',
+    'Nagaland',
+    'Odisha',
+    'Punjab',
+    'Rajasthan',
+    'Sikkim',
+    'Tamil Nadu',
+    'Telangana',
+    'Tripura',
+    'Uttar Pradesh',
+    'Uttarakhand',
+    'West Bengal',
+    'Delhi',
+    'Jammu and Kashmir',
+    'Ladakh',
+    'Puducherry',
+    'Chandigarh',
+    'Andaman and Nicobar Islands',
+    'Dadra and Nagar Haveli and Daman and Diu',
+    'Lakshadweep',
 ];
 
-const EMPTY_FORM = {
-    name: '', email: '', phone: '',
-    line1: '', line2: '', city: '', state: '', pincode: '', landmark: '',
+const emptyForm = {
+    name: '',
+    email: '',
+    phone: '',
+    line1: '',
+    line2: '',
+    city: '',
+    state: '',
+    pincode: '',
+    landmark: '',
 };
 
 const BuyNowModal = ({
+    isOpen,
     onClose,
     product,
     productType,
@@ -31,193 +66,304 @@ const BuyNowModal = ({
     selectedItems = [],
     customInputs = {},
     initialQuantity = 1,
-    selectedDressType = null, // [NEW]
+    selectedDressType = null,
+    brandID = null,
 }) => {
     const router = useRouter();
 
-    const [step, setStep] = useState('details');
+    const [step, setStep] = useState('details'); // 'details' | 'processing' | 'success'
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [addresses, setAddresses] = useState([]);
     const [selectedAddressID, setSelectedAddressID] = useState('');
-    const [formData, setFormData] = useState(EMPTY_FORM);
-    const [useNewAddress, setUseNewAddress] = useState(false);
+    const [formData, setFormData] = useState(emptyForm);
     const [paymentMode, setPaymentMode] = useState('COD');
-
     const [couponCode, setCouponCode] = useState('');
     const [couponApplied, setCouponApplied] = useState(false);
     const [couponDiscount, setCouponDiscount] = useState(0);
     const [couponError, setCouponError] = useState('');
+    const [couponSuccess, setCouponSuccess] = useState('');
     const [applyingCoupon, setApplyingCoupon] = useState(false);
-    const [couponAnimKey, setCouponAnimKey] = useState(0);
-
-    const [offerDetails, setOfferDetails] = useState(null);
-    const [offerAnimKey, setOfferAnimKey] = useState(0);
-    const [globalShippingFee, setGlobalShippingFee] = useState(0);
-
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [useNewAddress, setUseNewAddress] = useState(false);
 
+    const [offerDetails, setOfferDetails] = useState(null);
+    const [checkingOffer, setCheckingOffer] = useState(false);
+    const [couponAnimKey, setCouponAnimKey] = useState(0);
+    const [offerAnimKey, setOfferAnimKey] = useState(0);
+
+    const [globalShippingFee, setGlobalShippingFee] = useState(0);
+    const [serverShippingFee, setServerShippingFee] = useState(null);
+
+    // Guest OTP gate: 'phone' | 'otp' | 'creating' (only when !isLoggedIn and no account for phone)
     const [guestStep, setGuestStep] = useState('phone');
-    const [guestPhone, setGuestPhone] = useState('');
+    const [guestPhoneForOtp, setGuestPhoneForOtp] = useState('');
     const [otp, setOtp] = useState('');
     const [otpCooldown, setOtpCooldown] = useState(0);
     const [sendOtpLoading, setSendOtpLoading] = useState(false);
     const [verifyOtpLoading, setVerifyOtpLoading] = useState(false);
     const [otpError, setOtpError] = useState('');
 
-    const safeQty = Math.max(1, Number(initialQuantity) || 1);
+    const safeQuantity = Math.max(1, Number(initialQuantity) || 1);
 
     const unitPrice = useMemo(() => {
         if (!product) return 0;
-        // [NEW] Use dress type price if provided
         if (productType === 'customproduct' && selectedDressType && selectedDressType.price) {
             return Number(selectedDressType.price);
         }
-        if (productType === 'variable' && selectedVariation)
+        if (productType === 'variable' && selectedVariation) {
             return selectedVariation.variationSalePrice ?? selectedVariation.variationPrice ?? 0;
+        }
+        if (productType === 'presale' && product.salePrice != null) {
+            return product.salePrice ?? product.regularPrice ?? 0;
+        }
         return product.salePrice ?? product.regularPrice ?? 0;
     }, [product, productType, selectedVariation, selectedDressType]);
 
-    const subtotal = useMemo(() => Number((unitPrice * safeQty).toFixed(2)), [unitPrice, safeQty]);
+    const subtotal = useMemo(() => {
+        return Number((unitPrice * safeQuantity).toFixed(2));
+    }, [unitPrice, safeQuantity]);
 
-    const shippingFee = useMemo(() => {
-        const afterCoupon = Math.max(0, subtotal - couponDiscount);
-        return afterCoupon < 799 ? globalShippingFee : 0;
-    }, [subtotal, couponDiscount, globalShippingFee]);
+    const shippingFee = useMemo(() => serverShippingFee, [serverShippingFee]);
 
-    const offerSaving = useMemo(() =>
-        offerDetails?.offerApplied ? Number(offerDetails.savedAmount || 0) : 0,
-        [offerDetails]);
+    const handlingFee = useMemo(() => (paymentMode === 'COD' ? 8 : 0), [paymentMode]);
 
-    const handlingFee = useMemo(() => paymentMode === 'COD' ? 8 : 0, [paymentMode]);
+    const totalAfterCoupon = useMemo(() => {
+        if (serverShippingFee === null) return null; // Indicate loading
+        const offerSaving = offerDetails?.offerApplied ? Number(offerDetails.savedAmount || 0) : 0;
+        const raw = subtotal - offerSaving - couponDiscount + (serverShippingFee || 0) + handlingFee;
+        return raw > 0 ? Number(raw.toFixed(2)) : 0;
+    }, [subtotal, couponDiscount, offerDetails, serverShippingFee, handlingFee]);
 
-    const grandTotal = useMemo(() =>
-        Math.max(0, Number(
-            (subtotal - offerSaving - (couponApplied ? couponDiscount : 0) + shippingFee + handlingFee).toFixed(2)
-        )),
-    [subtotal, offerSaving, couponApplied, couponDiscount, shippingFee, handlingFee]);
-
-    const fetchSettings = useCallback(async () => {
+    const fetchShippingFee = useCallback(async () => {
+        const pid = product?.productID || product?.id;
+        if (!pid) return;
         try {
-            const res = await axiosInstance.get('/settings');
-            if (res.data?.success) setGlobalShippingFee(Number(res.data.data?.shipping_fee) || 0);
-        } catch { }
-    }, []);
+            const res = await axiosInstance.get('/order/buy-now/shipping-fee', {
+                params: {
+                    productID: pid,
+                    brandID: brandID || product?.brandID,
+                    subtotal: subtotal
+                }
+            });
+            if (res.data?.success) {
+                setServerShippingFee(Number(res.data.shippingFee) || 0);
+            }
+        } catch (err) {
+            console.error('Failed to fetch shipping fee', err);
+        }
+    }, [product, brandID, subtotal]);
 
     const checkOffer = useCallback(async (pid, qty) => {
-        if (!pid || qty < 1 || productType !== 'variable') {
-            setOfferDetails(null);
-            return;
-        }
+        if (!pid || !qty || qty < 1) return;
         try {
+            setCheckingOffer(true);
             const res = await axiosInstance.get('/order/buy-now/check-offer', {
-                params: { 
-                    productID: pid, 
+                params: {
+                    productID: pid,
                     quantity: qty,
                     variationID: selectedVariation?.variationID || null,
                     selectedDressType: selectedDressType,
-                    productType: productType
+                    productType: productType,
+                    couponCode: couponApplied ? couponCode.trim() : undefined
                 },
             });
-            if (res.data?.success) { setOfferDetails(res.data); setOfferAnimKey(k => k + 1); }
-            else setOfferDetails(null);
-        } catch { setOfferDetails(null); }
-    }, [selectedDressType, productType, selectedVariation]);
+            if (res.data?.success) {
+                setOfferDetails(res.data);
+                setServerShippingFee(Number(res.data.shippingFee) || 0);
+                setOfferAnimKey(prev => prev + 1);
+            } else {
+                setOfferDetails(null);
+            }
+        } catch {
+            setOfferDetails(null);
+        } finally {
+            setCheckingOffer(false);
+        }
+    }, [productType, selectedVariation, selectedDressType, couponApplied, couponCode]);
 
     useEffect(() => {
-        const logged = !!getCookie('_at') || getCookie('isLoggedIn') === 'true';
+        if (!isOpen) return;
+
+        fetchShippingFee();
+
+        const at = getCookie('_at');
+        const loggedFlag = getCookie('isLoggedIn');
+        const logged = !!at || loggedFlag === 'true';
         setIsLoggedIn(logged);
-        fetchSettings();
+
         if (logged) {
-            axiosInstance.get('/address/all-address')
-                .then(res => {
+            // Fetch saved addresses
+            axiosInstance
+                .get('/address/all-address')
+                .then((res) => {
                     const list = res.data?.addresses || res.data?.address || [];
                     setAddresses(list);
-                    if (list.length > 0) { setSelectedAddressID(list[0].addressID); setUseNewAddress(false); }
-                    else setUseNewAddress(true);
+                    if (list.length > 0) {
+                        setSelectedAddressID(list[0].addressID);
+                        setUseNewAddress(false);
+                    } else {
+                        setUseNewAddress(true);
+                    }
                 })
-                .catch(console.error);
+                .catch((err) => {
+                    console.error('Failed to fetch addresses', err);
+                });
         } else {
+            setAddresses([]);
+            setSelectedAddressID('');
             setUseNewAddress(true);
+            setGuestStep('phone');
+            setOtp('');
+            setOtpError('');
+            setGuestPhoneForOtp('');
         }
-    }, [fetchSettings]);
+    }, [isOpen, fetchShippingFee]);
 
+    // OTP resend cooldown
     useEffect(() => {
-        const pid = product?.productID || product?.id;
-        if (pid) checkOffer(pid, safeQty);
-    }, [product?.productID, product?.id, safeQty, checkOffer]);
-
-    useEffect(() => {
-        if (offerDetails?.offerApplied) {
-            setCouponApplied(false); setCouponDiscount(0);
-            setCouponCode(''); setCouponError('');
+        let timer;
+        if (otpCooldown > 0) {
+            timer = setInterval(() => setOtpCooldown((c) => c - 1), 1000);
         }
-    }, [offerDetails?.offerApplied]);
-
-    useEffect(() => {
-        if (otpCooldown <= 0) return;
-        const t = setInterval(() => setOtpCooldown(c => c - 1), 1000);
-        return () => clearInterval(t);
+        return () => clearInterval(timer);
     }, [otpCooldown]);
 
     useEffect(() => {
-        const fn = (e) => { if (e.key === 'Escape' && step !== 'processing') onClose(); };
-        document.addEventListener('keydown', fn);
-        return () => document.removeEventListener('keydown', fn);
-    }, [step, onClose]);
+        const pid = product?.productID || product?.id;
+        const qty = safeQuantity;
+        if (pid && qty) {
+            checkOffer(pid, qty);
+        }
+    }, [product?.productID, product?.id, safeQuantity, checkOffer]);
 
-    const handleChange = (field) => (e) => setFormData(p => ({ ...p, [field]: e.target.value }));
+    useEffect(() => {
+        const isOfferLocked = offerDetails?.offerApplied === true;
+        if (isOfferLocked) {
+            setCouponApplied(false);
+            setCouponDiscount(0);
+            setCouponCode('');
+            setCouponError('');
+            setCouponSuccess('');
+        }
+    }, [offerDetails?.offerApplied]);
+
+    if (!isOpen) return null;
+
+    const closeAllowed = step !== 'processing';
+
+    const handleChange = (field) => (e) => {
+        setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    };
 
     const validateFields = () => {
-        const err = {};
-        const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRx = /^[0-9]{10}$/;
-        const pincodeRx = /^[0-9]{6}$/;
+        const errors = {};
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^[0-9]{10}$/;
+        const pincodeRegex = /^[0-9]{6}$/;
+
         if (!isLoggedIn) {
-            if (!formData.name.trim()) err.name = 'Required';
-            if (!emailRx.test(formData.email)) err.email = 'Invalid email';
-            if (!phoneRx.test(formData.phone)) err.phone = '10 digits required';
+            if (!formData.name.trim()) errors.name = 'Full name is required';
+            if (!emailRegex.test(formData.email.trim())) errors.email = 'Valid email is required';
+            if (!phoneRegex.test(formData.phone.trim())) errors.phone = 'Phone must be 10 digits';
         }
+
         if (!isLoggedIn || useNewAddress) {
-            if (!formData.line1.trim()) err.line1 = 'Required';
-            if (!formData.city.trim()) err.city = 'Required';
-            if (!formData.state.trim()) err.state = 'Required';
-            if (!pincodeRx.test(formData.pincode)) err.pincode = '6 digits required';
+            if (!formData.line1.trim()) errors.line1 = 'Address line 1 is required';
+            if (!formData.city.trim()) errors.city = 'City is required';
+            if (!formData.state.trim()) errors.state = 'State is required';
+            if (!pincodeRegex.test(formData.pincode.trim())) errors.pincode = 'Pincode must be 6 digits';
         }
+
         if (isLoggedIn && useNewAddress) {
-            if (!phoneRx.test(formData.phone)) err.phone = '10 digits required';
-            if (!emailRx.test(formData.email)) err.email = 'Invalid email';
+            if (!phoneRegex.test(formData.phone.trim())) errors.phone = 'Phone must be 10 digits';
+            if (!emailRegex.test(formData.email.trim())) errors.email = 'Valid email is required';
         }
-        return err;
+
+        if (productType === 'make_combo') {
+            if (!Array.isArray(selectedItems) || selectedItems.length === 0) {
+                errors.make_combo = 'Please select required combo items';
+            }
+        }
+
+        if (productType === 'customproduct') {
+            if (Array.isArray(product?.custom_inputs)) {
+                product.custom_inputs.forEach((input) => {
+                    if (input.required) {
+                        const val = customInputs[input.id];
+                        if (val === undefined || val === null || String(val).trim() === '') {
+                            errors[`custom_${input.id}`] = 'Required';
+                        }
+                    }
+                });
+            }
+        }
+
+        if (productType === 'presale') {
+            const min = Number(product.minOrderQuantity || 1);
+            const max = Number(product.maxOrderQuantity || safeQuantity);
+            if (safeQuantity < min || safeQuantity > max) {
+                errors.quantity = `Quantity must be between ${min} and ${max}`;
+            }
+        }
+
+        return errors;
     };
 
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) return;
-        setApplyingCoupon(true); setCouponError(''); setCouponApplied(false);
+        setApplyingCoupon(true);
+        setCouponError('');
+        setCouponSuccess('');
+        setCouponApplied(false);
         try {
             const res = await axiosInstance.get('/order/buy-now/validate-coupon', {
-                params: { code: couponCode.trim(), subtotal, email: formData.email || undefined },
+                params: {
+                    code: couponCode.trim(),
+                    subtotal,
+                    productID: product?.productID || product?.id,
+                    email: formData.email || undefined,
+                    uid: undefined,
+                },
             });
+
             const data = res.data || {};
             if (!data.success) {
                 setCouponDiscount(0);
+                setCouponApplied(false);
                 setCouponError(data.message || 'Invalid coupon');
                 toast.error(data.message || 'Invalid coupon');
                 return;
             }
-            const disc = Number(data.couponDiscount || 0);
-            setCouponDiscount(disc); setCouponApplied(true); setCouponAnimKey(k => k + 1);
-            toast.success(data.message || `Coupon applied — you saved ₹${disc.toFixed(2)}`);
+
+            const discount = Number(data.couponDiscount || 0);
+            const newShipping = Number(data.shippingFee) || 0;
+            setCouponDiscount(discount);
+            setServerShippingFee(newShipping);
+            setCouponApplied(true);
+            setCouponAnimKey(prev => prev + 1);
+            const saveMsg = `Coupon applied! You save ₹${discount.toFixed(2)}`;
+            const shippingMsg = newShipping > 0 ? ` (Shipping: ₹${newShipping})` : ' (Free Shipping!)';
+            setCouponSuccess(data.message || (saveMsg + shippingMsg));
+            toast.success(data.message || (saveMsg + shippingMsg));
         } catch (err) {
+            console.error('Coupon validation failed', err);
+            setCouponApplied(false);
             setCouponDiscount(0);
-            setCouponError(err.response?.data?.message || 'Failed to apply coupon');
+            setCouponError(err.response?.data?.message || err.message || 'Failed to apply coupon');
             toast.error('Failed to apply coupon');
-        } finally { setApplyingCoupon(false); }
+        } finally {
+            setApplyingCoupon(false);
+        }
     };
 
-    const submitOrder = useCallback(async (afterOtp = false) => {
-        setLoading(true); setError(''); setStep('processing');
-        if (afterOtp) setGuestStep('otp');
+    const submitOrder = useCallback(async (afterOtpVerify = false) => {
+        setLoading(true);
+        setError('');
+        setStep('processing');
+        if (afterOtpVerify) setGuestStep('creating');
+
         try {
             const hasSession = !!getCookie('_at');
             const resolvedUid = hasSession ? (getCookie('uid') || getCookie('_uid') || null) : null;
@@ -225,1086 +371,1345 @@ const BuyNowModal = ({
             const body = {
                 productType,
                 productID: product?.productID || product?.presaleProductID || product?.productId,
-                quantity: safeQty,
+                quantity: safeQuantity,
                 variationID: selectedVariation?.variationID || null,
                 selectedItems: productType === 'make_combo' ? selectedItems : [],
                 customInputs: productType === 'customproduct' ? customInputs : {},
-                selectedDressType, // [NEW] Pass the object {label, price}
+                selectedDressType,
                 couponCode: couponApplied ? couponCode.trim() : null,
                 paymentMode,
                 guestDetails: !isLoggedIn
-                    ? { name: formData.name, email: formData.email, phone: formData.phone }
+                    ? {
+                        name: formData.name,
+                        email: formData.email,
+                        phone: formData.phone,
+                    }
                     : null,
                 address: (!isLoggedIn || useNewAddress)
                     ? {
-                        name: formData.name, fullName: formData.name,
-                        line1: formData.line1, line2: formData.line2,
-                        city: formData.city, state: formData.state,
-                        pincode: formData.pincode, landmark: formData.landmark,
-                        phoneNumber: formData.phone, emailID: formData.email,
-                    } : null,
+                        name: formData.name,
+                        fullName: formData.name,
+                        line1: formData.line1,
+                        line2: formData.line2,
+                        city: formData.city,
+                        state: formData.state,
+                        pincode: formData.pincode,
+                        landmark: formData.landmark,
+                        phoneNumber: formData.phone,
+                        emailID: formData.email,
+                    }
+                    : null,
                 existingAddressID: isLoggedIn && !useNewAddress ? selectedAddressID : null,
                 uid: isLoggedIn ? resolvedUid : null,
             };
 
             const res = await axiosInstance.post('/order/buy-now', body);
             const data = res.data || {};
-            if (!data.success) throw new Error(data.message || 'Failed to place order');
+
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to place order');
+            }
 
             if (data.isNewUser && data.sessionToken) {
                 try {
                     setCookieEasy('_at', data.sessionToken, 7);
-                    document.cookie = `isLoggedIn=true;path=/;max-age=${7 * 24 * 60 * 60}`;
-                } catch { }
+                    document.cookie = `isLoggedIn=true; path=/; max-age=${7 * 24 * 60 * 60}`;
+                    setIsLoggedIn(true);
+                    toast.success("Account created automatically — you're now logged in!");
+                } catch (e) {
+                    console.error('Failed to store session token', e);
+                }
             }
 
             if (paymentMode === 'PREPAID') {
-                if (data.phonePeRedirectURL) { window.location.href = data.phonePeRedirectURL; }
-                else { toast.error('Payment init failed'); setError('Payment init failed'); setStep('details'); }
+                const redirectUrl = data.phonePeRedirectURL;
+                if (redirectUrl) {
+                    if (typeof window !== 'undefined') {
+                        window.location.href = redirectUrl;
+                    }
+                } else {
+                    toast.error('Payment initialization failed');
+                    setError('Payment initialization failed');
+                    setStep('details');
+                }
                 return;
             }
 
             setStep('success');
+
             if (data.redirectURL) {
-                setTimeout(() => { router.push(data.redirectURL.replace(/\/+/g, '/')); onClose(); }, 1800);
+                setTimeout(() => {
+                    router.push(data.redirectURL.replace(/\/+/g, '/'));
+                    if (onClose) onClose();
+                }, 1500);
             }
         } catch (err) {
-            const msg = err.response?.data?.message || err.message || 'Failed to place order';
-            setError(msg); toast.error(msg); setStep('details');
-        } finally { setLoading(false); }
+            console.error('Buy Now order failed', err);
+            const serverMsg = err.response?.data?.message || err.message || 'Failed to place order';
+            setError(serverMsg);
+            toast.error(serverMsg);
+            setStep('details');
+            setGuestStep((s) => (s === 'creating' ? 'otp' : s));
+        } finally {
+            setLoading(false);
+        }
     }, [
-        productType, product, safeQty, selectedVariation, selectedItems, customInputs,
-        couponApplied, couponCode, paymentMode, isLoggedIn, formData,
-        useNewAddress, selectedAddressID, onClose, router,
+        productType, product, safeQuantity, selectedVariation, selectedItems, customInputs,
+        selectedDressType, couponApplied, couponCode, paymentMode, isLoggedIn, formData,
+        useNewAddress, selectedAddressID, onClose, router
     ]);
 
     const handleConfirmOrder = async () => {
-        const errs = validateFields();
-        if (Object.keys(errs).length > 0) {
-            setError('Please fix the highlighted fields');
-            toast.error('Please correct errors before continuing');
+        const fieldErrors = validateFields();
+        if (Object.keys(fieldErrors).length > 0) {
+            setError('Please fix highlighted fields');
+            toast.error('Please correct the errors before continuing.');
             return;
         }
-        setError(''); setOtpError('');
 
-        if (isLoggedIn) { await submitOrder(); return; }
+        setError('');
+        setOtpError('');
 
-        const phone = formData.phone.replace(/\D/g, '').slice(-10);
-        if (phone.length !== 10) { setError('Phone must be 10 digits'); return; }
-
-        try {
-            const check = await axiosInstance.get('/user/check-phone', { params: { phone } });
-            if (check.data?.exists) { await submitOrder(); return; }
-        } catch (err) {
-            setError(err.response?.data?.message || 'Could not verify phone');
-            toast.error('Could not verify phone'); return;
+        if (isLoggedIn) {
+            await submitOrder();
+            return;
         }
 
-        setSendOtpLoading(true); setOtpError('');
+        const phone = (formData.phone || '').replace(/\D/g, '').slice(-10);
+        if (phone.length !== 10) {
+            setError('Phone must be 10 digits');
+            toast.error('Enter a valid 10-digit phone number');
+            return;
+        }
+
         try {
-            const res = await axiosInstance.post('/user/send-otp', { phoneNumber: `+91${phone}` });
+            const checkRes = await axiosInstance.get('/user/check-phone', { params: { phone } });
+            const data = checkRes.data || {};
+            if (data.exists) {
+                await submitOrder();
+                return;
+            }
+        } catch (err) {
+            console.error('Check phone failed', err);
+            setError(err.response?.data?.message || 'Could not verify phone. Try again.');
+            toast.error('Could not verify phone. Try again.');
+            return;
+        }
+
+        setSendOtpLoading(true);
+        setOtpError('');
+        try {
+            const phoneForApi = `+91${phone}`;
+            const res = await axiosInstance.post('/user/send-otp', {
+                phoneNumber: phoneForApi,
+            });
             const data = res.data || {};
             if (res.status !== 200 || !data.success) {
-                setOtpError(data.message || 'Failed to send OTP');
-                toast.error(data.message || 'Failed to send OTP'); return;
+                setOtpError(data.message || 'Failed to send OTP. Try again.');
+                toast.error(data.message || 'Failed to send OTP. Try again.');
+                return;
             }
-            setGuestPhone(phone); setGuestStep('otp'); setOtpCooldown(60); setOtp('');
+            setGuestPhoneForOtp(phone);
+            setGuestStep('otp');
+            setOtpCooldown(60);
+            setOtp('');
             toast.success('OTP sent to your number');
         } catch (err) {
-            const msg = err.response?.data?.message || 'Failed to send OTP';
-            setOtpError(msg); toast.error(msg);
-        } finally { setSendOtpLoading(false); }
+            console.error('Send OTP failed', err);
+            const msg = err.response?.data?.message || err.message || 'Failed to send OTP. Try again.';
+            setOtpError(msg);
+            toast.error(msg);
+        } finally {
+            setSendOtpLoading(false);
+        }
     };
 
     const handleVerifyOtp = async () => {
-        const clean = otp.replace(/\D/g, '');
-        if (clean.length < 6) { setOtpError('Enter the complete 6-digit OTP'); return; }
-        const phone = guestPhone.replace(/\D/g, '').slice(-10);
-        if (phone.length !== 10) { setOtpError('Session issue — go back and re-enter your number'); return; }
-        setVerifyOtpLoading(true); setOtpError('');
+        const trimmed = (otp || '').replace(/\D/g, '');
+        if (trimmed.length < 6) {
+            setOtpError('Enter complete 6-digit OTP');
+            toast.error('Enter complete 6-digit OTP');
+            return;
+        }
+        const phone = (guestPhoneForOtp || '').replace(/\D/g, '').slice(-10);
+        if (phone.length !== 10) {
+            setOtpError('Session issue. Please go back and enter your number again.');
+            toast.error('Please use "Change number" and enter your phone again.');
+            return;
+        }
+        setVerifyOtpLoading(true);
+        setOtpError('');
         try {
-            const res = await axiosInstance.post('/user/verify-otp', { phoneNumber: `+91${phone}`, otp: clean });
+            const res = await axiosInstance.post('/user/verify-otp', {
+                phoneNumber: `+91${phone}`,
+                otp: trimmed,
+            });
             const data = res.data || {};
             if (res.status !== 200 || !data.success) {
                 const msg = data.message || 'OTP verification failed';
-                setOtpError(/expired/i.test(msg) ? 'OTP expired — request a new one' : msg);
-                toast.error(msg); return;
+                if (/expired/i.test(msg)) {
+                    setOtpError('OTP expired. Please request a new one.');
+                    toast.error('OTP expired. Please request a new one.');
+                } else {
+                    setOtpError(msg);
+                    toast.error(msg);
+                }
+                return;
             }
             await submitOrder(true);
         } catch (err) {
-            const msg = err.response?.data?.message || 'Could not verify OTP';
-            setOtpError(msg); toast.error(msg);
-        } finally { setVerifyOtpLoading(false); }
+            console.error('Verify OTP failed', err);
+            const msg = err.response?.data?.message || err.message || 'Could not verify OTP.';
+            const hint = err.response?.status === 400
+                ? ' You can use "Resend OTP" to get a new code.'
+                : '';
+            setOtpError(msg + hint);
+            toast.error(msg);
+        } finally {
+            setVerifyOtpLoading(false);
+        }
     };
 
     const handleResendOtp = async () => {
         if (otpCooldown > 0) return;
-        const phone = guestPhone.replace(/\D/g, '').slice(-10);
-        if (phone.length !== 10) { setOtpError('Use "Change number" to re-enter your phone'); return; }
-        setSendOtpLoading(true); setOtpError('');
+        const phone = (guestPhoneForOtp || '').replace(/\D/g, '').slice(-10);
+        if (phone.length !== 10) {
+            setOtpError('Session issue. Please use "Change number" and enter your phone again.');
+            toast.error('Please use "Change number" and enter your phone again.');
+            return;
+        }
+        setSendOtpLoading(true);
+        setOtpError('');
         try {
-            const res = await axiosInstance.post('/user/send-otp', { phoneNumber: `+91${phone}` });
+            const res = await axiosInstance.post('/user/send-otp', {
+                phoneNumber: `+91${phone}`,
+            });
             const data = res.data || {};
             if (res.status !== 200 || !data.success) {
-                setOtpError(data.message || 'Failed to send OTP');
-                toast.error(data.message || 'Failed to send OTP'); return;
+                setOtpError(data.message || 'Failed to send OTP.');
+                toast.error(data.message || 'Failed to send OTP.');
+                return;
             }
-            setOtpCooldown(60); setOtp(''); toast.success('New OTP sent');
+            setOtpCooldown(60);
+            setOtp('');
+            toast.success('New OTP sent');
         } catch (err) {
-            setOtpError(err.response?.data?.message || 'Failed to send OTP');
-        } finally { setSendOtpLoading(false); }
+            const msg = err.response?.data?.message || 'Failed to send OTP.';
+            setOtpError(msg);
+            toast.error(msg);
+        } finally {
+            setSendOtpLoading(false);
+        }
     };
 
-    // ── Order Summary ─────────────────────────────────────────────────────────
-    const OrderSummary = () => (
-        <div className="bm-summary">
-            <div className="bm-summary-header">
-                <span className="bm-summary-eyebrow">Order Summary</span>
-            </div>
+    const handleChangeNumber = () => {
+        setGuestStep('phone');
+        setOtp('');
+        setOtpError('');
+        setGuestPhoneForOtp('');
+        setOtpCooldown(0);
+    };
 
-            <div className="bm-product-row">
-                <div className="bm-product-img-wrap">
+    const renderOrderSummary = () => {
+        return (
+            <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="font-semibold mb-2">Order Summary</h3>
+                <div className="flex items-center gap-3 mb-2">
                     <img
-                        src={product?.featuredImage?.[0]?.imgUrl || product?.featuredImage?.[0] || logo?.src || ''}
-                        alt={product?.name || 'Product'}
-                        className="bm-product-img"
-                        onError={e => { e.target.style.display = 'none'; }}
+                        src={product?.featuredImage?.[0]?.imgUrl || product?.featuredImage?.[0] || logo.src || logo}
+                        alt={product?.name}
+                        className="w-16 h-16 rounded object-cover"
                     />
+                    <div className="flex-1">
+                        <p className="font-medium text-sm">{product?.name}</p>
+                        {selectedVariation?.variationName && (
+                            <p className="text-xs text-gray-600">{selectedVariation.variationName}</p>
+                        )}
+                        {selectedDressType?.label && (
+                            <p className="text-xs text-indigo-600 font-medium">Service: {selectedDressType.label}</p>
+                        )}
+                        <p className="text-xs text-gray-600">Qty: {safeQuantity}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="font-semibold text-sm">₹{Number(unitPrice || 0).toFixed(2)}</p>
+                    </div>
                 </div>
-                <div className="bm-product-info">
-                    <p className="bm-product-name">{product?.name}</p>
-                    {selectedVariation?.variationName && (
-                        <p className="bm-product-meta">{selectedVariation.variationName}</p>
-                    )}
-                    <p className="bm-product-qty">Qty: {safeQty}</p>
-                </div>
-                <p className="bm-product-price">₹{Number(unitPrice).toFixed(2)}</p>
-            </div>
 
-            {offerDetails?.offerApplied && (
-                <div key={`ob-${offerAnimKey}`} className="bm-offer-banner">
-                    <div className="bm-offer-glow" />
-                    <div className="bm-offer-inner">
-                        <div className="bm-offer-left">
-                            <span className="bm-offer-fire">🔥</span>
-                            <div>
-                                <p className="bm-offer-name">{offerDetails.offerName}</p>
-                                <p className="bm-offer-sub">
-                                    {offerDetails.freeUnits} item{offerDetails.freeUnits > 1 ? 's' : ''} FREE
-                                </p>
+                {/* Offer Banner */}
+                {offerDetails?.offerApplied && (
+                    <div
+                        key={offerAnimKey}
+                        className="offer-banner-wrapper"
+                        style={{
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                            marginTop: '8px',
+                            marginBottom: '8px',
+                            border: '1.5px solid #d97706',
+                            position: 'relative',
+                        }}
+                    >
+                        <div className="offer-shimmer-bg offer-reveal" style={{ padding: '12px 16px' }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                    }}
+                                >
+                                    <span className="offer-fire-pop" style={{ fontSize: '20px' }}>🔥</span>
+                                    <div>
+                                        <p
+                                            style={{
+                                                fontWeight: 700,
+                                                fontSize: '14px',
+                                                color: '#92400e',
+                                                margin: 0,
+                                            }}
+                                        >
+                                            {offerDetails.offerName}
+                                        </p>
+                                        <p
+                                            style={{
+                                                fontSize: '12px',
+                                                color: '#b45309',
+                                                margin: 0,
+                                            }}
+                                        >
+                                            {offerDetails.freeUnits} item
+                                            {offerDetails.freeUnits > 1 ? 's' : ''} FREE with your order!
+                                        </p>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p
+                                        style={{
+                                            fontSize: '11px',
+                                            color: '#92400e',
+                                            margin: 0,
+                                        }}
+                                    >
+                                        Offer Saving
+                                    </p>
+                                    <p
+                                        className="offer-savings-pop"
+                                        style={{
+                                            fontSize: '18px',
+                                            fontWeight: 800,
+                                            color: '#b45309',
+                                            margin: 0,
+                                        }}
+                                    >
+                                        -₹{Number(offerDetails.savedAmount).toFixed(2)}
+                                    </p>
+                                </div>
+                            </div>
+                            <div
+                                style={{
+                                    marginTop: '8px',
+                                    height: '3px',
+                                    background: 'rgba(217,119,6,0.2)',
+                                    borderRadius: '99px',
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                <div className="offer-progress-fill" style={{ height: '100%' }} />
                             </div>
                         </div>
-                        <div className="bm-offer-right">
-                            <p className="bm-saving-lbl">You save</p>
-                            <p className="bm-saving-amt">-₹{Number(offerDetails.savedAmount).toFixed(2)}</p>
+                    </div>
+                )}
+
+                {/* Offer nudge — shown when offer exists but quantity is not enough */}
+                {offerDetails &&
+                    !offerDetails.offerApplied &&
+                    offerDetails.offerStatus === 'missing' && (
+                        <p
+                            style={{
+                                fontSize: '12px',
+                                color: '#d97706',
+                                marginTop: '4px',
+                            }}
+                        >
+                            💡 Add {offerDetails.requiredQty - safeQuantity} more to unlock "
+                            {offerDetails.offerName}"
+                        </p>
+                    )}
+
+                {productType === 'make_combo' && Array.isArray(selectedItems) && selectedItems.length > 0 && (
+                    <div className="mt-2 border-t pt-2">
+                        <p className="text-xs font-semibold mb-1">Selected Combo Items</p>
+                        <ul className="space-y-1 max-h-24 overflow-y-auto text-xs text-gray-700">
+                            {selectedItems.map((item, idx) => (
+                                <li key={`${item.productID}-${item.variationID || 'base'}-${idx}`}>
+                                    {item.productName || item.productID}{' '}
+                                    {item.variationName ? `(${item.variationName})` : ''}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {productType === 'customproduct' &&
+                    Array.isArray(product?.custom_inputs) &&
+                    product.custom_inputs.length > 0 && (
+                        <div className="mt-2 border-t pt-2">
+                            <p className="text-xs font-semibold mb-1">Customizations</p>
+                            <ul className="space-y-1 max-h-24 overflow-y-auto text-xs text-gray-700">
+                                {product.custom_inputs.map((input) => (
+                                    <li key={input.id}>
+                                        <span className="font-medium">{input.label}:</span>{' '}
+                                        {customInputs[input.id] || 'Not provided'}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                <div className="mt-3 text-sm space-y-1">
+                    <div
+                        style={{
+                            borderTop: '1px solid #e5e7eb',
+                            paddingTop: '12px',
+                            marginTop: '8px',
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                fontSize: '14px',
+                                color: '#6b7280',
+                                marginBottom: '4px',
+                            }}
+                        >
+                            <span>Subtotal</span>
+                            <span>₹{Number(subtotal).toFixed(2)}</span>
+                        </div>
+                        {offerDetails?.offerApplied && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    fontSize: '14px',
+                                    color: '#b45309',
+                                    marginBottom: '4px',
+                                }}
+                            >
+                                <span>🔥 Offer Discount</span>
+                                <span>
+                                    -₹{Number(offerDetails.savedAmount || 0).toFixed(2)}
+                                </span>
+                            </div>
+                        )}
+                        {couponApplied && Number(couponDiscount) > 0 && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    fontSize: '14px',
+                                    color: '#16a34a',
+                                    marginBottom: '4px',
+                                }}
+                            >
+                                <span>
+                                    🏷️ Coupon ({couponCode.toUpperCase()})
+                                </span>
+                                <span>
+                                    -₹{Number(couponDiscount || 0).toFixed(2)}
+                                </span>
+                            </div>
+                        )}
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                fontSize: '14px',
+                                color: '#6b7280',
+                                marginBottom: '4px',
+                            }}
+                        >
+                            <span>Shipping Fee</span>
+                            <span style={{ color: serverShippingFee === 0 ? '#16a34a' : 'inherit', fontWeight: serverShippingFee === 0 ? '700' : '400' }}>
+                                {checkingOffer || serverShippingFee === null ? (
+                                    <span className="animate-pulse bg-gray-200 h-4 w-12 rounded inline-block" />
+                                ) : (
+                                    serverShippingFee === 0 ? 'FREE' : `₹${serverShippingFee.toFixed(2)}`
+                                )}
+                            </span>
+                        </div>
+                        {handlingFee > 0 && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    fontSize: '14px',
+                                    color: '#6b7280',
+                                    marginBottom: '4px',
+                                }}
+                            >
+                                <span>COD Handling Fee</span>
+                                <span>₹{handlingFee.toFixed(2)}</span>
+                            </div>
+                        )}
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                fontSize: '16px',
+                                fontWeight: 700,
+                                borderTop: '1px solid #e5e7eb',
+                                paddingTop: '8px',
+                                marginTop: '4px',
+                            }}
+                        >
+                            <span>Total <span style={{ fontSize: '10px', fontWeight: 400, color: '#6b7280' }}>(incl. taxes)</span></span>
+                            <span>
+                                {totalAfterCoupon === null ? (
+                                    <span className="animate-pulse bg-gray-200 h-5 w-16 rounded inline-block" />
+                                ) : (
+                                    `₹${totalAfterCoupon.toFixed(2)}`
+                                )}
+                            </span>
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
+        );
+    };
 
-            {offerDetails && !offerDetails.offerApplied && offerDetails.offerStatus === 'missing' && (
-                <p className="bm-offer-nudge">
-                    💡 Add {offerDetails.requiredQty - safeQty} more to unlock &quot;{offerDetails.offerName}&quot;
+    const renderDetailsStep = () => {
+        if (!isLoggedIn && guestStep === 'otp') {
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <h2 className="text-lg font-semibold">Verify your number</h2>
+                        <p className="text-sm text-gray-600">
+                            Enter the OTP sent to <span className="font-semibold">{guestPhoneForOtp}</span>
+                        </p>
+                        <EnterOtp length={6} onChange={(val) => { setOtp(val); setOtpError(''); }} />
+                        {otpError && <p className="text-xs text-red-600">{otpError}</p>}
+                        <div className="flex flex-col gap-2">
+                            <button
+                                type="button"
+                                onClick={handleVerifyOtp}
+                                disabled={verifyOtpLoading || (otp || '').replace(/\D/g, '').length < 6}
+                                className="w-full py-2.5 rounded-md bg-black text-white text-sm font-medium hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {verifyOtpLoading ? 'Verifying...' : 'Verify OTP'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleResendOtp}
+                                disabled={otpCooldown > 0 || sendOtpLoading}
+                                className="w-full py-2 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {otpCooldown > 0 ? `Resend OTP in ${otpCooldown}s` : 'Resend OTP'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleChangeNumber}
+                                className="text-sm text-blue-600 hover:underline"
+                            >
+                                Change number
+                            </button>
+                        </div>
+                    </div>
+                    <div className="space-y-4">{renderOrderSummary()}</div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                    {!isLoggedIn && (
+                        <>
+                            <h2 className="text-lg font-semibold">Contact</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-medium text-gray-700">Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={handleChange('name')}
+                                        className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-gray-700">Phone</label>
+                                    <input
+                                        type="tel"
+                                        value={formData.phone}
+                                        onChange={handleChange('phone')}
+                                        className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                        required
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="text-xs font-medium text-gray-700">Email</label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleChange('email')}
+                                        className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {(isLoggedIn || !isLoggedIn) && (
+                        <>
+                            <h2 className="text-lg font-semibold mt-4">Delivery Address</h2>
+                            {isLoggedIn && addresses.length > 0 && (
+                                <div className="space-y-2 mb-3">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm font-medium">Saved Addresses</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (!useNewAddress) {
+                                                    setFormData(emptyForm);
+                                                }
+                                                setUseNewAddress(!useNewAddress);
+                                            }}
+                                            className="text-xs text-blue-600 hover:underline"
+                                        >
+                                            {useNewAddress ? 'Use saved address' : 'Use a new address'}
+                                        </button>
+                                    </div>
+                                    {!useNewAddress && (
+                                        <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                                            {addresses.map((addr) => (
+                                                <label
+                                                    key={addr.addressID}
+                                                    className={`flex items-start gap-2 p-2 border rounded-md cursor-pointer text-sm ${selectedAddressID === addr.addressID
+                                                        ? 'border-black bg-gray-50'
+                                                        : 'border-gray-200 hover:border-gray-400'
+                                                        }`}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        className="mt-1"
+                                                        checked={selectedAddressID === addr.addressID}
+                                                        onChange={() => setSelectedAddressID(addr.addressID)}
+                                                    />
+                                                    <div>
+                                                        <p className="font-medium">
+                                                            {addr.name || addr.fullName || 'Recipient'}
+                                                        </p>
+                                                        <p className="text-xs text-gray-700">
+                                                            {addr.line1}, {addr.line2 && `${addr.line2}, `}
+                                                            {addr.city}, {addr.state} - {addr.pincode}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {addr.phoneNumber || addr.phone}
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {(!isLoggedIn || useNewAddress || addresses.length === 0) && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {isLoggedIn && (
+                                        <>
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-700">
+                                                    Phone Number <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="tel"
+                                                    value={formData.phone}
+                                                    onChange={handleChange('phone')}
+                                                    className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                                    placeholder="10-digit mobile number"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-medium text-gray-700">
+                                                    Email Address <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    value={formData.email}
+                                                    onChange={handleChange('email')}
+                                                    className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                                    placeholder="your@email.com"
+                                                    required
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                    <div className="md:col-span-2">
+                                        <label className="text-xs font-medium text-gray-700">
+                                            Address Line 1
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.line1}
+                                            onChange={handleChange('line1')}
+                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="text-xs font-medium text-gray-700">
+                                            Address Line 2 (optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.line2}
+                                            onChange={handleChange('line2')}
+                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-700">City</label>
+                                        <input
+                                            type="text"
+                                            value={formData.city}
+                                            onChange={handleChange('city')}
+                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-700">State</label>
+                                        <select
+                                            value={formData.state}
+                                            onChange={handleChange('state')}
+                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black"
+                                            required
+                                        >
+                                            <option value="">Select state</option>
+                                            {INDIAN_STATES.map((s) => (
+                                                <option key={s} value={s}>
+                                                    {s}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-700">Pincode</label>
+                                        <input
+                                            type="text"
+                                            value={formData.pincode}
+                                            onChange={handleChange('pincode')}
+                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-700">
+                                            Landmark (optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.landmark}
+                                            onChange={handleChange('landmark')}
+                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                <div className="space-y-4">
+                    {renderOrderSummary()}
+
+                    {/* Coupon / Offer Savings Section */}
+                    {(() => {
+                        const isOfferLocked = offerDetails?.offerApplied === true;
+                        return isOfferLocked ? (
+                            /* When offer is active — hide input, show savings celebration */
+                            <div
+                                className="offer-savings-celebration"
+                                key={`celebration-${offerAnimKey}`}
+                            >
+                                <div className="osc-inner">
+                                    <div className="osc-top-row">
+                                        <div className="osc-badge-wrap">
+                                            <span className="osc-badge-emoji">🎉</span>
+                                        </div>
+                                        <div className="osc-title-block">
+                                            <p className="osc-you-saved-label">You&apos;re saving</p>
+                                            <p className="osc-amount">
+                                                ₹{Number(offerDetails?.savedAmount || 0).toFixed(2)}
+                                            </p>
+                                        </div>
+                                        <div className="osc-tag-block">
+                                            <span className="osc-fire">🔥</span>
+                                            <span className="osc-offer-name">
+                                                {offerDetails?.offerName || 'Active Offer'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p className="osc-sub">
+                                        Coupon not needed — your offer beats it!
+                                    </p>
+                                </div>
+                                <div className="osc-bar-track">
+                                    <div className="osc-bar-fill" />
+                                </div>
+                            </div>
+                        ) : (
+                            /* Normal coupon input when no offer */
+                            <div className="border rounded-lg p-4">
+                                <h3 className="font-semibold mb-2 text-sm">Coupon</h3>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={couponCode}
+                                        onChange={(e) => {
+                                            setCouponCode(e.target.value);
+                                            setCouponApplied(false);
+                                            setCouponDiscount(0);
+                                            setCouponError('');
+                                            setCouponSuccess('');
+                                        }}
+                                        className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                        placeholder="Enter coupon code"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleApplyCoupon}
+                                        className="px-4 py-2 border rounded-md text-sm font-medium hover:bg-gray-100"
+                                        disabled={applyingCoupon || !couponCode.trim()}
+                                    >
+                                        {applyingCoupon ? 'Applying...' : 'Apply'}
+                                    </button>
+                                </div>
+                                {couponError && !couponApplied && (
+                                    <p className="mt-1 text-xs text-red-600">{couponError}</p>
+                                )}
+                                {couponApplied && (
+                                    <div className="coupon-success-banner" key={couponAnimKey}>
+                                        <div className="coupon-shimmer-bg" style={{ position: 'relative' }}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="coupon-tag-icon">🏷️</span>
+                                                    <div>
+                                                        <p className="coupon-title">Coupon Applied!</p>
+                                                        <p className="coupon-code-label">
+                                                            {couponCode.toUpperCase()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="coupon-savings">
+                                                    <p className="savings-label">You Save</p>
+                                                    <p className="savings-amount">
+                                                        -₹{couponDiscount.toFixed(2)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="coupon-scan-line" aria-hidden="true" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
+
+                    {/* Payment Mode */}
+                    <div className="border rounded-lg p-4">
+                        <h3 className="font-semibold mb-2 text-sm">Payment Mode</h3>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMode('COD')}
+                                className={`border rounded-md p-3 text-left ${paymentMode === 'COD'
+                                    ? 'border-black bg-gray-50'
+                                    : 'border-gray-200 hover:border-gray-400'
+                                    }`}
+                            >
+                                <p className="font-medium">Cash on Delivery</p>
+                                <p className="text-xs text-gray-600">
+                                    Pay with cash or UPI when the order is delivered.
+                                </p>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMode('PREPAID')}
+                                className={`border rounded-md p-3 text-left ${paymentMode === 'PREPAID'
+                                    ? 'border-black bg-gray-50'
+                                    : 'border-gray-200 hover:border-gray-400'
+                                    }`}
+                            >
+                                <p className="font-medium">Online Payment</p>
+                                <p className="text-xs text-gray-600">
+                                    Pay securely via PhonePe (cards, UPI, wallets).
+                                </p>
+                            </button>
+                        </div>
+                    </div>
+
+                    {error && <p className="text-xs text-red-600">{error}</p>}
+
+                    <button
+                        type="button"
+                        onClick={handleConfirmOrder}
+                        disabled={loading || sendOtpLoading}
+                        className="w-full py-2.5 rounded-md bg-black text-white text-sm font-medium hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loading ? 'Placing your order...' : sendOtpLoading ? 'Sending OTP...' : 'Confirm Order'}
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const renderProcessingStep = () => (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+            <style>{`
+                @keyframes pulse-ring {
+                    0% { transform: scale(0.6); opacity: 1; }
+                    100% { transform: scale(1.4); opacity: 0; }
+                }
+                @keyframes float-y {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-8px); }
+                }
+                .pulse-circle {
+                    position: absolute; width: 100px; height: 100px;
+                    border: 2px solid #ffd232; border-radius: 50%;
+                    animation: pulse-ring 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+                }
+                .loader-container {
+                    animation: float-y 3s ease-in-out infinite;
+                }
+                .spinner-inner {
+                    border-top: 4px solid #ffd232;
+                    border-right: 4px solid transparent;
+                    border-bottom: 4px solid transparent;
+                    border-left: 4px solid transparent;
+                    border-radius: 50%;
+                }
+            `}</style>
+
+            <div className="relative flex items-center justify-center mb-10 loader-container">
+                <div className="pulse-circle" />
+                <div className="pulse-circle" style={{ animationDelay: '0.6s' }} />
+                <div className="pulse-circle" style={{ animationDelay: '1.2s' }} />
+                
+                <div className="w-24 h-24 bg-black rounded-full flex items-center justify-center shadow-2xl z-10">
+                    <div className="w-16 h-16 spinner-inner animate-spin" />
+                    <div className="absolute font-black text-[#ffd232] text-xs uppercase tracking-widest animate-pulse">
+                        wait
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-3">
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center justify-center gap-2">
+                    SECURELY PLACING ORDER
+                </h2>
+                <div className="flex items-center justify-center gap-1">
+                    {[0, 1, 2].map(i => (
+                        <div key={i} className="w-1.5 h-1.5 bg-[#ffd232] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                    ))}
+                </div>
+                <p className="text-gray-500 font-medium text-sm px-6">
+                    Sit tight while we finalize your payment and confirm your purchase at <span className="text-black font-bold">Ithyaraa</span>.
                 </p>
-            )}
-
-            <div className="bm-breakdown">
-                <div className="bm-breakdown-row">
-                    <span>Subtotal</span>
-                    <span>₹{subtotal.toFixed(2)}</span>
-                </div>
-                {offerDetails?.offerApplied && (
-                    <div className="bm-breakdown-row --amber">
-                        <span>🔥 Offer Discount</span>
-                        <span>-₹{offerSaving.toFixed(2)}</span>
-                    </div>
-                )}
-                {couponApplied && couponDiscount > 0 && (
-                    <div className="bm-breakdown-row --green">
-                        <span>🏷️ {couponCode.toUpperCase()}</span>
-                        <span>-₹{couponDiscount.toFixed(2)}</span>
-                    </div>
-                )}
-                <div className="bm-breakdown-row">
-                    <span>Shipping</span>
-                    <span className={shippingFee === 0 ? '--free' : ''}>
-                        {shippingFee === 0 ? 'FREE' : `₹${shippingFee.toFixed(2)}`}
-                    </span>
-                </div>
-                {handlingFee > 0 && (
-                    <div className="bm-breakdown-row">
-                        <span>Handling Fee (COD)</span>
-                        <span>₹{handlingFee.toFixed(2)}</span>
-                    </div>
-                )}
-                <div className="bm-breakdown-total">
-                    <span>Total</span>
-                    <span className="bm-total-amt">₹{grandTotal.toFixed(2)}</span>
+            </div>
+            
+            <div className="mt-8 flex flex-col items-center gap-2 opacity-60">
+                <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-gray-400">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                    Bank Grade Security
                 </div>
             </div>
         </div>
     );
 
-    // ── CSS ───────────────────────────────────────────────────────────────────
-    const css = `
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+    const renderSuccessStep = () => (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+            <style>{`
+                @keyframes successPop {
+                    0% { transform: scale(0.5); opacity: 0; }
+                    60% { transform: scale(1.1); }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+                @keyframes successRing {
+                    0% { transform: scale(0.5); opacity: 0; border-width: 10px; }
+                    50% { opacity: 0.5; }
+                    100% { transform: scale(1.2); opacity: 0; border-width: 0; }
+                }
+                @keyframes checkDraw {
+                    from { stroke-dashoffset: 50; }
+                    to { stroke-dashoffset: 0; }
+                }
+                .success-check-icon { animation: successPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+                .success-ring { 
+                    position: absolute; width: 100px; height: 100px; 
+                    border: 4px solid #ffd232; border-radius: 50%; opacity: 0;
+                    animation: successRing 1.5s ease-out infinite; 
+                }
+                .redirect-bar { height: 3px; width: 0; background: #ffd232; animation: redirectProgress 3s linear forwards; }
+                @keyframes redirectProgress { from { width: 0; } to { width: 100%; } }
+            `}</style>
 
-        .bm-root {
-            --ink:      #0e0c0a;
-            --ink-soft: #3d3830;
-            --muted:    #8c8278;
-            --border:   rgba(180,165,148,0.28);
-            --border-strong: rgba(140,120,100,0.45);
-            --surface:  #faf7f3;
-            --surface-2:#f4f0e8;
-            --surface-3:#ede8de;
-            --gold:     #9a7c45;
-            --gold-lt:  #c9a96e;
-            --gold-glow:rgba(154,124,69,0.18);
-            --green:    #2a5e40;
-            --green-lt: #d1f0e0;
-            --red:      #8b2020;
-            --amber:    #b86a00;
-            --r:        14px;
-            --r-sm:     8px;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-            --shadow-md: 0 4px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
-            --shadow-lg: 0 12px 40px rgba(0,0,0,.13), 0 4px 12px rgba(0,0,0,.06);
-            font-family: 'DM Sans', sans-serif;
-            color: var(--ink);
-            background: #fff;
-        }
-
-        /* ─ Layout ─────────────────────────────────────── */
-        .bm-root      { display: flex; flex-direction: column; }
-
-        .bm-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 22px 28px 18px;
-            border-bottom: 1px solid var(--border);
-            position: sticky; top: 0;
-            background: rgba(255,255,255,0.96);
-            backdrop-filter: blur(12px);
-            z-index: 10;
-            border-radius: 20px 20px 0 0;
-            flex-shrink: 0;
-        }
-        .bm-header-left { display: flex; align-items: center; gap: 10px; }
-        .bm-header-badge {
-            display: flex; align-items: center; justify-content: center;
-            width: 30px; height: 30px;
-            background: linear-gradient(135deg, #0e0c0a 0%, #3d3830 100%);
-            border-radius: 8px;
-            font-size: 14px;
-            box-shadow: var(--shadow-sm);
-        }
-        .bm-header-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 20px; font-weight: 600; color: var(--ink); margin: 0;
-            letter-spacing: 0.01em;
-        }
-        .bm-close-btn {
-            width: 32px; height: 32px; border-radius: 50%;
-            border: 1px solid var(--border); background: var(--surface);
-            font-size: 18px; line-height: 1; cursor: pointer; color: var(--muted);
-            display: flex; align-items: center; justify-content: center;
-            transition: all .2s ease; flex-shrink: 0;
-        }
-        .bm-close-btn:hover { background: var(--surface-2); color: var(--ink); border-color: var(--border-strong); transform: rotate(90deg); }
-
-        .bm-body { padding: 24px 28px 32px; overflow-y: auto; }
-
-        .bm-grid {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 28px;
-            align-items: stretch;
-        }
-        /* Left column stretches to fill grid row height */
-        .bm-grid > *:first-child {
-            display: flex;
-            flex-direction: column;
-        }
-        /* Address list eats all remaining space in the left column */
-        .bm-addr-list-wrap {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
-        }
-        @media (max-width: 700px) {
-            .bm-grid    { grid-template-columns: 1fr; gap: 20px; align-items: start; }
-            .bm-grid > *:first-child { display: block; }
-            .bm-body    { padding: 18px 18px 28px; }
-            .bm-header  { padding: 18px 18px 14px; }
-        }
-
-        /* ─ Section labels ──────────────────────────────── */
-        .bm-section-lbl {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 9px; font-weight: 600; letter-spacing: 3px;
-            text-transform: uppercase; color: var(--muted);
-            margin-bottom: 14px;
-        }
-        .bm-section-lbl::after {
-            content: ''; flex: 1; height: 1px;
-            background: linear-gradient(to right, var(--border), transparent);
-        }
-        .bm-divider {
-            border: none;
-            height: 1px;
-            background: linear-gradient(to right, transparent, var(--border), transparent);
-            margin: 20px 0;
-        }
-
-        /* ─ Fields ──────────────────────────────────────── */
-        .bm-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
-        .bm-field  { margin-bottom: 12px; }
-        .bm-field.--full { grid-column: 1 / -1; }
-        @media (max-width: 420px) { .bm-fields { grid-template-columns: 1fr; } }
-
-        .bm-label {
-            display: block; font-size: 10px; font-weight: 600;
-            letter-spacing: 1.5px; text-transform: uppercase;
-            color: var(--muted); margin-bottom: 6px;
-        }
-        .bm-label em { color: var(--red); font-style: normal; margin-left: 2px; }
-
-        .bm-input, .bm-select {
-            width: 100%; padding: 10px 13px;
-            border: 1.5px solid var(--border); border-radius: var(--r-sm);
-            font-size: 13.5px; color: var(--ink); background: var(--surface);
-            outline: none; transition: all .2s ease;
-            box-sizing: border-box; font-family: 'DM Sans', sans-serif;
-        }
-        .bm-input::placeholder { color: #c5bdb3; }
-        .bm-input:focus, .bm-select:focus {
-            border-color: var(--gold);
-            background: #fff;
-            box-shadow: 0 0 0 3px var(--gold-glow);
-        }
-        .bm-field-err {
-            font-size: 11px; color: var(--red);
-            margin-top: 4px; display: flex; align-items: center; gap: 4px;
-        }
-        .bm-field-err::before { content: '⚠'; font-size: 10px; }
-
-        /* ─ Saved addresses ─────────────────────────────── */
-        .bm-addr-toggle-row {
-            display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
-        }
-        .bm-addr-count { font-size: 12px; color: var(--muted); }
-        .bm-addr-toggle {
-            font-size: 12px; color: var(--gold); cursor: pointer;
-            background: none; border: none; padding: 0;
-            font-family: inherit; font-weight: 500;
-            display: flex; align-items: center; gap: 4px;
-            transition: color .15s;
-        }
-        .bm-addr-toggle:hover { color: var(--ink); }
-        .bm-addr-list {
-            display: flex; flex-direction: column; gap: 8px;
-            flex: 1; overflow-y: auto; margin-bottom: 8px;
-            scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-        }
-        .bm-addr-card {
-            display: flex; gap: 12px; padding: 12px 14px;
-            border: 1.5px solid var(--border); border-radius: var(--r-sm);
-            cursor: pointer; transition: all .2s ease; text-align: left;
-            background: var(--surface);
-        }
-        .bm-addr-card:hover  { border-color: var(--gold-lt); background: #fff; }
-        .bm-addr-card.--sel  { border-color: var(--gold); background: #fff; box-shadow: 0 0 0 3px var(--gold-glow); }
-        .bm-addr-card input  { margin-top: 3px; flex-shrink: 0; accent-color: var(--gold); }
-        .bm-addr-name { font-size: 13.5px; font-weight: 500; color: var(--ink); margin: 0 0 3px; }
-        .bm-addr-meta { font-size: 11.5px; color: var(--muted); line-height: 1.6; margin: 0; }
-
-        /* ─ Payment cards ───────────────────────────────── */
-        .bm-pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .bm-pay-card {
-            border: 1.5px solid var(--border); border-radius: var(--r-sm);
-            padding: 14px 15px; cursor: pointer;
-            transition: all .2s ease;
-            background: var(--surface); text-align: left;
-            font-family: 'DM Sans', sans-serif; position: relative; overflow: hidden;
-        }
-        .bm-pay-card::before {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(135deg, rgba(154,124,69,0.06) 0%, transparent 60%);
-            opacity: 0; transition: opacity .2s;
-        }
-        .bm-pay-card:hover { border-color: var(--gold-lt); background: #fff; }
-        .bm-pay-card:hover::before { opacity: 1; }
-        .bm-pay-card.--sel {
-            border-color: var(--gold); background: #fff;
-            box-shadow: 0 0 0 3px var(--gold-glow);
-        }
-        .bm-pay-card.--sel::before { opacity: 1; }
-        .bm-pay-icon { font-size: 20px; margin-bottom: 6px; display: block; }
-        .bm-pay-title { font-size: 13px; font-weight: 600; color: var(--ink); margin: 0 0 3px; }
-        .bm-pay-sub   { font-size: 11px; color: var(--muted); margin: 0; line-height: 1.5; }
-
-        /* ─ Order summary card ──────────────────────────── */
-        .bm-summary {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--r);
-            overflow: hidden;
-        }
-        .bm-summary-header {
-            padding: 14px 18px 12px;
-            border-bottom: 1px solid var(--border);
-            background: linear-gradient(to bottom, #fff, var(--surface));
-        }
-        .bm-summary-eyebrow {
-            font-size: 9px; font-weight: 600; letter-spacing: 3px;
-            text-transform: uppercase; color: var(--muted);
-        }
-        .bm-product-row {
-            display: flex; align-items: center; gap: 14px;
-            padding: 16px 18px;
-            border-bottom: 1px solid var(--border);
-        }
-        .bm-product-img-wrap {
-            width: 62px; height: 62px; border-radius: 10px;
-            overflow: hidden; flex-shrink: 0;
-            border: 1px solid var(--border);
-            background: var(--surface-2);
-            box-shadow: var(--shadow-sm);
-        }
-        .bm-product-img { width: 100%; height: 100%; object-fit: cover; }
-        .bm-product-info { flex: 1; min-width: 0; }
-        .bm-product-name {
-            font-size: 13.5px; font-weight: 500; color: var(--ink);
-            margin: 0 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            font-family: 'Cormorant Garamond', serif; font-size: 15px;
-        }
-        .bm-product-meta { font-size: 11.5px; color: var(--muted); margin: 0 0 1px; }
-        .bm-product-qty  {
-            display: inline-flex; align-items: center;
-            font-size: 11px; color: var(--muted);
-            background: var(--surface-3); border-radius: 4px;
-            padding: 1px 7px; margin-top: 4px;
-        }
-        .bm-product-price {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 17px; font-weight: 700; color: var(--ink);
-            flex-shrink: 0;
-        }
-
-        /* Offer banner */
-        .bm-offer-banner {
-            margin: 0; position: relative; overflow: hidden;
-            border-bottom: 1px solid rgba(217,119,6,.2);
-            animation: bmSlideDown .4s cubic-bezier(.22,1,.36,1) both;
-        }
-        @keyframes bmSlideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:none; } }
-        .bm-offer-glow {
-            position: absolute; top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, #f59e0b, transparent);
-        }
-        .bm-offer-inner {
-            background: linear-gradient(135deg,#fffbeb,#fef3c7 50%,#fde68a);
-            padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
-        }
-        .bm-offer-left  { display: flex; align-items: center; gap: 10px; }
-        .bm-offer-fire  { font-size: 18px; animation: bmFireRock 2s ease-in-out infinite; display: inline-block; }
-        @keyframes bmFireRock { 0%,100%{transform:rotate(0) scale(1)} 25%{transform:rotate(-7deg) scale(1.08)} 75%{transform:rotate(7deg) scale(1.08)} }
-        .bm-offer-name  { font-size: 13px; font-weight: 600; color: #92400e; margin: 0 0 2px; }
-        .bm-offer-sub   { font-size: 11px; color: #b45309; margin: 0; }
-        .bm-offer-right { text-align: right; }
-        .bm-saving-lbl  { font-size: 9px; color: #b45309; margin: 0; letter-spacing: 1px; text-transform: uppercase; }
-        .bm-saving-amt  {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 18px; font-weight: 700; color: #92400e; margin: 0;
-            animation: bmPop .3s cubic-bezier(.34,1.56,.64,1) .2s both;
-        }
-        @keyframes bmPop { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
-        .bm-offer-nudge {
-            font-size: 11.5px; color: var(--amber);
-            padding: 10px 18px; margin: 0;
-            background: rgba(184,106,0,.05);
-            border-bottom: 1px solid var(--border);
-        }
-
-        /* Price breakdown */
-        .bm-breakdown { padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
-        .bm-breakdown-row {
-            display: flex; justify-content: space-between;
-            font-size: 12.5px; color: var(--muted);
-        }
-        .bm-breakdown-row.--amber { color: var(--amber); font-weight: 500; }
-        .bm-breakdown-row.--green { color: var(--green); font-weight: 500; }
-        .bm-breakdown-row .--free { color: var(--green); font-weight: 600; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; }
-        .bm-breakdown-total {
-            display: flex; justify-content: space-between; align-items: baseline;
-            border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px;
-            font-size: 13px; font-weight: 600; color: var(--ink-soft);
-        }
-        .bm-total-amt {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 22px; font-weight: 700; color: var(--ink);
-        }
-
-        /* ─ Coupon ──────────────────────────────────────── */
-        .bm-coupon-row { display: flex; gap: 8px; }
-        .bm-coupon-input {
-            flex: 1; padding: 10px 13px;
-            border: 1.5px solid var(--border); border-radius: var(--r-sm);
-            font-size: 13px; outline: none; font-family: 'DM Sans', sans-serif;
-            transition: all .2s ease; background: var(--surface); color: var(--ink);
-            letter-spacing: 1px; text-transform: uppercase;
-            box-sizing: border-box;
-        }
-        .bm-coupon-input::placeholder { text-transform: none; letter-spacing: 0; color: #c5bdb3; }
-        .bm-coupon-input:focus { border-color: var(--gold); background: #fff; box-shadow: 0 0 0 3px var(--gold-glow); }
-        .bm-coupon-btn {
-            padding: 10px 16px; border: 1.5px solid var(--border); border-radius: var(--r-sm);
-            font-size: 12px; font-weight: 600; cursor: pointer; background: #fff;
-            color: var(--ink); transition: all .2s ease;
-            white-space: nowrap; letter-spacing: .5px; font-family: 'DM Sans', sans-serif;
-        }
-        .bm-coupon-btn:hover:not(:disabled) {
-            background: var(--ink); color: #fff; border-color: var(--ink);
-        }
-        .bm-coupon-btn:disabled { opacity: .4; cursor: not-allowed; }
-        .bm-coupon-err { font-size: 11px; color: var(--red); margin-top: 6px; }
-
-        /* Coupon applied */
-        .bm-coupon-applied {
-            border-radius: var(--r-sm); overflow: hidden;
-            border: 1.5px solid #86efac; margin-top: 10px;
-            animation: bmSlideDown .35s cubic-bezier(.22,1,.36,1) both;
-        }
-        .bm-coupon-inner {
-            background: linear-gradient(120deg,#f0fdf4,#dcfce7,#bbf7d0 80%,#dcfce7);
-            padding: 11px 14px; display: flex; align-items: center; justify-content: space-between;
-        }
-        .bm-coupon-left { display: flex; align-items: center; gap: 10px; }
-        .bm-coupon-title { font-size: 13px; font-weight: 600; color: #15803d; margin: 0 0 2px; }
-        .bm-coupon-code  { font-size: 11px; color: #16a34a; font-family: monospace; letter-spacing: 1.5px; margin: 0; }
-        .bm-coupon-right { text-align: right; }
-        .bm-coupon-save-lbl { font-size: 9px; color: #15803d; margin: 0; letter-spacing: 1px; text-transform: uppercase; }
-        .bm-coupon-save-amt {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 18px; font-weight: 700; color: #15803d; margin: 0;
-            animation: bmPop .3s cubic-bezier(.34,1.56,.64,1) .2s both;
-        }
-
-        /* Offer beats coupon */
-        .bm-offer-celeb {
-            border-radius: var(--r-sm); overflow: hidden;
-            border: 1.5px solid rgba(245,158,11,.4);
-            box-shadow: 0 4px 20px rgba(245,158,11,.1);
-            animation: bmSlideDown .4s cubic-bezier(.22,1,.36,1) both;
-        }
-        .bm-occ-inner {
-            background: linear-gradient(135deg,#fffbeb,#fef3c7 60%,#fde68a);
-            padding: 14px 16px;
-        }
-        .bm-occ-row   { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
-        .bm-occ-badge {
-            width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
-            background: rgba(245,158,11,.14); border: 1.5px solid rgba(245,158,11,.3);
-            display: flex; align-items: center; justify-content: center;
-            animation: bmBadgePulse 2s ease-in-out .5s infinite;
-        }
-        @keyframes bmBadgePulse { 0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.3)} 50%{box-shadow:0 0 0 8px rgba(245,158,11,0)} }
-        .bm-occ-emoji  { font-size: 18px; animation: bmPop .4s cubic-bezier(.34,1.56,.64,1) .3s both; display: inline-block; }
-        .bm-occ-text   { flex: 1; }
-        .bm-occ-lbl    { font-size: 9px; font-weight: 600; color: #b45309; text-transform: uppercase; letter-spacing: 1.5px; margin: 0; }
-        .bm-occ-amount {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 24px; font-weight: 700; margin: 0; line-height: 1.1;
-            color: #92400e;
-        }
-        .bm-occ-tag   { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-        .bm-occ-fire  { font-size: 16px; animation: bmFireRock 1.8s ease-in-out .8s infinite; display: inline-block; }
-        .bm-occ-name  {
-            font-size: 10.5px; font-weight: 600; color: #78350f;
-            background: rgba(217,119,6,.12); border: 1px solid rgba(217,119,6,.25);
-            border-radius: 5px; padding: 2px 8px; letter-spacing: .3px;
-        }
-        .bm-occ-sub   { font-size: 11px; color: #b45309; margin: 0; opacity: .85; }
-
-        /* ─ Buttons ─────────────────────────────────────── */
-        .bm-btn-primary {
-            width: 100%; padding: 14px 20px;
-            background: linear-gradient(135deg, #1a1612 0%, #2d2820 100%);
-            color: #fff; border: none; border-radius: var(--r-sm);
-            font-size: 13.5px; font-weight: 600;
-            cursor: pointer; letter-spacing: .5px;
-            transition: all .25s ease;
-            font-family: 'DM Sans', sans-serif;
-            position: relative; overflow: hidden;
-        }
-        .bm-btn-primary::before {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(135deg, rgba(201,169,110,.15) 0%, transparent 60%);
-            opacity: 0; transition: opacity .25s;
-        }
-        .bm-btn-primary:hover:not(:disabled) {
-            background: linear-gradient(135deg, #2d2820 0%, #3d3830 100%);
-            box-shadow: 0 8px 28px rgba(14,12,10,.25), 0 2px 8px rgba(14,12,10,.12);
-            transform: translateY(-1px);
-        }
-        .bm-btn-primary:hover:not(:disabled)::before { opacity: 1; }
-        .bm-btn-primary:active:not(:disabled) { transform: translateY(0); }
-        .bm-btn-primary:disabled { opacity: .4; cursor: not-allowed; }
-
-        .bm-btn-secondary {
-            width: 100%; padding: 11px 16px; background: var(--surface); color: var(--ink);
-            border: 1.5px solid var(--border); border-radius: var(--r-sm);
-            font-size: 13px; font-weight: 500; cursor: pointer;
-            transition: all .2s ease; font-family: 'DM Sans', sans-serif;
-        }
-        .bm-btn-secondary:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border-strong); }
-        .bm-btn-secondary:disabled { opacity: .4; cursor: not-allowed; }
-
-        .bm-link {
-            background: none; border: none; padding: 0;
-            font-size: 12.5px; color: var(--gold); cursor: pointer;
-            font-family: 'DM Sans', sans-serif; font-weight: 500;
-            display: inline-flex; align-items: center; gap: 4px;
-            transition: color .15s;
-        }
-        .bm-link:hover { color: var(--ink); }
-
-        /* ─ Error ───────────────────────────────────────── */
-        .bm-error {
-            font-size: 12.5px; color: var(--red);
-            padding: 10px 14px;
-            background: rgba(139,32,32,.06);
-            border: 1px solid rgba(139,32,32,.15);
-            border-radius: var(--r-sm);
-            display: flex; align-items: center; gap: 8px;
-        }
-        .bm-error::before { content: '⚠'; flex-shrink: 0; }
-
-        /* ─ OTP ─────────────────────────────────────────── */
-        .bm-otp-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--r); padding: 24px;
-        }
-        .bm-otp-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 22px; font-weight: 600; color: var(--ink); margin: 0 0 6px;
-        }
-        .bm-otp-desc {
-            font-size: 13px; color: var(--muted); margin: 0 0 20px; line-height: 1.6;
-        }
-        .bm-otp-desc strong { color: var(--ink); font-weight: 500; }
-        .bm-otp-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
-
-        /* ─ Center states ───────────────────────────────── */
-        .bm-state {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding: 64px 0; gap: 16px; text-align: center;
-        }
-        .bm-spinner-wrap {
-            position: relative; width: 52px; height: 52px;
-        }
-        .bm-spinner-ring {
-            position: absolute; inset: 0;
-            border: 2px solid var(--border);
-            border-top-color: var(--gold);
-            border-radius: 50%;
-            animation: bmSpin .8s cubic-bezier(.4,0,.2,1) infinite;
-        }
-        .bm-spinner-inner {
-            position: absolute; inset: 8px;
-            border: 1.5px solid var(--border);
-            border-top-color: var(--ink);
-            border-radius: 50%;
-            animation: bmSpin .5s cubic-bezier(.4,0,.2,1) reverse infinite;
-        }
-        @keyframes bmSpin { to { transform: rotate(360deg); } }
-        .bm-success-ring {
-            width: 60px; height: 60px; border-radius: 50%;
-            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-            border: 2px solid #86efac;
-            display: flex; align-items: center; justify-content: center;
-            animation: bmSuccessReveal .5s cubic-bezier(.34,1.56,.64,1) both;
-        }
-        @keyframes bmSuccessReveal { from{transform:scale(0) rotate(-45deg);opacity:0} to{transform:none;opacity:1} }
-        .bm-success-check {
-            font-size: 26px; color: var(--green);
-            animation: bmPop .4s cubic-bezier(.34,1.56,.64,1) .2s both;
-        }
-        .bm-state-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 22px; font-weight: 600; color: var(--ink); margin: 0;
-        }
-        .bm-state-sub { font-size: 13px; color: var(--muted); margin: 0; }
-
-        /* ─ Right column ────────────────────────────────── */
-        .bm-right-stack { display: flex; flex-direction: column; gap: 16px; }
-
-        /* ─ Security note ───────────────────────────────── */
-        .bm-secure-note {
-            display: flex; align-items: center; justify-content: center;
-            gap: 6px; font-size: 11px; color: var(--muted);
-            padding-top: 4px;
-        }
-        .bm-secure-note svg { flex-shrink: 0; }
-    `;
-
-    // ── Step: OTP ─────────────────────────────────────────────────────────────
-    if (!isLoggedIn && guestStep === 'otp') {
-        return (
-            <div className="bm-root">
-                <style>{css}</style>
-                <div className="bm-header">
-                    <div className="bm-header-left">
-                        <div className="bm-header-badge">🔐</div>
-                        <h1 className="bm-header-title">Verify Your Number</h1>
-                    </div>
-                </div>
-                <div className="bm-body">
-                    <div className="bm-grid">
-                        <div>
-                            <div className="bm-otp-card">
-                                <p className="bm-otp-title">Enter OTP</p>
-                                <p className="bm-otp-desc">
-                                    We sent a 6-digit code to <strong>+91 {guestPhone}</strong>
-                                </p>
-                                <EnterOtp length={6} onChange={(val) => { setOtp(val); setOtpError(''); }} />
-                                {otpError && <p className="bm-field-err" style={{ marginTop: 10 }}>{otpError}</p>}
-                                <div className="bm-otp-actions">
-                                    <button
-                                        type="button"
-                                        className="bm-btn-primary"
-                                        onClick={handleVerifyOtp}
-                                        disabled={verifyOtpLoading || otp.replace(/\D/g, '').length < 6}
-                                    >
-                                        {verifyOtpLoading ? 'Verifying…' : 'Verify & Place Order →'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="bm-btn-secondary"
-                                        onClick={handleResendOtp}
-                                        disabled={otpCooldown > 0 || sendOtpLoading}
-                                    >
-                                        {otpCooldown > 0 ? `Resend in ${otpCooldown}s` : 'Resend OTP'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="bm-link"
-                                        onClick={() => { setGuestStep('phone'); setOtp(''); setOtpError(''); setGuestPhone(''); setOtpCooldown(0); }}
-                                    >
-                                        ← Change number
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div><OrderSummary /></div>
-                    </div>
+            <div className="relative flex items-center justify-center mb-8">
+                <div className="success-ring" />
+                <div className="success-ring" style={{ animationDelay: '0.5s' }} />
+                <div className="w-24 h-24 bg-[#ffd232]/10 rounded-full flex items-center justify-center success-check-icon border-2 border-[#ffd232]/20">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ffd232" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" style={{ strokeDasharray: 50, strokeDashoffset: 50, animation: 'checkDraw 0.8s ease forwards 0.3s' }} />
+                    </svg>
                 </div>
             </div>
-        );
-    }
 
-    // ── Step: Processing ──────────────────────────────────────────────────────
-    if (step === 'processing') {
-        return (
-            <div className="bm-root">
-                <style>{css}</style>
-                <div className="bm-header">
-                    <div className="bm-header-left">
-                        <div className="bm-header-badge">⚡</div>
-                        <h1 className="bm-header-title">Placing Your Order</h1>
-                    </div>
-                </div>
-                <div className="bm-body">
-                    <div className="bm-state">
-                        <div className="bm-spinner-wrap">
-                            <div className="bm-spinner-ring" />
-                            <div className="bm-spinner-inner" />
-                        </div>
-                        <p className="bm-state-title">Processing…</p>
-                        <p className="bm-state-sub">Please wait, this will only take a moment.</p>
-                    </div>
-                </div>
+            <div className="space-y-2 mb-10">
+                <h2 className="text-3xl font-black text-gray-900 tracking-tight">ORDER PLACED!</h2>
+                <p className="text-gray-500 font-medium text-sm">Thank you for choosing Ithyaraa</p>
             </div>
-        );
-    }
 
-    // ── Step: Success ─────────────────────────────────────────────────────────
-    if (step === 'success') {
-        return (
-            <div className="bm-root">
-                <style>{css}</style>
-                <div className="bm-header">
-                    <div className="bm-header-left">
-                        <div className="bm-header-badge">✓</div>
-                        <h1 className="bm-header-title">Order Confirmed</h1>
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 w-full max-w-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-[#ffd232] rounded-full animate-pulse" />
+                        <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Processing Summary</span>
                     </div>
+                    <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">NEW ORDER</span>
                 </div>
-                <div className="bm-body">
-                    <div className="bm-state">
-                        <div className="bm-success-ring">
-                            <span className="bm-success-check">✓</span>
-                        </div>
-                        <p className="bm-state-title">Order Placed Successfully</p>
-                        <p className="bm-state-sub">Redirecting to your order summary…</p>
-                    </div>
+                <p className="text-xs text-gray-500 text-left leading-relaxed mb-4">
+                    We're preparing your order details. You'll receive a confirmation email and SMS shortly.
+                </p>
+                <div className="w-full bg-gray-200 rounded-full h-[3px] overflow-hidden">
+                    <div className="redirect-bar" />
                 </div>
+                <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-widest">
+                    Redirecting to Dashboard in 3s...
+                </p>
             </div>
-        );
-    }
+        </div>
+    );
 
-    // ── Step: Details (main form) ─────────────────────────────────────────────
     return (
-        <div className="bm-root">
-            <style>{css}</style>
+        <div className="bm-container bg-white w-full h-full max-w-full">
+            <style>{`
+                .offer-banner-wrapper { animation: offerSlice 0.4s ease both; clip-path: inset(0 100% 0 0 round 12px); }
+                @keyframes offerSlice { 100% { clip-path: inset(0 0% 0 0 round 12px); } }
+                .offer-shimmer-bg { background: linear-gradient(120deg, #fffbeb, #fef3c7, #fde68a, #fef3c7, #fffbeb); background-size: 300% 100%; animation: offerShimmer 2s ease infinite; }
+                @keyframes offerShimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+                .coupon-success-banner { border-radius: 12px; overflow: hidden; border: 1.5px solid #16a34a; }
+                .coupon-shimmer-bg { background: linear-gradient(120deg, #f0fdf4, #dcfce7, #bbf7d0, #dcfce7, #f0fdf4); background-size: 300% 100%; animation: couponShimmer 2.5s ease infinite; }
+                @keyframes couponShimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+                .offer-savings-celebration { border-radius: 16px; overflow: hidden; border: 2px solid #f59e0b; box-shadow: 0 4px 24px rgba(245, 158, 11, 0.18); }
+                .osc-inner { background: linear-gradient(135deg, #fffbeb, #fde68a, #fffbeb); background-size: 300% 300%; animation: oscBgMove 4s ease infinite; padding: 16px; }
+                @keyframes oscBgMove { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+                .osc-top-row { display: flex; align-items: center; gap: 12px; }
+                .osc-amount { font-size: 24px; font-weight: 800; color: #92400e; }
+                .osc-bar-track { height: 4px; background: rgba(245,158,11,0.15); }
+                .osc-bar-fill { height: 100%; width: 45%; background: linear-gradient(90deg, transparent, #f59e0b, transparent); animation: oscBarSweep 1.8s ease infinite; }
+                @keyframes oscBarSweep { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
+                @keyframes shimmer { 100% { transform: translateX(100%); } }
+                .animate-shimmer { animation: shimmer 2.5s infinite; }
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: #f9fafb; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+            `}</style>
 
-            <div className="bm-header">
-                <div className="bm-header-left">
-                    <div className="bm-header-badge">⚡</div>
-                    <h1 className="bm-header-title">Instant Checkout</h1>
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white/80 backdrop-blur-md z-10">
+                <div className="flex items-center gap-3">
+                    <img src={logo.src || logo} alt="Ithyaraa" className="h-5 w-auto" />
+                    <div className="h-4 w-[1px] bg-gray-200" />
+                    <h1 className="text-sm font-black tracking-tight text-gray-900 uppercase">Checkout</h1>
                 </div>
-                <button className="bm-close-btn" onClick={onClose} aria-label="Close">×</button>
+                {closeAllowed && (
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-black">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                )}
             </div>
 
-            <div className="bm-body">
-                <div className="bm-grid">
-
-                    {/* ── LEFT: form ── */}
-                    <div>
-                        {!isLoggedIn && (
-                            <>
-                                <span className="bm-section-lbl">Contact Details</span>
-                                <div className="bm-fields">
-                                    <div className="bm-field --full">
-                                        <label className="bm-label">Full Name <em>*</em></label>
-                                        <input className="bm-input" type="text" value={formData.name} onChange={handleChange('name')} placeholder="John Doe" />
-                                    </div>
-                                    <div className="bm-field">
-                                        <label className="bm-label">Phone <em>*</em></label>
-                                        <input className="bm-input" type="tel" value={formData.phone} onChange={handleChange('phone')} placeholder="10-digit number" maxLength={10} />
-                                    </div>
-                                    <div className="bm-field">
-                                        <label className="bm-label">Email <em>*</em></label>
-                                        <input className="bm-input" type="email" value={formData.email} onChange={handleChange('email')} placeholder="you@email.com" />
-                                    </div>
-                                </div>
-                                <hr className="bm-divider" />
-                            </>
-                        )}
-
-                        <span className="bm-section-lbl">Delivery Address</span>
-
-                        {isLoggedIn && addresses.length > 0 && (
-                            <div className="bm-addr-list-wrap">
-                                <div className="bm-addr-toggle-row">
-                                    <span className="bm-addr-count">
-                                        {useNewAddress
-                                            ? 'Entering new address'
-                                            : `${addresses.length} saved address${addresses.length > 1 ? 'es' : ''}`}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        className="bm-addr-toggle"
-                                        onClick={() => { setUseNewAddress(p => !p); if (!useNewAddress) setFormData(EMPTY_FORM); }}
-                                    >
-                                        {useNewAddress ? '← Use saved' : '+ New address'}
-                                    </button>
-                                </div>
-
-                                {!useNewAddress && (
-                                    <div className="bm-addr-list">
-                                        {addresses.map(addr => (
-                                            <label
-                                                key={addr.addressID}
-                                                className={`bm-addr-card${selectedAddressID === addr.addressID ? ' --sel' : ''}`}
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    checked={selectedAddressID === addr.addressID}
-                                                    onChange={() => setSelectedAddressID(addr.addressID)}
-                                                />
-                                                <div>
-                                                    <p className="bm-addr-name">{addr.name || addr.fullName || 'Recipient'}</p>
-                                                    <p className="bm-addr-meta">
-                                                        {addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}, {addr.city}, {addr.state} – {addr.pincode}
-                                                    </p>
-                                                    {(addr.phoneNumber || addr.phone) && (
-                                                        <p className="bm-addr-meta">{addr.phoneNumber || addr.phone}</p>
-                                                    )}
-                                                </div>
-                                            </label>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {(!isLoggedIn || useNewAddress || addresses.length === 0) && (
-                            <div className="bm-fields">
-                                {isLoggedIn && (
-                                    <>
-                                        <div className="bm-field">
-                                            <label className="bm-label">Phone <em>*</em></label>
-                                            <input className="bm-input" type="tel" value={formData.phone} onChange={handleChange('phone')} placeholder="10-digit number" maxLength={10} />
-                                        </div>
-                                        <div className="bm-field">
-                                            <label className="bm-label">Email <em>*</em></label>
-                                            <input className="bm-input" type="email" value={formData.email} onChange={handleChange('email')} placeholder="you@email.com" />
-                                        </div>
-                                    </>
-                                )}
-                                <div className="bm-field --full">
-                                    <label className="bm-label">Address Line 1 <em>*</em></label>
-                                    <input className="bm-input" type="text" value={formData.line1} onChange={handleChange('line1')} placeholder="House / Flat / Block no." />
-                                </div>
-                                <div className="bm-field --full">
-                                    <label className="bm-label">Address Line 2</label>
-                                    <input className="bm-input" type="text" value={formData.line2} onChange={handleChange('line2')} placeholder="Street / Colony (optional)" />
-                                </div>
-                                <div className="bm-field">
-                                    <label className="bm-label">City <em>*</em></label>
-                                    <input className="bm-input" type="text" value={formData.city} onChange={handleChange('city')} />
-                                </div>
-                                <div className="bm-field">
-                                    <label className="bm-label">Pincode <em>*</em></label>
-                                    <input className="bm-input" type="text" value={formData.pincode} onChange={handleChange('pincode')} maxLength={6} placeholder="6 digits" />
-                                </div>
-                                <div className="bm-field">
-                                    <label className="bm-label">State <em>*</em></label>
-                                    <select className="bm-select" value={formData.state} onChange={handleChange('state')}>
-                                        <option value="">Select state</option>
-                                        {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                                    </select>
-                                </div>
-                                <div className="bm-field">
-                                    <label className="bm-label">Landmark</label>
-                                    <input className="bm-input" type="text" value={formData.landmark} onChange={handleChange('landmark')} placeholder="Optional" />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* ── RIGHT: summary + coupon + payment + CTA ── */}
-                    <div className="bm-right-stack">
-                        <OrderSummary />
-
-                        {/* Coupon / Offer */}
-                        {offerDetails?.offerApplied ? (
-                            <div key={`occ-${offerAnimKey}`} className="bm-offer-celeb">
-                                <div className="bm-occ-inner">
-                                    <div className="bm-occ-row">
-                                        <div className="bm-occ-badge">
-                                            <span className="bm-occ-emoji">🎉</span>
-                                        </div>
-                                        <div className="bm-occ-text">
-                                            <p className="bm-occ-lbl">You&apos;re saving</p>
-                                            <p className="bm-occ-amount">₹{offerSaving.toFixed(2)}</p>
-                                        </div>
-                                        <div className="bm-occ-tag">
-                                            <span className="bm-occ-fire">🔥</span>
-                                            <span className="bm-occ-name">{offerDetails?.offerName || 'Active Offer'}</span>
-                                        </div>
-                                    </div>
-                                    <p className="bm-occ-sub">Coupon not needed — your offer beats it!</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div>
-                                <span className="bm-section-lbl">Coupon Code</span>
-                                <div className="bm-coupon-row">
-                                    <input
-                                        className="bm-coupon-input"
-                                        type="text"
-                                        value={couponCode}
-                                        onChange={e => {
-                                            setCouponCode(e.target.value);
-                                            setCouponApplied(false); setCouponDiscount(0); setCouponError('');
-                                        }}
-                                        placeholder="Enter coupon"
-                                    />
-                                    <button
-                                        className="bm-coupon-btn"
-                                        onClick={handleApplyCoupon}
-                                        disabled={applyingCoupon || !couponCode.trim()}
-                                    >
-                                        {applyingCoupon ? '…' : 'Apply'}
-                                    </button>
-                                </div>
-                                {couponError && !couponApplied && (
-                                    <p className="bm-coupon-err">{couponError}</p>
-                                )}
-                                {couponApplied && (
-                                    <div key={couponAnimKey} className="bm-coupon-applied">
-                                        <div className="bm-coupon-inner">
-                                            <div className="bm-coupon-left">
-                                                <span style={{ fontSize: 20 }}>🏷️</span>
-                                                <div>
-                                                    <p className="bm-coupon-title">Coupon Applied!</p>
-                                                    <p className="bm-coupon-code">{couponCode.toUpperCase()}</p>
-                                                </div>
-                                            </div>
-                                            <div className="bm-coupon-right">
-                                                <p className="bm-coupon-save-lbl">You Save</p>
-                                                <p className="bm-coupon-save-amt">-₹{couponDiscount.toFixed(2)}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Payment mode */}
-                        <div>
-                            <span className="bm-section-lbl">Payment Method</span>
-                            <div className="bm-pay-grid">
-                                <button
-                                    type="button"
-                                    className={`bm-pay-card${paymentMode === 'COD' ? ' --sel' : ''}`}
-                                    onClick={() => setPaymentMode('COD')}
-                                >
-                                    <span className="bm-pay-icon">💵</span>
-                                    <p className="bm-pay-title">Cash on Delivery</p>
-                                    <p className="bm-pay-sub">Pay when your order arrives</p>
-                                </button>
-                                <button
-                                    type="button"
-                                    className={`bm-pay-card${paymentMode === 'PREPAID' ? ' --sel' : ''}`}
-                                    onClick={() => setPaymentMode('PREPAID')}
-                                >
-                                    <span className="bm-pay-icon">⚡</span>
-                                    <p className="bm-pay-title">Online Payment</p>
-                                    <p className="bm-pay-sub">PhonePe · UPI · Cards</p>
-                                </button>
-                            </div>
-                        </div>
-
-                        {error && <p className="bm-error">{error}</p>}
-
-                        <button
-                            type="button"
-                            className="bm-btn-primary"
-                            onClick={handleConfirmOrder}
-                            disabled={loading || sendOtpLoading}
-                        >
-                            {loading
-                                ? 'Placing your order…'
-                                : sendOtpLoading
-                                    ? 'Sending OTP…'
-                                    : 'Confirm Order →'}
-                        </button>
-
-                        <p className="bm-secure-note">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                            Secured checkout · 256-bit encryption
-                        </p>
-                    </div>
-                </div>
+            <div className="p-5 overflow-x-hidden">
+                {step === 'details' && renderDetailsStep()}
+                {step === 'processing' && renderProcessingStep()}
+                {step === 'success' && renderSuccessStep()}
             </div>
         </div>
     );
 };
 
 export default BuyNowModal;
+
+/* Inline styles for premium coupon banner */
+if (typeof window !== 'undefined') {
+    const styleId = 'buy-now-modal-coupon-styles';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = `
+        .coupon-success-banner {
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 8px;
+            border: 1.5px solid #16a34a;
+            position: relative;
+            animation: couponSlice 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            clip-path: inset(0 100% 0 0);
+        }
+        .coupon-shimmer-bg {
+            position: relative;
+            background: linear-gradient(120deg, #f0fdf4, #dcfce7, #bbf7d0, #dcfce7, #f0fdf4);
+            background-size: 300% 100%;
+            animation: couponShimmer 2.5s ease infinite;
+            padding: 12px 16px;
+        }
+        @keyframes couponShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes couponSlice {
+            0%   { clip-path: inset(0 100% 0 0 round 12px); }
+            100% { clip-path: inset(0 0%   0 0 round 12px); }
+        }
+        .coupon-title { font-weight: 700; font-size: 14px; color: #15803d; }
+        .coupon-code-label { font-size: 12px; color: #16a34a; font-family: monospace; letter-spacing: 1px; }
+        .coupon-savings { text-align: right; }
+        .savings-label { font-size: 11px; color: #15803d; }
+        .savings-amount {
+            font-size: 18px;
+            font-weight: 800;
+            color: #15803d;
+            animation: savingsPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+        }
+        @keyframes savingsPop {
+            0%   { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1);   opacity: 1; }
+        }
+
+        .coupon-scan-line {
+            position: absolute;
+            top: 0;
+            left: -10%;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            animation: scanSweep 0.5s ease 0.45s forwards;
+            opacity: 0;
+            pointer-events: none;
+        }
+        @keyframes scanSweep {
+            0%   { left: -10%; opacity: 1; }
+            100% { left: 110%; opacity: 0; }
+        }
+
+        .offer-banner-wrapper {
+            animation: offerSlice 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            clip-path: inset(0 100% 0 0 round 12px);
+        }
+        @keyframes offerSlice {
+            0%   { clip-path: inset(0 100% 0 0 round 12px); }
+            60%  { clip-path: inset(0 0%   0 0 round 12px); }
+            75%  { clip-path: inset(0 -2%  0 0 round 12px); }
+            100% { clip-path: inset(0 0%   0 0 round 12px); }
+        }
+
+        .offer-shimmer-bg {
+            background: linear-gradient(120deg, #fffbeb, #fef3c7, #fde68a, #fef3c7, #fffbeb);
+            background-size: 300% 100%;
+            animation: offerShimmer 2s ease infinite;
+        }
+        @keyframes offerShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .offer-progress-fill {
+            background: linear-gradient(90deg, #f59e0b, #d97706, #f59e0b);
+            background-size: 200% 100%;
+            animation: progressSweep 1.5s ease infinite;
+        }
+        @keyframes progressSweep {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .offer-fire-pop {
+            display: inline-block;
+            animation: firePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s both;
+        }
+        @keyframes firePop {
+            0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg);   opacity: 1; }
+        }
+        .offer-savings-pop {
+            animation: savingsPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s both;
+        }
+
+        /* Offer Savings Celebration Block */
+        .offer-savings-celebration {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #f59e0b;
+            animation: celebrationSlice 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            clip-path: inset(0 100% 0 0 round 16px);
+            box-shadow: 0 4px 24px rgba(245, 158, 11, 0.18);
+        }
+        @keyframes celebrationSlice {
+            0%   { clip-path: inset(0 100%  0 0 round 16px); }
+            60%  { clip-path: inset(0 0%    0 0 round 16px); }
+            75%  { clip-path: inset(0 -2%   0 0 round 16px); }
+            100% { clip-path: inset(0 0%    0 0 round 16px); }
+        }
+        .osc-inner {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 30%, #fde68a 60%, #fef3c7 80%, #fffbeb 100%);
+            background-size: 300% 300%;
+            animation: oscBgMove 4s ease infinite;
+            padding: 16px 18px 12px 18px;
+            position: relative;
+        }
+        @keyframes oscBgMove {
+            0%   { background-position: 0%   50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0%   50%; }
+        }
+        .osc-top-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .osc-badge-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.18);
+            border: 2px solid rgba(245,158,11,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            animation: badgePulse 2s ease-in-out 0.5s infinite;
+        }
+        @keyframes badgePulse {
+            0%,100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(245,158,11,0.3); }
+            50%     { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(245,158,11,0);   }
+        }
+        .osc-badge-emoji {
+            font-size: 20px;
+            animation: emojiSpin 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+            display: inline-block;
+        }
+        @keyframes emojiSpin {
+            0%   { transform: rotate(-30deg) scale(0.5); opacity: 0; }
+            100% { transform: rotate(0deg)   scale(1);   opacity: 1; }
+        }
+        .osc-title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+            flex: 1;
+        }
+        .osc-you-saved-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #b45309;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 0;
+            animation: oscFadeUp 0.4s ease 0.3s both;
+        }
+        .osc-amount {
+            font-size: 28px;
+            font-weight: 900;
+            color: #92400e;
+            margin: 0;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #d97706, #92400e, #b45309);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: amountPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.35s both;
+        }
+        @keyframes amountPop {
+            0%   { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1);   opacity: 1; }
+        }
+        .osc-tag-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+            flex-shrink: 0;
+            animation: oscFadeUp 0.4s ease 0.45s both;
+        }
+        .osc-fire {
+            font-size: 20px;
+            animation: fireShake 1.5s ease-in-out 0.8s infinite;
+            display: inline-block;
+        }
+        @keyframes fireShake {
+            0%,100% { transform: rotate(0deg)   scale(1);    }
+            25%     { transform: rotate(-8deg)  scale(1.1);  }
+            75%     { transform: rotate(8deg)   scale(1.1);  }
+        }
+        .osc-offer-name {
+            font-size: 12px;
+            font-weight: 800;
+            color: #78350f;
+            background: rgba(217,119,6,0.15);
+            border: 1px solid rgba(217,119,6,0.3);
+            border-radius: 8px;
+            padding: 3px 10px;
+            font-style: italic;
+            letter-spacing: 0.3px;
+            text-align: right;
+            max-width: 120px;
+            line-height: 1.3;
+        }
+        .osc-sub {
+            font-size: 11px;
+            color: #b45309;
+            font-weight: 500;
+            margin: 0;
+            font-style: italic;
+            opacity: 0.85;
+            animation: oscFadeUp 0.4s ease 0.55s both;
+        }
+        @keyframes oscFadeUp {
+            0%   { opacity: 0; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0);   }
+        }
+        .osc-bar-track {
+            height: 4px;
+            background: rgba(245,158,11,0.15);
+            overflow: hidden;
+        }
+        .osc-bar-fill {
+            height: 100%;
+            width: 45%;
+            background: linear-gradient(90deg, transparent, #f59e0b, #fbbf24, #f59e0b, transparent);
+            animation: oscBarSweep 1.8s ease-in-out infinite;
+        }
+        @keyframes oscBarSweep {
+            0%   { transform: translateX(-120%); }
+            100% { transform: translateX(320%);  }
+        }
+        `;
+        document.head.appendChild(style);
+    }
+}

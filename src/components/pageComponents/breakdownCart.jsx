@@ -48,7 +48,7 @@ const BreakdownCart = ({ breakdownData, couponDiscount = 0, appliedCoupon = null
                 <div className="col-span-2 my-2">
                     <hr className='border-gray-200' />
                 </div>
-                <div className='font-semibold'>Total</div>
+                <div className='font-semibold'>Total <span className="text-[10px] font-normal text-gray-500">(incl. taxes)</span></div>
                 <div className="text-right font-semibold">₹{finalTotal}</div>
             </div>
 

@@ -23,7 +23,7 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                         onClick={() => toggleTab("descriptionTab")}
                         className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
                     >
-                        {tabHeading1}
+                        {tabHeading1?.toUpperCase()}
                         <span>{openTabs.descriptionTab ? "-" : "+"}</span>
                     </button>
                     {openTabs.descriptionTab && (
