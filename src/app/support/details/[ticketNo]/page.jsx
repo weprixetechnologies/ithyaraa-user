@@ -58,7 +58,7 @@ export default function TicketDetailPage() {
     if (loading) return <div className="p-20 text-center animate-pulse">Requesting log data...</div>;
     if (!ticket) return <div className="p-20 text-center text-red-500 font-bold uppercase tracking-widest">Inquiry code not found.</div>;
 
-    const topicPath = JSON.parse(ticket.topic_path);
+    const topicPath = typeof ticket.topic_path === 'string' ? JSON.parse(ticket.topic_path) : (ticket.topic_path || []);
 
     return (
         <div className="min-h-screen bg-[#fafafa] py-12 px-4 pb-32">
