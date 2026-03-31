@@ -84,14 +84,21 @@ const ProfilePage = () => {
                                     { key: 'prebookedhistory', label: 'Pre-Booked', icon: <CgProfile size={16} /> },
                                     { key: 'coins', label: 'Ithyaraa Coins', icon: <CgProfile size={16} /> },
                                     { key: 'giftcard', label: 'Giftcard', icon: <CgProfile size={16} /> },
-                                    { key: 'mycart', label: 'Cart', icon: <CgProfile size={16} /> },
-                                    { key: 'mywishlist', label: 'Wishlist', icon: <CgProfile size={16} /> },
+                                    { key: 'mycart', label: 'Cart', icon: <CgProfile size={16} />, link: '/cart' },
+                                    { key: 'mywishlist', label: 'Wishlist', icon: <CgProfile size={16} />, link: '/wishlist' },
+                                    { key: 'support', label: 'Support Inquiries', icon: <CgProfile size={16} />, link: '/support' },
                                     { key: 'applyaffiliate', label: user?.affiliate === 'approved' ? 'Affiliate' : 'Apply', icon: <CgProfile size={16} /> },
                                     ...(user?.affiliate === 'approved' ? [{ key: 'payout', label: 'Payout', icon: <CgProfile size={16} /> }] : [])
                                 ].map((item) => (
                                     <button
                                         key={item.key}
-                                        onClick={() => setActiveTab(item.key)}
+                                        onClick={() => {
+                                            if (item.link) {
+                                                router.push(item.link)
+                                            } else {
+                                                setActiveTab(item.key)
+                                            }
+                                        }}
                                         className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${activeTab === item.key
                                             ? 'bg-black text-white'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -149,16 +156,22 @@ const ProfilePage = () => {
                                         Giftcard
                                     </p>
                                 </section>
-                                <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg ${activeTab === 'mycart' ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={() => { setActiveTab('mycart') }} >
+                                <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg bg-white text-black`} onClick={() => { router.push('/cart') }} >
                                     <CgProfile size={20} />
                                     <p className="text-[15px] font-normal pl-4">
                                         My Cart
                                     </p>
                                 </section>
-                                <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg ${activeTab === 'mywishlist' ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={() => { setActiveTab('mywishlist') }} >
+                                <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg bg-white text-black`} onClick={() => { router.push('/wishlist') }} >
                                     <CgProfile size={20} />
                                     <p className="text-[15px] font-normal pl-4">
                                         My Wishlist
+                                    </p>
+                                </section>
+                                <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg bg-white text-black`} onClick={() => { router.push('/support') }} >
+                                    <CgProfile size={20} />
+                                    <p className="text-[15px] font-normal pl-4">
+                                        Support Inquiries
                                     </p>
                                 </section>
                                 <section className={`flex justify-start hover:bg-gray-200 hover:text-black items-center w-full cursor-pointer border border-gray-200 p-3 rounded-lg ${activeTab === 'applyaffiliate' ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={() => { setActiveTab('applyaffiliate') }} >

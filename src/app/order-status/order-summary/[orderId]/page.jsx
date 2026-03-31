@@ -65,10 +65,12 @@ const OrderSuccessPage = () => {
                 const normalized = {
                     orderID: detail.orderID || first.orderID,
                     items,
+                    itemTotal: detail.itemTotal != null ? parseFloat(detail.itemTotal) : fallbackSubtotal + (detail.totalDiscount ? parseFloat(detail.totalDiscount) : 0),
                     subtotal: detail.subtotal != null ? parseFloat(detail.subtotal) : fallbackSubtotal,
                     discount: detail.totalDiscount != null ? parseFloat(detail.totalDiscount) : 0,
                     couponDiscount: detail.couponDiscount != null ? parseFloat(detail.couponDiscount) : 0,
-                    shipping: detail.shipping != null ? parseFloat(detail.shipping) : 0,
+                    shipping: detail.shippingFee != null ? parseFloat(detail.shippingFee) : (detail.shipping != null ? parseFloat(detail.shipping) : 0),
+                    shippingBreakdown: detail.shippingBreakdown || [],
                     total: detail.total != null ? parseFloat(detail.total) : (first.total ? parseFloat(first.total) : fallbackSubtotal),
                     paymentMode: detail.paymentMode || first.paymentMode,
                     paymentStatus: detail.paymentStatus || first.paymentStatus,
@@ -517,13 +519,19 @@ const OrderSuccessPage = () => {
                                 <div className="mt-4 sm:mt-6 border-t pt-4">
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-sm sm:text-base">
-                                            <span className="text-gray-600">Subtotal:</span>
-                                            <span>{formatPrice(orderDetails.subtotal)}</span>
+                                            <span className="text-gray-600">Item Total:</span>
+                                            <span>{formatPrice(orderDetails.itemTotal)}</span>
                                         </div>
                                         {parseFloat(orderDetails.discount) > 0 && (
                                             <div className="flex justify-between text-green-600 text-sm sm:text-base">
                                                 <span>Discount:</span>
                                                 <span>-{formatPrice(orderDetails.discount)}</span>
+                                            </div>
+                                        )}
+                                        {parseFloat(orderDetails.discount) > 0 && (
+                                            <div className="flex justify-between text-sm sm:text-base">
+                                                <span className="text-gray-600">Subtotal:</span>
+                                                <span>{formatPrice(orderDetails.subtotal)}</span>
                                             </div>
                                         )}
                                         {parseFloat(orderDetails.couponDiscount) > 0 && (
@@ -532,9 +540,21 @@ const OrderSuccessPage = () => {
                                                 <span className="ml-2 flex-shrink-0">-{formatPrice(orderDetails.couponDiscount)}</span>
                                             </div>
                                         )}
-                                        <div className="flex justify-between text-sm sm:text-base">
-                                            <span className="text-gray-600">Shipping:</span>
-                                            <span>{formatPrice(orderDetails.shipping)}</span>
+                                        <div className="flex flex-col text-sm sm:text-base">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Shipping Charge:</span>
+                                                <span>{orderDetails.shipping > 0 ? formatPrice(orderDetails.shipping) : 'Free'}</span>
+                                            </div>
+                                            {orderDetails.shippingBreakdown && orderDetails.shippingBreakdown.length > 0 && orderDetails.shipping > 0 && (
+                                                <div className="pl-4 mt-1 border-l-2 border-gray-100 space-y-1 text-xs sm:text-sm text-gray-500">
+                                                    {orderDetails.shippingBreakdown.map((breakdown, idx) => (
+                                                        <div key={idx} className="flex justify-between">
+                                                            <span>{breakdown.brandName}</span>
+                                                            <span>{breakdown.fee > 0 ? formatPrice(breakdown.fee) : 'Free'}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                         {(orderDetails.handlingFee && orderDetails.handFeeRate > 0) && (
                                             <div className="flex justify-between text-sm sm:text-base">
