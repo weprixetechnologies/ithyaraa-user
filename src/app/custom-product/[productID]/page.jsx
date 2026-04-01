@@ -353,7 +353,9 @@ const CustomProductDetail = () => {
                     --pdp-shadow:    0 2px 24px rgba(28,24,18,.07);
                 }
 
-                .pdp-root { background: var(--pdp-cream); min-height: 100vh; color: var(--pdp-ink); }
+                .pdp-root { 
+                // background: var(--pdp-cream);
+                 min-height: 100vh; color: var(--pdp-ink); }
 
                 /* shimmer */
                 .pdp-skeleton {

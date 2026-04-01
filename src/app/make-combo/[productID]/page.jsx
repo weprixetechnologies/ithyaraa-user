@@ -410,7 +410,7 @@ const ProductDetail = () => {
                 }
 
                 .pdp-root {
-                    background: var(--pdp-cream);
+                    // background: var(--pdp-cream);
                     min-height: 100vh;
                     color: var(--pdp-ink);
                 }

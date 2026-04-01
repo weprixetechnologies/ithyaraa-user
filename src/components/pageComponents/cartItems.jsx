@@ -174,7 +174,7 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
             // toast.success('Item removed from cart');
 
             // Refresh cart data
-            dispatch(getCartAsync());
+            await dispatch(getCartAsync()).unwrap();
         } catch (error) {
             console.error('Error removing item:', error);
             toast.error('Failed to remove item from cart');

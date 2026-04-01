@@ -2,7 +2,8 @@
 
 import axiosInstance from '@/lib/axiosInstance';
 import { getCartAsync } from '@/redux/slices/cartSlice';
-import React, { useEffect, useState, Suspense, lazy } from 'react'
+import React, { useEffect, useState, useRef, Suspense, lazy } from 'react'
+import { toast } from 'react-toastify';
 import { CiDeliveryTruck } from "react-icons/ci";
 import { RiSecurePaymentLine } from "react-icons/ri";
 import { useDispatch, useSelector } from 'react-redux';
@@ -56,13 +57,24 @@ const Page = () => {
     setCouponDiscount(0);
   }
 
-  // Handle cart item removal - clear coupon if cart becomes empty
-  const handleCartItemRemoved = () => {
-    if (cartRedux.cart?.length === 0) {
+  const prevCartLengthRef = useRef(0);
+  
+  // Monitor cart removals and reset coupon
+  useEffect(() => {
+    const currentLength = cartRedux.cart?.length || 0;
+    
+    // Only trigger if length DECREASED (an item was removed, not added)
+    if (currentLength < prevCartLengthRef.current && appliedCoupon) {
       setAppliedCoupon(null);
       setCouponDiscount(0);
+      toast.info('Cart changed: Coupon reset. Please re-apply if needed.', {
+        position: "top-center"
+      });
     }
-  }
+    
+    // Update ref for next comparison
+    prevCartLengthRef.current = currentLength;
+  }, [cartRedux.cart?.length, appliedCoupon]);
   const handlePlaceOrder = async () => {
     setPlaceError('')
     // First click: move to address/payment confirmation step
@@ -131,13 +143,6 @@ const Page = () => {
       .finally(() => setLoading(false));
   }, [dispatch]);
 
-  // Clear coupon if cart becomes empty
-  useEffect(() => {
-    if (cartRedux.cart?.length === 0 && appliedCoupon) {
-      setAppliedCoupon(null);
-      setCouponDiscount(0);
-    }
-  }, [cartRedux.cart?.length, appliedCoupon]);
 
   if (loading || !cartRedux.cartDetail) {
     return (
