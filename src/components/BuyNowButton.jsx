@@ -82,6 +82,7 @@ const BuyNowButton = ({
     productType,
     selectedDressType = null,
     brandID = null,
+    referBy = null,
 }) => {
     const [open, setOpen] = useState(false);
     const btnRef = useRef(null);
@@ -176,6 +177,7 @@ const BuyNowButton = ({
                             initialQuantity={quantity}
                             selectedDressType={selectedDressType || null}
                             brandID={ brandID || product?.brandID || product?.uid }
+                            referBy={referBy}
                         />
                     </ModalShell>
                 </ModalPortal>

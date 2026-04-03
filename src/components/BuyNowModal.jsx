@@ -68,6 +68,7 @@ const BuyNowModal = ({
     initialQuantity = 1,
     selectedDressType = null,
     brandID = null,
+    referBy = null,
 }) => {
     const router = useRouter();
 
@@ -401,6 +402,7 @@ const BuyNowModal = ({
                     : null,
                 existingAddressID: isLoggedIn && !useNewAddress ? selectedAddressID : null,
                 uid: isLoggedIn ? resolvedUid : null,
+                referBy: referBy || localStorage.getItem('referBy'),
             };
 
             const res = await axiosInstance.post('/order/buy-now', body);
@@ -409,6 +411,9 @@ const BuyNowModal = ({
             if (!data.success) {
                 throw new Error(data.message || 'Failed to place order');
             }
+
+            // Clear referral after successful use
+            localStorage.removeItem("referBy");
 
             if (data.isNewUser && data.sessionToken) {
                 try {

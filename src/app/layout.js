@@ -8,6 +8,8 @@ import StoreProvider from "@/redux/provider";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
+import ReferralTracker from "@/components/ReferralTracker";
+
 const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"], weight: ["400", "500", "700"] });
 const roboto = Roboto({ variable: "--font-roboto", subsets: ["latin"], weight: ["400", "500", "700"] });
 const poppins = Poppins({ variable: "--font-poppins", subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
@@ -42,6 +44,7 @@ export default function RootLayout({ children }) {
         <StoreProvider>
           <AuthProvider>
             <WishlistProvider>
+              <ReferralTracker />
               <ToastContainer />
               <Header />
               <main className="min-h-screen">

@@ -30,7 +30,17 @@ const ProductDetail = () => {
     const { presaleProductID } = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
-    const referBy = searchParams.get('referBy');
+    const [referBy, setReferBy] = useState(null);
+
+    useEffect(() => {
+        // Initialize from localStorage on mount
+        const stored = localStorage.getItem("referBy");
+        if (stored) setReferBy(stored);
+
+        // Sync if new referBy in URL
+        const urlReferBy = searchParams.get('referBy');
+        if (urlReferBy) setReferBy(urlReferBy);
+    }, [searchParams]);
 
     // Debug: Log the referBy parameter
     // Avoid heavy logs per render
@@ -352,6 +362,9 @@ const ProductDetail = () => {
                     setCrossSellProducts([]);
                     // Don't show modal if no cross-sell products
                 }
+                // Clear referral after successful use
+                localStorage.removeItem("referBy");
+                setReferBy(null);
             } else {
                 // Cart addition failed or returned unsuccessful response
                 console.error('Cart addition was not successful:', cartResult);

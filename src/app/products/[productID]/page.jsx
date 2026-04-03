@@ -77,7 +77,18 @@ const buildOfferText = (offer) => {
 const ProductDetail = () => {
     const { productID } = useParams();
     const searchParams = useSearchParams();
-    const referBy = searchParams.get("referBy");
+    const [referBy, setReferBy] = useState(null);
+
+    useEffect(() => {
+        // Initialize from localStorage on mount
+        const stored = localStorage.getItem("referBy");
+        if (stored) setReferBy(stored);
+
+        // If URL has a NEW referBy, it's already handled by the global ReferralTracker,
+        // but we sync it here for local state.
+        const urlReferBy = searchParams.get("referBy");
+        if (urlReferBy) setReferBy(urlReferBy);
+    }, [searchParams]);
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -250,6 +261,9 @@ const ProductDetail = () => {
                 } else {
                     setCrossSellProducts([]);
                 }
+                // Clear referral after successful use
+                localStorage.removeItem("referBy");
+                setReferBy(null);
             } else {
                 toast.error("Failed to add item to cart.");
             }
@@ -546,6 +560,7 @@ const ProductDetail = () => {
                                 quantity={count}
                                 disabled={isOutOfStock}
                                 brandID={product?.brandID}
+                                referBy={referBy}
                             />
                         </div>
 

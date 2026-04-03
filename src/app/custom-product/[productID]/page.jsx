@@ -138,7 +138,18 @@ const ConfirmDrawer = ({ open, onClose, product, count, customInputs, customInpu
 const CustomProductDetail = () => {
     const { productID } = useParams();
     const searchParams = useSearchParams();
-    const referBy = searchParams.get("referBy");
+    const [referBy, setReferBy] = useState(null);
+
+    useEffect(() => {
+        // Initialize from localStorage on mount
+        const stored = localStorage.getItem("referBy");
+        if (stored) setReferBy(stored);
+
+        // Sync if new referBy in URL
+        const urlReferBy = searchParams.get("referBy");
+        if (urlReferBy) setReferBy(urlReferBy);
+    }, [searchParams]);
+
     const dispatch = useDispatch();
     const { toggleWishlist, isInWishlist, loading: wishlistLoading } = useWishlist();
     const isWishlisted = productID ? isInWishlist(productID) : false;
@@ -302,6 +313,9 @@ const CustomProductDetail = () => {
                     setShowCrossSell(true);
                 }
             }
+            // Clear referral after successful use
+            localStorage.removeItem("referBy");
+            setReferBy(null);
         } catch (err) {
             if (err.response?.status === 401) {
                 toast.error("Please login to add items to cart.");
