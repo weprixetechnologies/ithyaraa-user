@@ -67,6 +67,7 @@ const OrderHistory = () => {
                                 paymentStatus: item.paymentStatus,
                                 orderStatus: item.orderStatus,
                                 deliveredAt: item.deliveredAt || null,
+                                total: item.total || 0,
                                 isReplacement: !!(item.isReplacement === 1 || item.isReplacement === true)
                             }
                         }
@@ -540,7 +541,7 @@ const OrderHistory = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className="text-lg font-bold text-gray-900">
-                                        Total: {formatPrice(getTotalAmount(order.items))}
+                                        Total: {formatPrice(order.total || getTotalAmount(order.items))}
                                     </p>
                                 </div>
                             </div>
