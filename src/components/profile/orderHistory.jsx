@@ -9,6 +9,7 @@ import { ClipLoader } from 'react-spinners'
 import { toast } from 'react-toastify'
 
 const RETURN_STATUS_LABELS = {
+    none: 'No return',
     return_requested: 'Return requested',
     return_initiated: 'Return initiated',
     return_picked: 'Return picked',
@@ -97,7 +98,8 @@ const OrderHistory = () => {
                             ...item,
                             featuredImage: parsedFeaturedImage,
                             orderItemID: item.orderItemID,
-                            returnStatus: item.returnStatus || 'none'
+                            returnStatus: item.returnStatus || 'none',
+                            returnRejectionReason: item.returnRejectionReason || null
                         })
                         return acc
                     }, {})
@@ -464,9 +466,15 @@ const OrderHistory = () => {
                                             )}
                                             <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                                             {(item.returnStatus && item.returnStatus !== 'none') && (
-                                                <span className={`inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${['return_approval', 'refund_approval', 'replacement_approval'].includes(item.returnStatus) ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-amber-100 text-amber-800'}`}>
+                                                <span className={`inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${['return_approval', 'refund_approval', 'replacement_approval'].includes(item.returnStatus) ? 'bg-red-100 text-red-700 animate-pulse' : item.returnStatus === 'returnRejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'}`}>
                                                     {RETURN_STATUS_LABELS[item.returnStatus] || item.returnStatus.replace('_', ' ')}
                                                 </span>
+                                            )}
+                                            {item.returnRejectionReason && (
+                                                <div className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2.5">
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-red-700">Rejection Reason</p>
+                                                    <p className="mt-1 text-xs text-red-700">{item.returnRejectionReason}</p>
+                                                </div>
                                             )}
                                         </div>
                                         <div className="text-right flex flex-col items-end gap-1">

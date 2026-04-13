@@ -8,12 +8,14 @@ import { FaUndo, FaCalendarAlt, FaTruck, FaBox, FaExternalLinkAlt, FaArrowLeft }
 import { ClipLoader } from 'react-spinners';
 
 const RETURN_STATUS_LABELS = {
+    none: 'No return',
     return_requested: 'Return requested',
     return_initiated: 'Return initiated',
     return_picked: 'Return picked',
     replacement_processing: 'Replacement in progress',
     replacement_shipped: 'Replacement shipped',
     replacement_complete: 'Replacement complete',
+    returnRejected: 'Return rejected',
     returned: 'Returned',
     refund_pending: 'Refund pending',
     refund_completed: 'Refund completed'
@@ -97,6 +99,9 @@ export default function ReturnDetailPage() {
     }
 
     const statusLabel = RETURN_STATUS_LABELS[item.returnStatus] || item.returnStatus;
+    const statusClassName = item.returnStatus === 'returnRejected'
+        ? 'bg-red-100 text-red-800'
+        : 'bg-amber-100 text-amber-800';
 
     return (
         <div className="min-h-screen bg-gray-50 py-6 sm:py-10">
@@ -143,7 +148,7 @@ export default function ReturnDetailPage() {
                         <section>
                             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Return status</h2>
                             <div className="flex items-center gap-2">
-                                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
+                                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${statusClassName}`}>
                                     {statusLabel}
                                 </span>
                                 {item.returnRequestedAt && (
@@ -201,6 +206,15 @@ export default function ReturnDetailPage() {
                             <section className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                                 <p className="text-sm font-medium text-amber-800">
                                     Our team will contact you to complete the refund. You don’t need to take any further action.
+                                </p>
+                            </section>
+                        )}
+
+                        {item.returnRejectionReason && (
+                            <section className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-red-700">Rejection Reason</p>
+                                <p className="mt-2 text-sm text-red-700">
+                                    {item.returnRejectionReason}
                                 </p>
                             </section>
                         )}

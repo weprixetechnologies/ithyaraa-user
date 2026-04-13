@@ -13,6 +13,7 @@ const RETURN_STATUS_LABELS = {
     replacement_processing: 'Replacement in progress',
     replacement_shipped: 'Replacement shipped',
     replacement_complete: 'Replacement complete',
+    returnRejected: 'Return rejected',
     returned: 'Returned',
     refund_pending: 'Refund pending – executive will contact you',
     refund_completed: 'Refund completed'
@@ -73,6 +74,7 @@ const ReturnHistory = () => {
 
     const getReturnStatusColor = (status) => {
         const s = String(status || '').toLowerCase()
+        if (s.includes('returnrejected')) return 'bg-red-100 text-red-800'
         if (s.includes('refund_pending')) return 'bg-amber-100 text-amber-800'
         if (s.includes('refund_completed') || s.includes('returned') || s.includes('replacement_complete')) return 'bg-green-100 text-green-800'
         if (s.includes('replacement_shipped')) return 'bg-blue-100 text-blue-800'
@@ -210,6 +212,12 @@ const ReturnHistory = () => {
                                                     </span>
                                                 )}
                                             </div>
+                                            {item.returnRejectionReason && (
+                                                <div className="mt-2 rounded-lg border border-red-200 bg-red-50 p-3">
+                                                    <p className="text-xs font-semibold uppercase tracking-wide text-red-700">Rejection Reason</p>
+                                                    <p className="mt-1 text-sm text-red-700">{item.returnRejectionReason}</p>
+                                                </div>
+                                            )}
                                             {(item.returnTrackingCode || item.returnTrackingUrl) && (
                                                 <div className="mt-2 space-y-1">
                                                     {item.returnTrackingCode && (

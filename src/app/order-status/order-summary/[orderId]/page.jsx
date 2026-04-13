@@ -7,6 +7,23 @@ import Link from 'next/link';
 import { FaCheckCircle, FaTruck, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDownload } from 'react-icons/fa';
 import { ClipLoader } from 'react-spinners';
 
+const RETURN_STATUS_LABELS = {
+    none: 'No return',
+    return_requested: 'Return requested',
+    return_initiated: 'Return initiated',
+    return_picked: 'Return picked',
+    replacement_processing: 'Replacement processing',
+    replacement_shipped: 'Replacement shipped',
+    replacement_complete: 'Replacement complete',
+    returned: 'Returned',
+    refund_pending: 'Refund pending',
+    refund_completed: 'Refund completed',
+    return_approval: 'Approval pending',
+    refund_approval: 'Refund approval pending',
+    replacement_approval: 'Replacement approval pending',
+    returnRejected: 'Return request rejected'
+};
+
 const OrderSuccessPage = () => {
     const params = useParams();
     const orderId = params.orderId;
@@ -52,6 +69,7 @@ const OrderSuccessPage = () => {
                     comboItems: it.comboItems || [],
                     orderItemID: it.orderItemID,
                     returnStatus: it.returnStatus || 'none',
+                    returnRejectionReason: it.returnRejectionReason || null,
                     custom_inputs: it.custom_inputs, // Added custom_inputs
                 }));
 
@@ -280,6 +298,25 @@ const OrderSuccessPage = () => {
         }
     };
 
+    const getReturnStatusClasses = (status) => {
+        if (['return_approval', 'refund_approval', 'replacement_approval'].includes(status)) {
+            return 'bg-red-100 text-red-700';
+        }
+        if (status === 'returnRejected') {
+            return 'bg-red-100 text-red-700';
+        }
+        if (status === 'refund_pending') {
+            return 'bg-amber-100 text-amber-800';
+        }
+        if (['refund_completed', 'returned', 'replacement_complete'].includes(status)) {
+            return 'bg-green-100 text-green-800';
+        }
+        if (['replacement_shipped', 'return_picked', 'return_initiated', 'replacement_processing'].includes(status)) {
+            return 'bg-blue-100 text-blue-800';
+        }
+        return 'bg-gray-100 text-gray-700';
+    };
+
     const handleDownloadInvoice = async () => {
         try {
             setDownloadingInvoice(true);
@@ -377,6 +414,19 @@ const OrderSuccessPage = () => {
                                                             ))}
                                                         </div>
                                                     )}
+                                                    {item.returnStatus && item.returnStatus !== 'none' && (
+                                                        <div className="mt-2 flex flex-col gap-2">
+                                                            <span className={`inline-flex w-fit items-center px-2 py-1 rounded-full text-[10px] font-medium ${getReturnStatusClasses(item.returnStatus)}`}>
+                                                                {RETURN_STATUS_LABELS[item.returnStatus] || item.returnStatus}
+                                                            </span>
+                                                            {item.returnRejectionReason && (
+                                                                <div className="rounded-lg border border-red-200 bg-red-50 p-2">
+                                                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-red-700">Rejection Reason</p>
+                                                                    <p className="mt-1 text-xs text-red-700">{item.returnRejectionReason}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                     <div className="flex justify-between items-center mt-2">
                                                         <span className="bg-gray-100 px-2 py-1 rounded text-xs">
                                                             Qty: {item.quantity}
@@ -459,6 +509,19 @@ const OrderSuccessPage = () => {
                                                                                     {key}: {value}
                                                                                 </span>
                                                                             ))}
+                                                                        </div>
+                                                                    )}
+                                                                    {item.returnStatus && item.returnStatus !== 'none' && (
+                                                                        <div className="mt-2 flex flex-col gap-2">
+                                                                            <span className={`inline-flex w-fit items-center px-2 py-1 rounded-full text-[10px] font-medium ${getReturnStatusClasses(item.returnStatus)}`}>
+                                                                                {RETURN_STATUS_LABELS[item.returnStatus] || item.returnStatus}
+                                                                            </span>
+                                                                            {item.returnRejectionReason && (
+                                                                                <div className="rounded-lg border border-red-200 bg-red-50 p-2">
+                                                                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-red-700">Rejection Reason</p>
+                                                                                    <p className="mt-1 text-xs text-red-700">{item.returnRejectionReason}</p>
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     )}
                                                                 </div>
