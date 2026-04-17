@@ -423,7 +423,7 @@ const ProductDetail = () => {
             });
 
             // PhonePe redirect (online payments)
-            const redirectUrlRaw = response?.data?.checkoutPageUrl;
+            const redirectUrlRaw = response?.data?.url || response?.data?.checkoutPageUrl;
             const redirectUrl = typeof redirectUrlRaw === 'string'
                 ? redirectUrlRaw
                 : redirectUrlRaw?.data?.instrumentResponse?.redirectInfo?.url;
