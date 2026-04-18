@@ -87,6 +87,7 @@ const BuyNowModal = ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [useNewAddress, setUseNewAddress] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
 
     const [offerDetails, setOfferDetails] = useState(null);
     const [checkingOffer, setCheckingOffer] = useState(false);
@@ -255,6 +256,9 @@ const BuyNowModal = ({
 
     const handleChange = (field) => (e) => {
         setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+        if (formErrors[field]) {
+            setFormErrors((prev) => ({ ...prev, [field]: undefined }));
+        }
     };
 
     const validateFields = () => {
@@ -467,11 +471,13 @@ const BuyNowModal = ({
     const handleConfirmOrder = async () => {
         const fieldErrors = validateFields();
         if (Object.keys(fieldErrors).length > 0) {
+            setFormErrors(fieldErrors);
             setError('Please fix highlighted fields');
             toast.error('Please correct the errors before continuing.');
             return;
         }
 
+        setFormErrors({});
         setError('');
         setOtpError('');
 
@@ -944,9 +950,10 @@ const BuyNowModal = ({
                                         type="text"
                                         value={formData.name}
                                         onChange={handleChange('name')}
-                                        className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                        className={`mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black ${formErrors.name ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                                         required
                                     />
+                                    {formErrors.name && <p className="text-[10px] text-red-500 mt-1">{formErrors.name}</p>}
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium text-gray-700">Phone</label>
@@ -954,9 +961,10 @@ const BuyNowModal = ({
                                         type="tel"
                                         value={formData.phone}
                                         onChange={handleChange('phone')}
-                                        className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                        className={`mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black ${formErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                                         required
                                     />
+                                    {formErrors.phone && <p className="text-[10px] text-red-500 mt-1">{formErrors.phone}</p>}
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="text-xs font-medium text-gray-700">Email</label>
@@ -964,9 +972,10 @@ const BuyNowModal = ({
                                         type="email"
                                         value={formData.email}
                                         onChange={handleChange('email')}
-                                        className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                        className={`mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black ${formErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                                         required
                                     />
+                                    {formErrors.email && <p className="text-[10px] text-red-500 mt-1">{formErrors.email}</p>}
                                 </div>
                             </div>
                         </>
@@ -1039,10 +1048,11 @@ const BuyNowModal = ({
                                                     type="tel"
                                                     value={formData.phone}
                                                     onChange={handleChange('phone')}
-                                                    className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                                    className={`mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black ${formErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                                                     placeholder="10-digit mobile number"
                                                     required
                                                 />
+                                                {formErrors.phone && <p className="text-[10px] text-red-500 mt-1">{formErrors.phone}</p>}
                                             </div>
                                             <div>
                                                 <label className="text-xs font-medium text-gray-700">
@@ -1052,10 +1062,11 @@ const BuyNowModal = ({
                                                     type="email"
                                                     value={formData.email}
                                                     onChange={handleChange('email')}
-                                                    className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                                    className={`mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black ${formErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                                                     placeholder="your@email.com"
                                                     required
                                                 />
+                                                {formErrors.email && <p className="text-[10px] text-red-500 mt-1">{formErrors.email}</p>}
                                             </div>
                                         </>
                                     )}
@@ -1067,9 +1078,10 @@ const BuyNowModal = ({
                                             type="text"
                                             value={formData.line1}
                                             onChange={handleChange('line1')}
-                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                            className={`mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black ${formErrors.line1 ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                                             required
                                         />
+                                        {formErrors.line1 && <p className="text-[10px] text-red-500 mt-1">{formErrors.line1}</p>}
                                     </div>
                                     <div className="md:col-span-2">
                                         <label className="text-xs font-medium text-gray-700">
@@ -1079,7 +1091,7 @@ const BuyNowModal = ({
                                             type="text"
                                             value={formData.line2}
                                             onChange={handleChange('line2')}
-                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black border-gray-200"
                                         />
                                     </div>
                                     <div>
@@ -1088,16 +1100,17 @@ const BuyNowModal = ({
                                             type="text"
                                             value={formData.city}
                                             onChange={handleChange('city')}
-                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                            className={`mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black ${formErrors.city ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                                             required
                                         />
+                                        {formErrors.city && <p className="text-[10px] text-red-500 mt-1">{formErrors.city}</p>}
                                     </div>
                                     <div>
                                         <label className="text-xs font-medium text-gray-700">State</label>
                                         <select
                                             value={formData.state}
                                             onChange={handleChange('state')}
-                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black"
+                                            className={`mt-1 w-full px-3 py-2 border rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black ${formErrors.state ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                                             required
                                         >
                                             <option value="">Select state</option>
@@ -1107,6 +1120,7 @@ const BuyNowModal = ({
                                                 </option>
                                             ))}
                                         </select>
+                                        {formErrors.state && <p className="text-[10px] text-red-500 mt-1">{formErrors.state}</p>}
                                     </div>
                                     <div>
                                         <label className="text-xs font-medium text-gray-700">Pincode</label>
@@ -1114,9 +1128,10 @@ const BuyNowModal = ({
                                             type="text"
                                             value={formData.pincode}
                                             onChange={handleChange('pincode')}
-                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                            className={`mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black ${formErrors.pincode ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
                                             required
                                         />
+                                        {formErrors.pincode && <p className="text-[10px] text-red-500 mt-1">{formErrors.pincode}</p>}
                                     </div>
                                     <div>
                                         <label className="text-xs font-medium text-gray-700">
@@ -1126,7 +1141,7 @@ const BuyNowModal = ({
                                             type="text"
                                             value={formData.landmark}
                                             onChange={handleChange('landmark')}
-                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                            className="mt-1 w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black border-gray-200"
                                         />
                                     </div>
                                 </div>
