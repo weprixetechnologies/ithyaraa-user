@@ -1,423 +1,104 @@
-"use client";
-import axios from "axios";
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { BsFillStarFill } from "react-icons/bs";
-import ProductGallery from "@/components/products/productGallery";
-import { toast } from "react-toastify";
-import ProductTabs from "@/components/products/tabsAccordion";
-import { CiHeart, CiRuler } from "react-icons/ci";
-import ProductSection from "@/components/home/ProductSection";
-import Reviews from "@/components/products/reviews";
-import { useDispatch, useSelector } from "react-redux";
-import { addCartAsync, addCartComboAsync } from "@/redux/slices/cartSlice";
-import SelectComboSimple from "@/components/products/selectComboSimple";
-import BuyNowButton from "@/components/BuyNowButton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-const ProductDetail = () => {
-    const { productID } = useParams();
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [featuredImage, setFeaturedImage] = useState("");
-    const [galleryImages, setGalleryImages] = useState([]);
-    const [attributes, setAttributes] = useState([]);
-    const [selectedAttributes, setSelectedAttributes] = useState({});
-    const [selectedVariation, setSelectedVariation] = useState(null);
-    const [variationPrice, setVariationPrice] = useState(null);
-    const [variationSalePrice, setVariationSalePrice] = useState(null);
-    const [count, setCount] = useState(1);
-    const [productQuantity, setProductQuantity] = useState(100)
-    const [buyMore, setBuyMore] = useState([])
-    const dispatch = useDispatch()
-    const cart = useSelector((state) => state.cart.cartCount)
-    const [showSizeChart, setShowSizeChart] = useState(false);
-    // console.log(cart);
-    const [currentProduct, setCurrentProduct] = useState({
-        quantity: 1,
-        mainProductID: '',
-        products: []
+import { notFound } from "next/navigation";
+import ComboInteractive from "@/components/products/ComboInteractive";
+
+const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
+
+async function getComboData(id) {
+    const res = await fetch(`https://backend.ithyaraa.com/api/combo/detail-user/${id}`, { next: { revalidate: 60 } });
+    if (!res.ok) return null;
+    const body = await res.json();
+    if (!body.data) return null;
+    return body.data;
+}
+
+// Reuse the fetchProducts / BuyMore Products logic
+async function getBuyMoreProducts() {
+    const params = new URLSearchParams({ limit: "20", page: "1", type: "variable" });
+    const res = await fetch(`https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data?.data || []).map(p => {
+        const parsed = { ...p };
+        ["galleryImage", "featuredImage", "categories"].forEach(f => {
+            if (f in parsed) parsed[f] = safeParse(parsed[f]);
+        });
+        return parsed;
     });
+}
 
-    const handleVariationSelect = (productID, variationID) => {
-        setCurrentProduct(prev => {
-            const updatedProducts = prev.products.filter(p => p.productID !== productID);
-            updatedProducts.push({ productID, variationID });
-            console.log({ ...prev, products: updatedProducts });
+// SEO Meta
+export async function generateMetadata({ params }) {
+    const { productID } = await params;
+    const product = await getComboData(productID);
+    if (!product) return { title: "Combo Not Found" };
 
-            return { ...prev, products: updatedProducts };
-        });
-    };
-    // Increment
-    const handleIncrement = () => {
-        if (!selectedVariation) {
-            toast.error('Select Variation');
-            return;
-        }
-        if (count < productQuantity) setCount(prev => prev + 1);
-    };
-
-    // Decrement
-    const handleDecrement = () => {
-        if (!selectedVariation) {
-            toast.error('Select Variation');
-            return;
-        }
-        if (count > 1) setCount(prev => prev - 1);
-    };
-
-
-    // Fetch product
-    useEffect(() => {
-        if (!productID) return;
-
-        const fetchProduct = async () => {
-            try {
-                const res = await axios.get(`https://backend.ithyaraa.com/api/combo/detail-user/${productID}`);
-                let data = res.data.data;
-                setFeaturedImage(data.featuredImage?.[0]?.imgUrl || "");
-                setGalleryImages(data.featuredImage || []);
-                setProduct(data);
-                console.log(data);
-
-
-            } catch (err) {
-                console.error("Failed to fetch product details:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProduct();
-    }, [productID]);
-
-
-    async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'variable' } = {}) {
-        const params = new URLSearchParams();
-        params.append("limit", String(limit));
-        params.append("page", String(page));
-        if (categoryID) params.append("categoryID", categoryID);
-        if (type) params.append("type", type);
-
-        const res = await fetch(
-            `https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`
-        );
-        console.log(res);
-
-        if (!res.ok) {
-            throw new Error("Failed to fetch products");
-        }
-
-        const data = await res.json(); // { count, data: [] }
-
-        // Helper to safely JSON.parse any field
-        const safeParse = (value) => {
-            try {
-                return typeof value === "string" ? JSON.parse(value) : value;
-            } catch {
-                return value;
-            }
-        };
-
-        const jsonFields = ["galleryImage", "featuredImage", "categories"];
-
-        // Parse each product inside data.data
-        const parsedProducts = (data?.data || []).map((product) => {
-            const parsed = { ...product };
-            jsonFields.forEach((field) => {
-                if (field in parsed) {
-                    parsed[field] = safeParse(parsed[field]);
-                }
-            });
-            return parsed;
-        });
-
-        return {
-            count: data.count,
-            data: parsedProducts
-        };
-    }
-    useEffect(() => {
-        async function fetchProducts() {
-            try {
-                const data = await getProducts();
-                setBuyMore(data.data);
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        fetchProducts();
-    }, [productID]);
-
-    if (loading) return <p className="text-center mt-10">Loading product details...</p>;
-    if (!product) return <p className="text-center mt-10">Product not found</p>;
-
-
-
-    const addToCart = async () => {
-        try {
-            console.log(currentProduct);
-
-            await dispatch(
-                addCartComboAsync({
-                    mainProductID: productID,
-                    products: currentProduct.products,
-                    quantity: 1,
-                })
-            ).unwrap(); // Throws error if action is rejected
-
-            // toast.success("Combo added to cart!");
-        } catch (error) {
-            console.error(error);
-            toast.error("Error adding combo to cart.");
+    const firstImage = product.featuredImage?.[0]?.imgUrl || "";
+    return {
+        title: `${product.name} | Ithyaraa Combo`,
+        description: product.description || "Get the best combo offers at Ithyaraa.",
+        openGraph: {
+            title: product.name,
+            description: product.description,
+            images: firstImage ? [{ url: firstImage }] : [],
+            type: "website"
         }
     };
+}
+
+export default async function ComboDetailPage({ params }) {
+    const { productID } = await params;
+
+    const [productRes, buyMoreRes] = await Promise.allSettled([
+        getComboData(productID),
+        getBuyMoreProducts()
+    ]);
+
+    const product = productRes.status === "fulfilled" ? productRes.value : null;
+    const buyMoreProducts = buyMoreRes.status === "fulfilled" ? buyMoreRes.value : [];
+
+    if (!product) notFound();
+
+    const baseUrl = "https://ithyaraa.com";
+    const productUrl = `${baseUrl}/combo/${productID}`;
+    const image = product.featuredImage?.[0]?.imgUrl || "";
+
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": baseUrl },
+            { "@type": "ListItem", "position": 2, "name": "Combos", "item": `${baseUrl}/shop` },
+            { "@type": "ListItem", "position": 3, "name": product.name, "item": productUrl }
+        ]
+    };
+
+    const productSchema = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.name,
+        "image": image,
+        "description": product.description || product.name,
+        "sku": product.productID || productID,
+        "brand": { "@type": "Brand", "name": "Ithyaraa" },
+        "offers": {
+            "@type": "Offer",
+            "url": productUrl,
+            "priceCurrency": "INR",
+            "price": product.salePrice,
+            "availability": "https://schema.org/InStock",
+            "itemCondition": "https://schema.org/NewCondition"
+        }
+    };
+
     return (
         <>
-            <style>{`
-                :root {
-                    --pdp-cream:    #faf8f4;
-                    --pdp-warm:     #f4f0e8;
-                    --pdp-gold:     #b8943a;
-                    --pdp-gold-lt:  #e0c97a;
-                    --pdp-ink:      #1c1812;
-                    --pdp-muted:    #7a7265;
-                    --pdp-border:   #e6e0d6;
-                    --pdp-red:      #b03030;
-                    --pdp-green:    #2e6e49;
-                    --pdp-shadow:   0 2px 24px rgba(28,24,18,.07);
-                    --pdp-shadow-lg:0 8px 48px rgba(28,24,18,.11);
-                }
-
-                .pdp-root {
-                    // background: var(--pdp-cream);
-                    min-height: 100vh;
-                    color: var(--pdp-ink);
-                    padding-bottom: 80px;
-                }
-
-                .pdp-fade-up { animation: pdpFadeUp .65s cubic-bezier(.22,1,.36,1) both; }
-                .pdp-d1 { animation-delay:.08s } .pdp-d2 { animation-delay:.16s }
-                .pdp-d3 { animation-delay:.24s } .pdp-d4 { animation-delay:.32s }
-                .pdp-d5 { animation-delay:.40s }
-                @keyframes pdpFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
-                
-                .pdp-gallery-col {
-                    position: sticky;
-                    top: 20px;
-                    align-self: start;
-                }
-
-                .pdp-top-grid {
-                    display: grid;
-                    grid-template-columns: 1.1fr 0.9fr;
-                    gap: 52px;
-                    align-items: start;
-                }
-
-                @media (max-width: 880px) {
-                    .pdp-top-grid { grid-template-columns: 1fr; gap: 28px; }
-                    .pdp-gallery-col { position: relative; top: 0; }
-                }
-
-                .pdp-brand-pill {
-                    display: inline-block;
-                    font-size: 9.5px; font-weight: 500; letter-spacing: 2.8px;
-                    text-transform: uppercase; color: var(--pdp-gold);
-                    border: 1px solid var(--pdp-gold-lt);
-                    background: linear-gradient(135deg,rgba(184,148,58,.06),rgba(184,148,58,.13));
-                    padding: 4px 14px; border-radius: 99px; margin-bottom: 12px;
-                }
-
-                .pdp-name {
-                    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-                    font-weight: 400; line-height: 1.12;
-                    color: var(--pdp-ink); letter-spacing: -.02em; margin: 0;
-                }
-
-                .pdp-rating-row { display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap; }
-                .pdp-stars { display:flex; gap:3px; }
-                .pdp-star  { font-size:11px; color: var(--pdp-gold); }
-                .pdp-sep { width:1px; height:11px; background:var(--pdp-border); }
-                .pdp-review-ct { font-size:12px; color:var(--pdp-muted); }
-
-                .pdp-price-block { display:flex; align-items:baseline; gap:12px; margin-top:20px; flex-wrap:wrap; }
-                .pdp-price-main { font-size: 2.2rem; font-weight: 600; color: var(--pdp-ink); line-height:1; }
-                .pdp-price-strike { font-size: 1.05rem; color: var(--pdp-muted); text-decoration: line-through; }
-                .pdp-price-badge {
-                    font-size: 10px; font-weight: 600; letter-spacing: .6px; text-transform:uppercase;
-                    color: #fff; background: var(--pdp-green);
-                    padding: 3px 10px; border-radius: 99px;
-                }
-
-                .pdp-qty {
-                    display: flex; align-items: center; height: 46px;
-                    border: 1.5px solid var(--pdp-border); border-radius: 10px;
-                    overflow: hidden; background: #fff; width: 120px;
-                }
-                .pdp-qty-btn {
-                    flex: 1; height: 100%; display: flex; align-items: center; justify-content: center;
-                    font-size: 20px; cursor: pointer; color: var(--pdp-muted);
-                    background: transparent; border: none; transition: all .15s;
-                }
-                .pdp-qty-btn:hover { background: var(--pdp-warm); color: var(--pdp-ink); }
-                .pdp-qty-val { flex: 1; text-align: center; font-size: 14px; font-weight: 500; color: var(--pdp-ink); }
-
-                .pdp-btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 24px; }
-                .pdp-btn-cart {
-                    flex: 1; height: 46px; border-radius: 10px;
-                    border: 1.5px solid var(--pdp-ink); background: #fff;
-                    color: var(--pdp-ink); font-size: 13px; font-weight: 500;
-                    cursor: pointer; transition: all .2s;
-                }
-                .pdp-btn-cart:hover { background: var(--pdp-ink); color: #fff; box-shadow: 0 4px 18px rgba(28,24,18,.2); }
-
-                .pdp-icon-actions { display: flex; gap: 20px; margin-top: 20px; }
-                .pdp-icon-btn {
-                    display: flex; align-items: center; gap: 6px;
-                    font-size: 12px; color: var(--pdp-muted); cursor: pointer;
-                }
-
-                @media (max-width: 480px) {
-                    .pdp-btn-row { flex-direction: column; }
-                    .pdp-qty { width: 100%; }
-                    .pdp-btn-cart { width: 100%; }
-                }
-            `}</style>
-
-            <div className="pdp-root">
-                <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 20px 80px" }}>
-                    <div className="pdp-top-grid">
-
-                        {/* Gallery */}
-                        <div className="pdp-fade-up pdp-gallery-col">
-                            <ProductGallery
-                                featuredImage={featuredImage}
-                                setFeaturedImage={setFeaturedImage}
-                                galleryImages={galleryImages}
-                            />
-                        </div>
-
-                        {/* Info column */}
-                        <div style={{ padding: "0 10px" }}>
-                            {/* Brand + name */}
-                            <div className="pdp-fade-up pdp-d1">
-                                <p className="pdp-brand-pill">Ultimate Offering by Ithyaraa</p>
-                                <h1 className="pdp-name">{product.name}</h1>
-                            </div>
-
-                            {/* Rating */}
-                            <div className="pdp-rating-row pdp-fade-up pdp-d2">
-                                <div className="pdp-stars">
-                                    {[...Array(5)].map((_, i) => (
-                                        <BsFillStarFill key={i} className="pdp-star" />
-                                    ))}
-                                </div>
-                                <p className="pdp-rating-num">{product.rating || 4.5}</p>
-                                <div className="pdp-sep" />
-                                <p className="pdp-review-ct">98 reviews</p>
-                            </div>
-
-                            {/* Selection */}
-                            <div className="pdp-fade-up pdp-d3" style={{ marginTop: 24 }}>
-                                <SelectComboSimple products={product.products} onVariationSelect={handleVariationSelect} />
-                            </div>
-
-                            {/* Pricing */}
-                            <div className="pdp-price-block pdp-fade-up pdp-d3">
-                                <span className="pdp-price-main">₹{product.salePrice}</span>
-                                <span className="pdp-price-strike">₹{product.regularPrice}</span>
-                                <span className="pdp-price-badge">{product.discountValue}% Off</span>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="pdp-btn-row pdp-fade-up pdp-d4">
-                                <div className="pdp-qty">
-                                    <button className="pdp-qty-btn" onClick={handleDecrement}>-</button>
-                                    <span className="pdp-qty-val">{count.toString().padStart(2, "0")}</span>
-                                    <button className="pdp-qty-btn" onClick={handleIncrement}>+</button>
-                                </div>
-
-                                <button className="pdp-btn-cart" onClick={addToCart}>
-                                    Add to Cart
-                                </button>
-
-                                <div style={{ flex: 1 }}>
-                                    <BuyNowButton
-                                        product={product}
-                                        productType="combo"
-                                        quantity={count}
-                                        disabled={false}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Icon actions */}
-                            <div className="pdp-icon-actions pdp-fade-up pdp-d5">
-                                <div className="pdp-icon-btn">
-                                    <CiHeart /> <span>Add to Wishlist</span>
-                                </div>
-                                {product?.sizeChartUrl && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowSizeChart(true)}
-                                        className="pdp-icon-btn"
-                                    >
-                                        <CiRuler /> <span>Size Guide</span>
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Tabs */}
-                            <div className="pdp-fade-up pdp-d5" style={{ marginTop: 32 }}>
-                                <ProductTabs
-                                    tabHeading1="Description"
-                                    tabData1={product?.description || "No description available."}
-                                    tab1={product?.tab1}
-                                    tab2={product?.tab2}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="pdp-fade-up" style={{ marginTop: 64 }}>
-                        <hr style={{ border: "none", borderTop: "1px solid var(--pdp-border)", marginBottom: 48 }} />
-                        <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
-
-                        <div style={{ marginTop: 64 }}>
-                            <Reviews />
-                        </div>
-
-                        <div style={{ marginTop: 64 }}>
-                            <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
-                        </div>
-
-                        <div style={{ marginTop: 64 }}>
-                            <ProductSection products={buyMore} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Size Chart Modal */}
-                {product?.sizeChartUrl && (
-                    <Dialog open={showSizeChart} onOpenChange={(open) => !open && setShowSizeChart(false)}>
-                        <DialogContent className="max-w-md w-full max-h-[80vh] overflow-y-auto bg-white p-6 rounded-2xl">
-                            <DialogHeader>
-                                <DialogTitle className="text-xl font-bold">Size Guide</DialogTitle>
-                            </DialogHeader>
-                            <div className="mt-4">
-                                <img
-                                    src={product.sizeChartUrl}
-                                    alt="Size chart"
-                                    className="w-full h-auto object-contain rounded-lg shadow-sm"
-                                />
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                )}
-            </div>
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
+            <ComboInteractive
+                productID={productID}
+                product={product}
+                buyMoreProducts={buyMoreProducts}
+            />
         </>
     );
-};
-
-export default ProductDetail;
+}

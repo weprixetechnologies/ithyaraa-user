@@ -156,6 +156,8 @@ const BuyNowModal = ({
         }
     }, [product, brandID, subtotal]);
 
+    const activeCoupon = couponApplied ? couponCode.trim() : undefined;
+
     const checkOffer = useCallback(async (pid, qty) => {
         if (!pid || !qty || qty < 1) return;
         try {
@@ -167,7 +169,7 @@ const BuyNowModal = ({
                     variationID: selectedVariation?.variationID || null,
                     selectedDressType: selectedDressType,
                     productType: productType,
-                    couponCode: couponApplied ? couponCode.trim() : undefined
+                    couponCode: activeCoupon
                 },
             });
             if (res.data?.success) {
@@ -182,7 +184,7 @@ const BuyNowModal = ({
         } finally {
             setCheckingOffer(false);
         }
-    }, [productType, selectedVariation, selectedDressType, couponApplied, couponCode]);
+    }, [productType, selectedVariation, selectedDressType, activeCoupon]);
 
     useEffect(() => {
         if (!isOpen) return;
