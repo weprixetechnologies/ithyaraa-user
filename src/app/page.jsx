@@ -338,7 +338,7 @@ export default async function Home() {
       />
 
 
-      <HomeCategory categories={homeCategories} />
+      {/* <HomeCategory categories={homeCategories} /> */}
       <ReelsSection
         heading="Our Stories"
         subHeading="Watch and be inspired"

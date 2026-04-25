@@ -19,13 +19,13 @@ const HomeCategory = ({ categories = [] }) => {
                         <Link
                             key={category.categoryID ?? index}
                             href={`/shop?categoryID=${category.categoryID ?? ''}`}
-                            className="col-span-1 border aspect-[1536/1024] w-full block overflow-hidden rounded-xl shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                            className="col-span-1 border aspect-[1024/1536] w-full block overflow-hidden rounded-xl shadow-sm cursor-pointer hover:opacity-90 transition-opacity bg-white"
                         >
                             <Image
                                 src={category.imageUrl}
                                 alt={category.categoryName || 'Category'}
                                 fill
-                                sizes="(max-width: 768px) 50vw, 20vw"
+                                sizes="(max-width: 768px) 30vw, 20vw"
                                 className="w-full h-full object-cover"
                             />
                         </Link>
