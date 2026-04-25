@@ -118,17 +118,19 @@ export default function Slider({
                     const href = getLink(slide);
                     const content = (
                         <div className={`relative w-full h-full ${aspectratio} ${imgContainerClass}`}>
-                            <Image
-                                src={src}
-                                fill
-                                className={imgClass}
-                                alt={`Slide ${index + 1}`}
-                                priority={index === 0}
-                                loading={index === 0 ? "eager" : "lazy"}
-                                fetchPriority={index === 0 ? "high" : undefined}
-                                sizes="100vw"
-                                quality={80}
-                            />
+                            {src && (
+                                <Image
+                                    src={src}
+                                    fill
+                                    className={imgClass}
+                                    alt={`Slide ${index + 1}`}
+                                    priority={index === 0}
+                                    loading={index === 0 ? "eager" : "lazy"}
+                                    fetchPriority={index === 0 ? "high" : undefined}
+                                    sizes="100vw"
+                                    quality={80}
+                                />
+                            )}
                         </div>
                     );
 

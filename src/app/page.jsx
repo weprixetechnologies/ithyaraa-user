@@ -250,36 +250,40 @@ export default async function Home() {
     console.error(error);
   }
 
-  const mobileSlides = sliderBanners.mobile?.length
-    ? sliderBanners.mobile.map(b => ({
+  const mobileSlides = (sliderBanners?.mobile || [])
+    .filter(b => b.image_url) // Filter out items with empty image_url
+    .map((b) => ({
       src: b.image_url,
       routeTo: b.routeTo,
       minPrice: b.minPrice,
       maxPrice: b.maxPrice,
       categoryID: b.category,
       offerID: b.offer
-    }))
-    : [
-      { src: "https://images.bewakoof.com/uploads/grid/app/1x1-July25-MadIniNdiaSale-Extended-72hours-IK-1755187851.gif" },
-      { src: "https://images.bewakoof.com/uploads/grid/app/1x1---CFT-men-1755188060.jpg" },
-      { src: "https://images.bewakoof.com/uploads/grid/app/1x1-Shirts-Men-Sale-BANNER-1755188012.jpg" },
-    ];
+    }));
 
-  const desktopSlides = sliderBanners.desktop?.length
-    ? sliderBanners.desktop.map(b => ({
+  const desktopSlides = (sliderBanners?.desktop || [])
+    .filter(b => b.image_url) // Filter out items with empty image_url
+    .map((b) => ({
       src: b.image_url,
       routeTo: b.routeTo,
       minPrice: b.minPrice,
       maxPrice: b.maxPrice,
       categoryID: b.category,
       offerID: b.offer
-    }))
-    : [
-      { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/new-shirt-banner-desktop-view.jpg" },
-      { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg" },
-      { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Combo-banner2-desktop-view.jpg" },
-      { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg" },
-    ];
+    }));
+
+  const finalMobileSlides = mobileSlides.length > 0 ? mobileSlides : [
+    { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/new-shirt-banner-desktop-view.jpg" },
+    { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg" },
+    { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Combo-banner2-desktop-view.jpg" },
+  ];
+
+  const finalDesktopSlides = desktopSlides.length > 0 ? desktopSlides : [
+    { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/new-shirt-banner-desktop-view.jpg" },
+    { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg" },
+    { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Combo-banner2-desktop-view.jpg" },
+    { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg" },
+  ];
 
   return (
     <>
@@ -292,14 +296,14 @@ export default async function Home() {
         autoplay={true}
         autoplayInterval={3000}
         slideWidthPercent={0.9}
-        slides={mobileSlides}
+        slides={finalMobileSlides}
       />
       <Slider
         slideWidthPercent={1}
         showButtons={false}
         autoplay={true}
         autoplayInterval={3000}
-        slides={desktopSlides}
+        slides={finalDesktopSlides}
       />
       <RollingText text1="YOUNG ELEGANT SURPRISING" text2="PRIMARY DRESES" direction="left" />
       <FeaturingBlock />
