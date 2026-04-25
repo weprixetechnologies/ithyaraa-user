@@ -37,7 +37,7 @@ const DesktopCategories = ({
 
             <div className="w-full flex justify-center">
                 <div className="w-full  md:max-w-[90%] px-4">
-                    {/* Mobile: horizontal slider with 60x60 tiles */}
+                    {/* Mobile: horizontal slider with rectangular tiles */}
                     <div className="md:hidden overflow-x-auto scrollbar-hide">
                         <div className="flex gap-4">
                             {displayCategories.map((category, idx) => {
@@ -49,9 +49,9 @@ const DesktopCategories = ({
                                         href={`/shop?categoryID=${category.categoryID}`}
                                         className="flex flex-col items-center justify-center"
                                     >
-                                        <div className="w-[100px] h-[100px] min-w-[100px] rounded-full shadow-md cursor-pointer transition-transform hover:scale-105 overflow-hidden flex items-center justify-center">
+                                        <div className="w-[160px] aspect-[1536/1024] rounded-xl shadow-md cursor-pointer transition-transform hover:scale-105 overflow-hidden flex items-center justify-center bg-gray-50 border border-gray-100">
                                             {imageUrl ? (
-                                                <div className="relative w-full h-full rounded-full overflow-hidden">
+                                                <div className="relative w-full h-full rounded-xl overflow-hidden">
                                                     <Image
                                                         src={imageUrl}
                                                         alt={category.categoryName || `Category ${idx + 1}`}
@@ -61,9 +61,10 @@ const DesktopCategories = ({
                                                     />
                                                 </div>
                                             ) : (
-                                                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                                                    <svg width="24" height="24" fill="none" stroke="currentColor">
-                                                        <circle cx="12" cy="12" r="9" strokeWidth="1" />
+                                                <div className="w-10 h-10 bg-white rounded flex items-center justify-center text-gray-300">
+                                                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="1" />
+                                                        <path d="M3 14l5-5 5 5 5-5 4 4" strokeWidth="1" />
                                                     </svg>
                                                 </div>
                                             )}
@@ -77,8 +78,8 @@ const DesktopCategories = ({
                         </div>
                     </div>
 
-                    {/* Desktop: existing 6-column grid */}
-                    <div className="hidden md:grid grid-cols-6 gap-4 justify-items-center">
+                    {/* Desktop: existing 6-column grid with rectangular tiles */}
+                    <div className="hidden md:grid grid-cols-6 gap-6 justify-items-center">
                         {displayCategories.map((category, idx) => {
                             const imageUrl = getCategoryImage(category);
 
@@ -89,29 +90,30 @@ const DesktopCategories = ({
                                     className="flex flex-col items-center justify-center w-full"
                                 >
                                     <div
-                                        className="w-full aspect-square flex items-center justify-center"
+                                        className="w-full aspect-[1536/1024] flex items-center justify-center"
                                     >
-                                        <div className="w-[90%] h-[90%] rounded-full shadow-md cursor-pointer transition-transform hover:scale-105 overflow-hidden flex items-center justify-center">
+                                        <div className="w-full h-full rounded-2xl shadow-md cursor-pointer transition-transform hover:scale-105 overflow-hidden flex items-center justify-center bg-gray-50 border border-gray-100">
                                             {imageUrl ? (
-                                                <div className="relative w-full h-full rounded-full overflow-hidden">
+                                                <div className="relative w-full h-full rounded-2xl overflow-hidden">
                                                     <Image
                                                         src={imageUrl}
                                                         alt={category.categoryName || `Category ${idx + 1}`}
                                                         fill
-                                                        sizes="(max-width: 768px) 20vw, 8vw"
+                                                        sizes="(max-width: 768px) 20vw, 15vw"
                                                         className="object-cover"
                                                     />
                                                 </div>
                                             ) : (
-                                                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                                                    <svg width="24" height="24" fill="none" stroke="currentColor">
-                                                        <circle cx="12" cy="12" r="9" strokeWidth="1" />
+                                                <div className="w-12 h-12 bg-white rounded flex items-center justify-center text-gray-300">
+                                                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="1" />
+                                                        <path d="M3 14l5-5 5 5 5-5 4 4" strokeWidth="1" />
                                                     </svg>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
-                                    <span className="mt-2 text-xs md:text-sm font-semibold text-center text-gray-800 line-clamp-1 ">
+                                    <span className="mt-3 text-sm font-bold text-center text-gray-900 group-hover:text-primary transition-colors tracking-tight">
                                         {category.categoryName || `Category ${idx + 1}`}
                                     </span>
                                 </Link>
