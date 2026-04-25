@@ -251,19 +251,34 @@ export default async function Home() {
   }
 
   const mobileSlides = sliderBanners.mobile?.length
-    ? sliderBanners.mobile
+    ? sliderBanners.mobile.map(b => ({
+      src: b.image_url,
+      routeTo: b.routeTo,
+      minPrice: b.minPrice,
+      maxPrice: b.maxPrice,
+      categoryID: b.category,
+      offerID: b.offer
+    }))
     : [
-      "https://images.bewakoof.com/uploads/grid/app/1x1-July25-MadIniNdiaSale-Extended-72hours-IK-1755187851.gif",
-      "https://images.bewakoof.com/uploads/grid/app/1x1---CFT-men-1755188060.jpg",
-      "https://images.bewakoof.com/uploads/grid/app/1x1-Shirts-Men-Sale-BANNER-1755188012.jpg",
+      { src: "https://images.bewakoof.com/uploads/grid/app/1x1-July25-MadIniNdiaSale-Extended-72hours-IK-1755187851.gif" },
+      { src: "https://images.bewakoof.com/uploads/grid/app/1x1---CFT-men-1755188060.jpg" },
+      { src: "https://images.bewakoof.com/uploads/grid/app/1x1-Shirts-Men-Sale-BANNER-1755188012.jpg" },
     ];
+
   const desktopSlides = sliderBanners.desktop?.length
-    ? sliderBanners.desktop
+    ? sliderBanners.desktop.map(b => ({
+      src: b.image_url,
+      routeTo: b.routeTo,
+      minPrice: b.minPrice,
+      maxPrice: b.maxPrice,
+      categoryID: b.category,
+      offerID: b.offer
+    }))
     : [
-      "https://www.beyoung.in/api/catalog/HomePageJuly2025/new-shirt-banner-desktop-view.jpg",
-      "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg",
-      "https://www.beyoung.in/api/catalog/HomePageJuly2025/Combo-banner2-desktop-view.jpg",
-      "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg",
+      { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/new-shirt-banner-desktop-view.jpg" },
+      { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg" },
+      { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Combo-banner2-desktop-view.jpg" },
+      { src: "https://www.beyoung.in/api/catalog/HomePageJuly2025/Pyjama-banner-desktop-view-newfri-25.jpg" },
     ];
 
   return (

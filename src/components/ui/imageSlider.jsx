@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Slider({
     isMobile = false,
@@ -9,7 +10,7 @@ export default function Slider({
     aspectratio = "aspect-[1470/489]",
     slideWidthPercent = 1,
     slidePadding = 8,
-    slides,
+    slides = [],
     autoplay = false,
     autoplayInterval = 3000,
     showButtons = true, // new prop to show/hide navigation buttons
@@ -82,6 +83,20 @@ export default function Slider({
     const maxTranslate = Math.max(trackWidth - containerWidth, 0);
     if (translate > maxTranslate) translate = maxTranslate;
 
+    const getLink = (slide) => {
+        if (!slide || typeof slide === "string") return null;
+        if (slide.routeTo === 'shop') {
+            const params = new URLSearchParams();
+            if (slide.categoryID) params.append('categoryID', slide.categoryID);
+            if (slide.minPrice) params.append('minPrice', slide.minPrice);
+            if (slide.maxPrice) params.append('maxPrice', slide.maxPrice);
+            if (slide.offerID) params.append('offerID', slide.offerID);
+            const qs = params.toString();
+            return `/shop${qs ? `?${qs}` : ''}`;
+        }
+        return null;
+    };
+
     return (
         <div
             className="relative w-full overflow-hidden"
@@ -98,15 +113,10 @@ export default function Slider({
                 className={`transition-transform duration-500 ${isMobile ? "flex md:hidden" : "hidden md:flex"}`}
                 style={{ transform: `translateX(-${translate}px)` }}
             >
-                {slides.map((src, index) => (
-                    <div
-                        key={index}
-                        className={`slide relative ${aspectratio}`}
-                        style={{
-                            minWidth: `${slideWidthPercent * 100}%`,
-                            padding: `${slidePadding}px`,
-                        }}
-                    >
+                {slides.map((slide, index) => {
+                    const src = typeof slide === "string" ? slide : slide.src;
+                    const href = getLink(slide);
+                    const content = (
                         <div className={`relative w-full h-full ${aspectratio} ${imgContainerClass}`}>
                             <Image
                                 src={src}
@@ -120,12 +130,29 @@ export default function Slider({
                                 quality={80}
                             />
                         </div>
-                    </div>
-                ))}
+                    );
+
+                    return (
+                        <div
+                            key={index}
+                            className={`slide relative ${aspectratio}`}
+                            style={{
+                                minWidth: `${slideWidthPercent * 100}%`,
+                                padding: `${slidePadding}px`,
+                            }}
+                        >
+                            {href ? (
+                                <Link href={href} className="block w-full h-full">
+                                    {content}
+                                </Link>
+                            ) : content}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Buttons */}
-            {showButtons && (
+            {showButtons && slides.length > 1 && (
                 <>
                     <button
                         onClick={prevSlide}
@@ -147,7 +174,7 @@ export default function Slider({
             )}
 
             {/* Dots */}
-            {showDots && (
+            {showDots && slides.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                     {slides.map((_, index) => (
                         <button

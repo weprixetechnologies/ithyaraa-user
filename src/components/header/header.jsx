@@ -292,6 +292,14 @@ const Header = () => {
                                 </Link>
                             </li>
 
+                            <li
+                                className="relative"
+                                onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
+                                <Link href="/flash-sale" className="text-sm text-red-600 font-bold hover:text-red-700 whitespace-nowrap">
+                                    Flash Sale
+                                </Link>
+                            </li>
+
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
                                 <Link
                                     href="/brands"
