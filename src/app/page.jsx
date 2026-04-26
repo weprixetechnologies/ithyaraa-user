@@ -135,6 +135,20 @@ async function getSliderBanners() {
   return data?.data ?? { mobile: [], desktop: [] };
 }
 
+async function getFeaturedBlocks() {
+  try {
+    const res = await fetch(
+      "https://backend.ithyaraa.com/api/featured-blocks/active",
+      { next: { revalidate } }
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data?.data || [];
+  } catch {
+    return [];
+  }
+}
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
 
 async function getPresaleProducts() {
@@ -193,6 +207,7 @@ export default async function Home() {
   let homeCategories = [];
   let homepageSections = [];
   let sliderBanners = { mobile: [], desktop: [] };
+  let featuredBlocks = [];
 
   try {
     const section_one_raw = await getProducts({ sectionid: "HOME_HERO" });
@@ -232,6 +247,12 @@ export default async function Home() {
 
   try {
     sliderBanners = await getSliderBanners();
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
+    featuredBlocks = await getFeaturedBlocks();
   } catch (error) {
     console.error(error);
   }
@@ -306,7 +327,7 @@ export default async function Home() {
         slides={finalDesktopSlides}
       />
       <RollingText text1="YOUNG ELEGANT SURPRISING" text2="PRIMARY DRESES" direction="left" />
-      <FeaturingBlock />
+      <FeaturingBlock blocks={featuredBlocks} />
       <RollingText text1="YOUNG ELEGANT SURPRISING" text2="PRIMARY DRESES" direction="right" />
       <DesktopCategories
         heading="Our Latest Collections"
