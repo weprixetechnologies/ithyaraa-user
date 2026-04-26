@@ -27,7 +27,7 @@ const FeaturingBlock = ({ blocks = [] }) => {
                 {displayBlocks.map((block, idx) => (
                     <div 
                         key={block.id || idx} 
-                        className="w-[45%] md:w-[22%] aspect-[1/2] rounded-2xl overflow-hidden relative group"
+                        className="w-[45%] md:w-[22%] aspect-[2/3] rounded-2xl overflow-hidden relative group"
                     >
                         {block.image_url ? (
                             <Link href={getFilterLink(block)}>
