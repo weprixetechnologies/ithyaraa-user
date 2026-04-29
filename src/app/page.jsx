@@ -85,9 +85,9 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = 'vari
   };
 }
 
-async function getCategories(limit = 10) {
+async function getCategories() {
   const res = await fetch(
-    "https://backend.ithyaraa.com/api/categories/public",
+    "https://backend.ithyaraa.com/api/categories/featured",
     {
       // Align with page ISR
       next: { revalidate }
@@ -95,14 +95,11 @@ async function getCategories(limit = 10) {
   );
 
   if (!res.ok) {
-    throw new Error("Failed to fetch categories");
+    throw new Error("Failed to fetch featured categories");
   }
 
   const data = await res.json();
-  const categories = data?.data || [];
-
-  // Ensure we never return more than the requested limit
-  return categories.slice(0, limit);
+  return data?.data || [];
 }
 
 async function getHomepageSections() {
@@ -228,7 +225,7 @@ export default async function Home() {
   }
 
   try {
-    categories = await getCategories(10);
+    categories = await getCategories();
   } catch (error) {
     console.error(error);
   }
