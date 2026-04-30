@@ -7,7 +7,6 @@ import axiosInstance from '@/lib/axiosInstance'
 import { FaEye, FaTruck, FaCreditCard, FaCalendarAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { ClipLoader } from 'react-spinners'
 import { toast } from 'react-toastify'
-import ExperienceRatingModal from './ExperienceRatingModal'
 
 const RETURN_STATUS_LABELS = {
     none: 'No return',
@@ -45,10 +44,6 @@ const OrderHistory = () => {
     const [imagePreviews, setImagePreviews] = useState([])
     const [uploadingImages, setUploadingImages] = useState(false)
     const [submittingReturn, setSubmittingReturn] = useState(false)
-    
-    // Experience Modal States
-    const [showExperienceModal, setShowExperienceModal] = useState(false)
-    const [selectedOrderID, setSelectedOrderID] = useState(null)
 
     const router = useRouter()
 
@@ -450,17 +445,6 @@ const OrderHistory = () => {
                                     <FaEye className="mr-2" />
                                     View Details
                                 </button>
-                                {order.orderStatus?.toLowerCase() === 'delivered' && (
-                                    <button
-                                        onClick={() => {
-                                            setSelectedOrderID(order.orderID);
-                                            setShowExperienceModal(true);
-                                        }}
-                                        className="inline-flex items-center px-4 cursor-pointer py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm"
-                                    >
-                                        Rate Experience
-                                    </button>
-                                )}
                             </div>
                         </div>
 
@@ -773,15 +757,6 @@ const OrderHistory = () => {
                     </div>
                 </div>
             )}
-            
-            <ExperienceRatingModal 
-                isOpen={showExperienceModal} 
-                onClose={() => setShowExperienceModal(false)}
-                orderID={selectedOrderID}
-                onFinish={() => {
-                    // Optional: refresh order list to reflect changes if needed
-                }}
-            />
         </div>
     )
 }

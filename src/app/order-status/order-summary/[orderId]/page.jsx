@@ -4,8 +4,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import axiosInstance from '@/lib/axiosInstance';
 import Link from 'next/link';
-import { FaCheckCircle, FaTruck, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDownload } from 'react-icons/fa';
+import { FaCheckCircle, FaTruck, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaDownload, FaStar } from 'react-icons/fa';
 import { ClipLoader } from 'react-spinners';
+import ExperienceRatingModal from '@/components/profile/ExperienceRatingModal';
 
 const RETURN_STATUS_LABELS = {
     none: 'No return',
@@ -35,6 +36,7 @@ const OrderSuccessPage = () => {
     const [isCheckingPayment, setIsCheckingPayment] = useState(false);
     const [downloadingInvoice, setDownloadingInvoice] = useState(false);
     const [returnLoading, setReturnLoading] = useState(null); // 'item-{orderItemID}' or 'entire'
+    const [showExperienceModal, setShowExperienceModal] = useState(false);
 
     const fetchOrderDetails = useCallback(async () => {
         try {
@@ -110,7 +112,8 @@ const OrderSuccessPage = () => {
                     isWalletUsed: detail.isWalletUsed ? Boolean(Number(detail.isWalletUsed)) : false,
                     paidWallet: detail.paidWallet != null ? parseFloat(detail.paidWallet) : 0,
                     handlingFee: detail.handlingFee != null ? Boolean(Number(detail.handlingFee)) : false,
-                    handFeeRate: detail.handFeeRate != null ? parseFloat(detail.handFeeRate) : 0
+                    handFeeRate: detail.handFeeRate != null ? parseFloat(detail.handFeeRate) : 0,
+                    isExperienceRated: detail.isExperienceRated || false
                 };
 
                 setOrderDetails(normalized);
@@ -808,6 +811,35 @@ const OrderSuccessPage = () => {
                                     );
                                 })()}
                             </div>
+
+                            {/* Experience Rating Button */}
+                            {orderDetails.orderStatus?.toLowerCase() === 'delivered' && !orderDetails.isExperienceRated && (
+                                <div className="mt-6 pt-6 border-t">
+                                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
+                                        <h4 className="text-sm font-semibold text-purple-900 mb-1 flex items-center">
+                                            <FaStar className="mr-2 text-purple-600" />
+                                            How was your experience?
+                                        </h4>
+                                        <p className="text-xs text-purple-700 mb-3">Your feedback helps us improve our delivery and service.</p>
+                                        <button
+                                            onClick={() => setShowExperienceModal(true)}
+                                            className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-md shadow-purple-100 flex items-center justify-center gap-2"
+                                        >
+                                            <FaStar />
+                                            Rate Experience
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {orderDetails.orderStatus?.toLowerCase() === 'delivered' && orderDetails.isExperienceRated && (
+                                <div className="mt-6 pt-6 border-t text-center">
+                                    <p className="text-sm text-green-600 font-medium flex items-center justify-center">
+                                        <FaCheckCircle className="mr-2" />
+                                        You have rated this delivery. Thank you!
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -899,6 +931,15 @@ const OrderSuccessPage = () => {
                     </div>
                 )}
             </div>
+
+            <ExperienceRatingModal 
+                isOpen={showExperienceModal} 
+                onClose={() => setShowExperienceModal(false)}
+                orderID={orderId}
+                onFinish={() => {
+                    setOrderDetails(prev => ({ ...prev, isExperienceRated: true }));
+                }}
+            />
         </div>
     );
 };
