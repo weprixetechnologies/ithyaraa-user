@@ -185,7 +185,7 @@ const PresaleGroupPage = () => {
                                         href={`/presale/product/${p.presaleProductID}`}
                                         className="bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                                     >
-                                        <div className="relative w-full aspect-[3/4] bg-gray-100">
+                                        <div className="relative w-full aspect-[460/568] bg-gray-100">
                                             {imageUrl && (
                                                 <Image
                                                     src={imageUrl}

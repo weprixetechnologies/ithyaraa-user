@@ -86,7 +86,7 @@ const SelectCombo = ({ products, onVariationSelect, selectedVariations = {}, sel
                                 width={0}          // required, but we override with CSS
                                 height={0}
                                 sizes="120px"       // tell Next.js what width to serve
-                                className="rounded-lg aspect-[437/540] w-[120px] min-w-[120px] h-auto"
+                                className="rounded-lg aspect-[460/568] w-[120px] min-w-[120px] h-auto"
                             />
                         </div>
 

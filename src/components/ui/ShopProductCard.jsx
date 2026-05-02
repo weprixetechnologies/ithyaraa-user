@@ -49,7 +49,7 @@ const ShopProductCard = ({ product }) => {
     return (
         <Link href={getProductHref(product)} className="flex-col flex gap-1">
             <div
-                className="h-auto aspect-[170/222] w-full relative"
+                className="h-auto aspect-[460/568] w-full relative"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
             >

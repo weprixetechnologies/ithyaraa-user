@@ -28,7 +28,7 @@ const PreBookingProductCard = ({ product }) => {
                     Upcoming
                 </div>
             )}
-            <div className="h-auto aspect-[170/222] w-full sm:max-w-[300px] mx-auto relative rounded-lg overflow-hidden">
+            <div className="h-auto aspect-[460/568] w-full sm:max-w-[300px] mx-auto relative rounded-lg overflow-hidden">
                 <div className="absolute inset-0 rounded-lg overflow-hidden">
                     <Image
                         src={imageUrl}

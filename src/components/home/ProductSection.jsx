@@ -141,7 +141,7 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                     {products?.map((i) => (
                         <div className="flex-col flex gap-1" key={i.productID}>
                             {/* IMAGE CARD */}
-                            <div className="h-auto aspect-[170/222] w-[40dvw] md:w-[18dvw] max-w-[40dvw] md:max-w-[18dvw] relative">
+                            <div className="h-auto aspect-[460/568] w-[40dvw] md:w-[18dvw] max-w-[40dvw] md:max-w-[18dvw] relative">
                                 {/* hover group is on the rounded container */}
                                 <div className="absolute inset-0 rounded-lg overflow-hidden group">
                                     {/* slider: 200% width (two slides), translate on hover */}

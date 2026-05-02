@@ -370,7 +370,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                                 {/* Item Content */}
                                                 <div className="flex gap-2 pl-7">
                                                     <div className="block">
-                                                        <div className="relative aspect-[170/222] w-[100px] min-w-[100px]">
+                                                        <div className="relative aspect-[460/568] w-[100px] min-w-[100px]">
                                                             <Image
                                                                 src={imgUrl}
                                                                 fill
@@ -457,7 +457,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                                         <div className="border border-gray-200 pr-5 py-3 pl-3 rounded-lg relative" key={comboIndex}>
                                                             <div className="flex gap-2">
                                                                 <div className="block">
-                                                                    <div className="relative aspect-[170/222] w-[80px] min-w-[80px]">
+                                                                    <div className="relative aspect-[460/568] w-[80px] min-w-[80px]">
                                                                         <Image
                                                                             src={p.featuredImage?.[0]?.imgUrl || logo}
                                                                             fill

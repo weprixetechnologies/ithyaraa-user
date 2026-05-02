@@ -48,7 +48,7 @@ const FlashSaleProductCard = ({ product }) => {
     return (
         <Link href={getProductHref(product)} className="flex-col flex gap-2 group">
             <div
-                className="h-auto aspect-[170/222] w-full relative rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-300"
+                className="h-auto aspect-[460/568] w-full relative rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-300"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
             >

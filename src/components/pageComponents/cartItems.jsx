@@ -316,10 +316,10 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                         </AlertDialogContent>
                                     </AlertDialog>
                                 </div>
-                                {/* aspect-[170/222] */}
+                                {/* aspect-[460/568] */}
                                 <div className="flex gap-2 pl-7">
                                     <div className="block">
-                                        <div className="relative aspect-[170/222] md:w-[120px] md:min-w-[120px] w-[100px] min-w-[100px]">
+                                        <div className="relative aspect-[460/568] md:w-[120px] md:min-w-[120px] w-[100px] min-w-[100px]">
                                             <Image src={i.featuredImage?.[0]?.imgUrl || logo} fill alt='Cart Item Image' className='rounded-lg' />
                                         </div>
                                     </div>
@@ -410,7 +410,7 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
 
                                             <div className="flex gap-2 ">
                                                 <div className="block">
-                                                    <div className="relative aspect-[170/222] md:w-[80px] md:min-w-[80px] w-[80px] min-w-[80px]">
+                                                    <div className="relative aspect-[460/568] md:w-[80px] md:min-w-[80px] w-[80px] min-w-[80px]">
                                                         <Image src={p.featuredImage?.[0]?.imgUrl || logo} fill alt='Cart Item Image' className='rounded-lg' />
                                                     </div>
                                                 </div>

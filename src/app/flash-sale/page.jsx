@@ -153,7 +153,7 @@ const FlashSaleContent = () => {
                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                              {Array.from({ length: 12 }).map((_, i) => (
                                <div key={i} className="space-y-3">
-                                 <div className="aspect-[170/222] bg-gray-200 rounded-2xl animate-pulse" />
+                                 <div className="aspect-[460/568] bg-gray-200 rounded-2xl animate-pulse" />
                                  <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
                                  <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
                                </div>

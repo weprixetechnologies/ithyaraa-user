@@ -207,7 +207,7 @@ const TabbedProductSection = ({
                         <div key={product.productID} className="group">
                             <div className="relative bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300">
                                 {/* Image Container */}
-                                <div className="aspect-square relative overflow-hidden">
+                                <div className="aspect-[460/568] relative overflow-hidden">
                                     <div className="absolute inset-0 flex w-[200%] h-full transition-transform duration-500 ease-out group-hover:-translate-x-1/2">
                                         {/* Main Image */}
                                         <div className="relative w-1/2 h-full">
