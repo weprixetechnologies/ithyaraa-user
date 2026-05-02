@@ -48,7 +48,7 @@ const FlashSaleProductCard = ({ product }) => {
     return (
         <Link href={getProductHref(product)} className="flex-col flex gap-2 group">
             <div
-                className="h-auto aspect-[460/568] w-full relative rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-300"
+                className="h-auto aspect-[2/3] w-full relative rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-300"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
             >
@@ -106,9 +106,8 @@ const FlashSaleProductCard = ({ product }) => {
                         await toggleWishlist(product?.productID);
                     }}
                     disabled={loading}
-                    className={`absolute top-2 right-2 z-20 rounded-full p-2 bg-white/90 backdrop-blur-sm border border-gray-100 shadow-md hover:bg-white active:scale-95 transition-all duration-200 flex justify-center items-center ${
-                        loading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    className={`absolute top-2 right-2 z-20 rounded-full p-2 bg-white/90 backdrop-blur-sm border border-gray-100 shadow-md hover:bg-white active:scale-95 transition-all duration-200 flex justify-center items-center ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                     aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                 >
                     {isWishlisted ? (
@@ -120,7 +119,7 @@ const FlashSaleProductCard = ({ product }) => {
 
                 {/* Rating */}
                 <div className="absolute z-10 bottom-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-0.5 text-[10px] flex items-center gap-1 font-bold shadow-sm">
-                    <TiStarFullOutline className="text-yellow-400" size={12} /> 
+                    <TiStarFullOutline className="text-yellow-400" size={12} />
                     <span>{product?.rating || 4.5}</span>
                 </div>
             </div>
@@ -135,7 +134,7 @@ const FlashSaleProductCard = ({ product }) => {
                         </p>
                     </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                     <span className="font-bold text-base text-gray-900">₹{sale}</span>
                     {mrp > sale && (

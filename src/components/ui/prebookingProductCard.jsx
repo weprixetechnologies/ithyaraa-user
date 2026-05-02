@@ -28,7 +28,7 @@ const PreBookingProductCard = ({ product }) => {
                     Upcoming
                 </div>
             )}
-            <div className="h-auto aspect-[460/568] w-full sm:max-w-[300px] mx-auto relative rounded-lg overflow-hidden">
+            <div className="h-auto aspect-[2/3] w-full sm:max-w-[300px] mx-auto relative rounded-lg overflow-hidden">
                 <div className="absolute inset-0 rounded-lg overflow-hidden">
                     <Image
                         src={imageUrl}
@@ -59,18 +59,17 @@ const PreBookingProductCard = ({ product }) => {
                     {isUpcoming ? 'Starts In' : 'Ends In'}
                 </p>
             </div>
-            <PresaleCardCounter 
-                datetime={isUpcoming ? product.preSaleStartDate : product.preSaleEndDate} 
+            <PresaleCardCounter
+                datetime={isUpcoming ? product.preSaleStartDate : product.preSaleEndDate}
                 label={isUpcoming ? "Starts In" : "Ends In"}
             />
 
-            <button 
+            <button
                 disabled={isUpcoming}
-                className={`w-full mt-2 font-semibold py-2 rounded-lg transition-all duration-300 ${
-                    isUpcoming 
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                    : 'bg-primary-yellow text-black cursor-pointer hover:text-white hover:bg-orange-500'
-                }`} 
+                className={`w-full mt-2 font-semibold py-2 rounded-lg transition-all duration-300 ${isUpcoming
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-primary-yellow text-black cursor-pointer hover:text-white hover:bg-orange-500'
+                    }`}
                 style={{ letterSpacing: '0.05em' }}
             >
                 {isUpcoming ? 'Coming Soon' : 'Buy Now'}

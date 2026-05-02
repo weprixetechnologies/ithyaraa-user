@@ -19,7 +19,7 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
         <div className="relative md:flex w-full md:flex-row-reverse gap-4">
             {/* Main Image */}
             <div className="flex-1 px-3 py-2 md:py-0">
-                <div className="relative w-full aspect-[460/568]">
+                <div className="relative w-full aspect-[2/3]">
                     {/* Skeleton placeholder */}
                     {isLoading && (
                         <div className="absolute inset-0 bg-gray-200 rounded-lg animate-pulse" />
@@ -50,7 +50,7 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
                     {galleryImages.map((i, index) => (
                         <div
                             key={index}
-                            className="flex-shrink-0 relative w-full aspect-[460/568] cursor-pointer"
+                            className="flex-shrink-0 relative w-full aspect-[2/3] cursor-pointer"
                             onClick={() => setFeaturedImage(i.imgUrl || logo)}
                         >
                             <Image src={i.imgUrl || logo} alt={i.imgAlt || 'Product image'} fill className="rounded-lg" />
@@ -71,7 +71,7 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
                 {galleryImages.map((i, index) => (
                     <div
                         key={index}
-                        className="flex-shrink-0 relative w-[70px] aspect-[460/568] cursor-pointer"
+                        className="flex-shrink-0 relative w-[70px] aspect-[2/3] cursor-pointer"
                         onClick={() => setFeaturedImage(i.imgUrl || logo)}
                     >
                         <Image src={i.imgUrl || logo} alt={i.imgAlt || 'Product image'} fill className="rounded-lg" />

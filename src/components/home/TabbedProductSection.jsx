@@ -48,7 +48,7 @@ const TabbedProductSection = ({
     const [error, setError] = useState(null);
     const loadMoreRef = useRef(null);
     const isFetchingRef = useRef(false);
-    
+
     // Refs for observer checking to avoid dependencies and recreation
     const paginationRef = useRef(pagination);
     const loadingProductsRef = useRef(loadingProducts);
@@ -121,9 +121,9 @@ const TabbedProductSection = ({
             (entries) => {
                 const entry = entries[0];
                 if (
-                    entry.isIntersecting && 
-                    paginationRef.current.hasMore && 
-                    !loadingMoreRef.current && 
+                    entry.isIntersecting &&
+                    paginationRef.current.hasMore &&
+                    !loadingMoreRef.current &&
                     !loadingProductsRef.current &&
                     !isFetchingRef.current
                 ) {
@@ -167,17 +167,17 @@ const TabbedProductSection = ({
                     All Products
                 </button>
                 {categories.map((category) => (
-                        <button
-                            key={category.categoryID}
-                            onClick={() => handleTabChange(category.categoryID)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${activeTab === category.categoryID
-                                ? 'bg-black text-white shadow-lg'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                        >
-                            {category.categoryName}
-                        </button>
-                    ))}
+                    <button
+                        key={category.categoryID}
+                        onClick={() => handleTabChange(category.categoryID)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${activeTab === category.categoryID
+                            ? 'bg-black text-white shadow-lg'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                    >
+                        {category.categoryName}
+                    </button>
+                ))}
             </div>
 
             {/* Loading State */}
@@ -207,7 +207,7 @@ const TabbedProductSection = ({
                         <div key={product.productID} className="group">
                             <div className="relative bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300">
                                 {/* Image Container */}
-                                <div className="aspect-[460/568] relative overflow-hidden">
+                                <div className="aspect-[2/3] relative overflow-hidden">
                                     <div className="absolute inset-0 flex w-[200%] h-full transition-transform duration-500 ease-out group-hover:-translate-x-1/2">
                                         {/* Main Image */}
                                         <div className="relative w-1/2 h-full">
