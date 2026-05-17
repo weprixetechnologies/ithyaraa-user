@@ -373,7 +373,7 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
 
                         {/* Variation selector */}
                         <div className="variationOptions mt-5">
-                            <div className="flex gap-2 items-center mb-3">
+                            <div className="flex gap-2 items-center mb-4">
                                 <p className="font-medium text-secondary-text-deep">Options Tailored For You</p>
                                 {selectedVariation && (
                                     <p className={`text-sm font-medium ${selectedVariation.variationStock > 0 ? "text-green-600" : "text-red-600"}`}>
@@ -381,37 +381,38 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
                                     </p>
                                 )}
                             </div>
-                            <div className="flex flex-col gap-2">
-                                {attributes.map((attr, index) => (
-                                    <div className="option-child flex flex-row gap-10 mb-3 items-center" key={index}>
-                                        <p className="text-sm font-medium mb-1">{attr.name}</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {attr.values.map((value, idx) => {
-                                                const isSelected = selectedAttributes[attr.name] === value;
-                                                if (attr.name.toLowerCase() === "color") {
-                                                    return (
-                                                        <button
-                                                            key={idx}
-                                                            aria-label={`Select color ${value}`}
-                                                            onClick={() => handleSelectAttribute(attr.name, value)}
-                                                            className={`w-11 h-11 rounded-full ${isSelected ? "ring-2 ring-black p-1" : "border border-gray-300"}`}
-                                                            style={{ backgroundColor: value }}
-                                                        />
-                                                    );
-                                                }
-                                                return (
-                                                    <button
-                                                        key={idx}
-                                                        className={`px-3 py-1 border min-w-[44px] min-h-[44px] rounded ${isSelected ? "bg-black text-white" : "bg-white text-black"}`}
-                                                        onClick={() => handleSelectAttribute(attr.name, value)}
-                                                    >
-                                                        {value}
-                                                    </button>
-                                                );
-                                            })}
+                            
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                {attributes.map((attr, index) => {
+                                    const isLast = index === attributes.length - 1;
+                                    const isOdd = attributes.length % 2 !== 0;
+                                    const colSpan = (isLast && isOdd) ? 'col-span-2' : 'col-span-1';
+                                    const selectedValue = selectedAttributes[attr.name];
+
+                                    return (
+                                        <div key={index} className={`${colSpan} relative group`}>
+                                            <div className="border border-black p-3 py-3.5 flex justify-between items-center cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                                                <span className="text-sm truncate pr-2">
+                                                    <span className="font-normal text-gray-600">{attr.name}: </span>
+                                                    <span className="font-bold text-black uppercase">{selectedValue || 'Select'}</span>
+                                                </span>
+                                                <svg className="w-4 h-4 flex-shrink-0 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                            <select 
+                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full appearance-none"
+                                                value={selectedValue || ""}
+                                                onChange={(e) => handleSelectAttribute(attr.name, e.target.value)}
+                                            >
+                                                <option value="" disabled>Select {attr.name}</option>
+                                                {attr.values.map((val, idx) => (
+                                                    <option key={idx} value={val}>{val}</option>
+                                                ))}
+                                            </select>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 

@@ -9,6 +9,7 @@ import { RiSecurePaymentLine } from "react-icons/ri";
 import { useDispatch, useSelector } from 'react-redux';
 import { ClipLoader } from "react-spinners";
 import CheckoutLoadingModal from '@/components/ui/CheckoutLoadingModal';
+import StockValidationModal from '@/components/ui/StockValidationModal';
 
 // Lazy load cart components for better performance
 const BreakdownCart = lazy(() => import('@/components/pageComponents/breakdownCart'));
@@ -32,6 +33,8 @@ const Page = () => {
   const [couponDiscount, setCouponDiscount] = useState(0)
   const [showCheckoutModal, setShowCheckoutModal] = useState(false)
   const [walletApplied, setWalletApplied] = useState(0)
+  const [showStockModal, setShowStockModal] = useState(false)
+  const [unavailableItems, setUnavailableItems] = useState([])
   const steps = [
     { id: 1, label: 'Cart' },
     { id: 2, label: 'Address & Payment' }
@@ -77,6 +80,17 @@ const Page = () => {
   }, [cartRedux.cart?.length, appliedCoupon]);
   const handlePlaceOrder = async () => {
     setPlaceError('')
+
+    // 0. Stock Check for selected items
+    const selectedItems = cartRedux.cart?.filter(i => i.selected === 1 || i.selected === true || i.selected === null) || [];
+    const unavailable = selectedItems.filter(i => i.isAvailable === false);
+
+    if (unavailable.length > 0) {
+      setUnavailableItems(unavailable);
+      setShowStockModal(true);
+      return;
+    }
+
     // First click: move to address/payment confirmation step
     if (!confirmAddress) {
       setConfirmAddress(true)
@@ -277,6 +291,17 @@ const Page = () => {
 
       {/* Checkout Loading Modal */}
       <CheckoutLoadingModal isOpen={showCheckoutModal} />
+
+      {/* Stock Validation Modal */}
+      <StockValidationModal 
+        isOpen={showStockModal} 
+        items={unavailableItems} 
+        onClose={() => setShowStockModal(false)}
+        onUnselectComplete={() => {
+          dispatch(getCartAsync());
+          setShowStockModal(false);
+        }}
+      />
     </div>
   )
 }

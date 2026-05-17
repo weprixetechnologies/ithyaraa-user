@@ -382,20 +382,20 @@ export default function CustomProductInteractive({ productID, product, customInp
                 .pdp-input-lbl {
                     display: block; font-size: 10px; font-weight: 600;
                     letter-spacing: 1.5px; text-transform: uppercase;
-                    color: var(--pdp-muted); margin-bottom: 6px;
+                    color: var(--pdp-muted); margin-bottom: 8px;
                 }
                 .pdp-input-lbl em { color: var(--pdp-red); font-style: normal; margin-left: 2px; }
                 .pdp-field, .pdp-select, .pdp-textarea {
-                    width: 100%; padding: 10px 13px; box-sizing: border-box;
-                    border: 1.5px solid var(--pdp-border); border-radius: 8px;
-                    font-size: 13.5px; color: var(--pdp-ink); background: var(--pdp-cream);
+                    width: 100%; padding: 12px 14px; box-sizing: border-box;
+                    border: 1.5px solid var(--pdp-ink); border-radius: 0;
+                    font-size: 13px; color: var(--pdp-ink); background: #fff;
                     outline: none; transition: all .2s ease; font-family: inherit;
                 }
-                .pdp-textarea { resize: vertical; min-height: 84px; }
-                .pdp-field::placeholder, .pdp-textarea::placeholder { color: #c5bdb3; }
+                .pdp-textarea { resize: vertical; min-height: 100px; }
+                .pdp-field::placeholder, .pdp-textarea::placeholder { color: #aaa; }
                 .pdp-field:focus, .pdp-select:focus, .pdp-textarea:focus {
-                    border-color: var(--pdp-gold); background: #fff;
-                    box-shadow: 0 0 0 3px var(--pdp-gold-glow);
+                    border-color: var(--pdp-gold);
+                    box-shadow: 0 0 0 1px var(--pdp-gold);
                 }
 
                 .pdp-action-card {

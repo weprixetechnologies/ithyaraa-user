@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.ithyaraa.app",
+      "sha256_cert_fingerprints": [
+        "3A:3F:F1:11:82:B9:0C:54:E9:39:5B:7C:A3:8C:2B:2F:B4:F3:CE:75:EB:A9:87:E9:DE:D1:D9:13:9F:CD:56:11"
+      ]
+    }
+  }
+]

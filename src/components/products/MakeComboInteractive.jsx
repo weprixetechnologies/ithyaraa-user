@@ -107,22 +107,38 @@ const ProductPickerModal = ({
 
                                         {isSelected && p.productAttributes && (
                                             <div className="pdp-picker-attrs" onClick={e => e.stopPropagation()}>
-                                                {p.productAttributes.map((attr, i) => (
-                                                    <div key={i} className="pdp-picker-attr-block">
-                                                        <p className="pdp-picker-attr-label">{attr.name}</p>
-                                                        <div className="pdp-picker-attr-vals">
-                                                            {attr.values.map((val, vi) => (
-                                                                <button
-                                                                    key={vi}
-                                                                    className={`pdp-picker-attr-btn${attrs[attr.name] === val ? " --active" : ""}`}
-                                                                    onClick={(e) => { e.stopPropagation(); onAttributeSelect(p.productID, attr.name, val); }}
+                                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                                    {p.productAttributes.map((attr, i) => {
+                                                        const isLast = i === p.productAttributes.length - 1;
+                                                        const isOdd = p.productAttributes.length % 2 !== 0;
+                                                        const colSpan = (isLast && isOdd) ? 'col-span-2' : 'col-span-1';
+                                                        const selectedValue = attrs[attr.name];
+
+                                                        return (
+                                                            <div key={i} className={`${colSpan} relative group`}>
+                                                                <div className="border border-black p-1.5 py-2 flex justify-between items-center cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                                                                    <span className="text-[10px] truncate pr-1">
+                                                                        <span className="font-normal text-gray-600">{attr.name}: </span>
+                                                                        <span className="font-bold text-black uppercase">{selectedValue || 'Select'}</span>
+                                                                    </span>
+                                                                    <svg className="w-2.5 h-2.5 flex-shrink-0 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                                    </svg>
+                                                                </div>
+                                                                <select 
+                                                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full appearance-none"
+                                                                    value={selectedValue || ""}
+                                                                    onChange={(e) => { e.stopPropagation(); onAttributeSelect(p.productID, attr.name, e.target.value); }}
                                                                 >
-                                                                    {val}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                                    <option value="" disabled>Select {attr.name}</option>
+                                                                    {attr.values.map((val, idx) => (
+                                                                        <option key={idx} value={val}>{val}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
                                                 {filtered.length > 0 && (
                                                     <span className={`pdp-stock ${filtered[0].variationStock > 0 ? "in" : "out"}`} style={{ marginTop: 6 }}>
                                                         <span className="pdp-stock-dot" />

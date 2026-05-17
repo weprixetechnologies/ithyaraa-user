@@ -28,6 +28,7 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
     const [localSelectedItems, setLocalSelectedItems] = useState(new Set());
     const [hasChanges, setHasChanges] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [isQuantityUpdating, setIsQuantityUpdating] = useState(null); // Track which item is updating
     const [isInitialized, setIsInitialized] = useState(false);
     const prevCartDataLengthRef = useRef(0);
 
@@ -187,6 +188,33 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
         }
     };
 
+    const handleQuantityChange = async (cartItemID, currentQty, delta) => {
+        const newQty = currentQty + delta;
+        if (newQty < 1) return;
+
+        setIsQuantityUpdating(cartItemID);
+        try {
+            const response = await axiosInstance.post('/cart/update-quantities', {
+                cartItemID,
+                quantity: newQty
+            });
+
+            if (response.data.success) {
+                if (response.data.message) {
+                    toast.info(response.data.message);
+                }
+                dispatch(getCartAsync());
+            } else {
+                toast.error(response.data.message || 'Failed to update quantity');
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            toast.error(error.response?.data?.message || 'Failed to update quantity');
+        } finally {
+            setIsQuantityUpdating(null);
+        }
+    };
+
     console.log(cartData);
 
     // Check if cart is empty
@@ -326,7 +354,29 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                     <div className="flex flex-col md:pl-3 w-full">
                                         {/* //NAME//BRAND//VARIATION */}
                                         {/* <p className='text-xs font-medium text-secondary-text-deep'>{i.brand}</p> */}
+                                        <div className="flex items-center gap-2 mb-1">
+                                            {i.stockStatus === 'out_of_stock' && (
+                                                <span className="text-[10px] px-2 py-0.5 bg-red-100 text-red-600 rounded-full font-bold uppercase tracking-wider">
+                                                    Out of Stock
+                                                </span>
+                                            )}
+                                            {i.stockStatus === 'low_stock' && (
+                                                <span className="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full font-bold uppercase tracking-wider">
+                                                    Low Stock: {i.variationStock} Left
+                                                </span>
+                                            )}
+                                            {/* {i.stockStatus === 'in_stock' && (
+                                                <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-600 rounded-full font-bold uppercase tracking-wider">
+                                                    In Stock
+                                                </span>
+                                            )} */}
+                                        </div>
                                         <p className='text-sm font-medium line-clamp-1 md:text-[16px]'>{i.name}</p>
+                                        {i.description && (
+                                            <p className='text-xs text-gray-500 mt-0.5 line-clamp-2 italic'>
+                                                {i.description}
+                                            </p>
+                                        )}
                                         <div className="cart-pricing flex gap-2 items-center">
                                             <p className="text-sm md:text-lg font-medium"> ₹{i.lineTotalAfter}</p>
                                             {i.salePrice !== i.regularPrice && (
@@ -348,7 +398,6 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                                     </span>
                                                 ))
                                             )}
-                                            <p className='text-xs px-2 py-1 bg-gray-100 rounded font-medium text-gray-700'>Quantity : {i.quantity}</p>
                                         </div>
                                         {/* Custom Inputs Display */}
                                         {i.custom_inputs && i.custom_inputs !== null && Object.keys(i.custom_inputs).length > 0 && (
@@ -401,6 +450,39 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
 
                                     </div>
                                 </div>
+
+                                {/* Absolute Quantity Selector at Right Bottom */}
+                                <div className="absolute bottom-3 right-3 z-10" onClick={(e) => e.stopPropagation()} data-no-navigate>
+                                    {(i.productType === 'variable' || i.type === 'variable') ? (
+                                        <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden h-8">
+                                            <button
+                                                onClick={() => handleQuantityChange(i.cartItemID, i.quantity, -1)}
+                                                disabled={isQuantityUpdating === i.cartItemID || i.quantity <= 1}
+                                                className="px-2.5 h-full hover:bg-gray-50 disabled:opacity-30 transition-colors flex items-center justify-center border-r border-gray-100"
+                                            >
+                                                <span className="text-sm font-bold text-gray-500">-</span>
+                                            </button>
+                                            <div className="px-3 min-w-[34px] text-center">
+                                                {isQuantityUpdating === i.cartItemID ? (
+                                                    <div className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                                                ) : (
+                                                    <span className="text-xs font-bold text-gray-800">{i.quantity}</span>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() => handleQuantityChange(i.cartItemID, i.quantity, 1)}
+                                                disabled={isQuantityUpdating === i.cartItemID}
+                                                className="px-2.5 h-full hover:bg-gray-50 disabled:opacity-30 transition-colors flex items-center justify-center border-l border-gray-100"
+                                            >
+                                                <span className="text-sm font-bold text-gray-500">+</span>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="px-2 py-1 bg-gray-50 border border-gray-100 rounded-md">
+                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">Qty: {i.quantity}</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex flex-col gap-2">
 
@@ -415,7 +497,24 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col md:pl-3">
+                                                    <div className="flex items-center gap-2 mb-0.5">
+                                                        {(p.productStatus === 'Out of Stock' || (p.variationID && (p.variationStock === null || p.variationStock <= 0))) && (
+                                                            <span className="text-[9px] px-1.5 py-0.5 bg-red-100 text-red-600 rounded-full font-bold uppercase tracking-wider">
+                                                                Out of Stock
+                                                            </span>
+                                                        )}
+                                                        {p.variationID && p.variationStock > 0 && p.variationStock < (i.quantity || 1) && (
+                                                            <span className="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded-full font-bold uppercase tracking-wider">
+                                                                Low Stock: {p.variationStock} Left
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <p className='text-sm font-medium line-clamp-1 md:text-[14px]'>{p.name}</p>
+                                                    {p.description && (
+                                                        <p className='text-[11px] text-gray-500 mt-0.5 line-clamp-2 italic'>
+                                                            {p.description}
+                                                        </p>
+                                                    )}
                                                     <div className="cart-pricing flex gap-2 items-center">
                                                         <p className="text-sm md:text-lg font-medium"> ₹ 0</p>
 
