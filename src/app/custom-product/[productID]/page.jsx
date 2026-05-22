@@ -112,7 +112,7 @@ export default async function CustomProductDetailPage({ params }) {
         "image": image,
         "description": product.description || product.name,
         "sku": product.productID,
-        "brand": { "@type": "Brand", "name": product.brand || "Ithyaraa" },
+        "brand": { "@type": "Brand", "name": (!product.brand && !product.brandID) ? 'Ithyaraa' : (product.brand || 'Ithyaraa') },
         "offers": {
             "@type": "Offer",
             "url": productUrl,

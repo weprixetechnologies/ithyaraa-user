@@ -2,7 +2,7 @@ import axios from "axios";
 import ProductInteractive from "@/components/products/ProductInteractive";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const SECTION_POOL = ["HOME_HERO", "MUST_TRY", "FEATURING", "NEW_ARRIVAL", "TOP_DEALS"];
+const SECTION_POOL = ["brand_picks", "MUST_TRY", "FEATURING", "new_arrivals", "TOP_DEALS"];
 const SECTION_META = {
     HOME_HERO: { heading: "Picks Curated For You", subHeading: "Collections You Will Definitely Love" },
     MUST_TRY: { heading: "Must Try Outfits", subHeading: "Curated Choice Now" },
@@ -106,7 +106,7 @@ export default async function ProductDetailPage({ params }) {
         "sku": productID,
         "brand": {
             "@type": "Brand",
-            "name": productData.brand || "Ithyaraa"
+            "name": (!productData.brand && !productData.brandID) ? 'Ithyaraa' : (productData.brand || 'Ithyaraa')
         },
         "offers": {
             "@type": "Offer",

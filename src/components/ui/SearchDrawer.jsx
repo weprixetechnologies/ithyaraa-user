@@ -220,9 +220,9 @@ const SearchDrawer = ({ isOpen, onClose }) => {
                                                 <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
                                                     {product.name}
                                                 </h3>
-                                                {product.brand && (
-                                                    <p className="text-xs text-gray-500 mt-1">{product.brand}</p>
-                                                )}
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    {(!product?.brand && !product?.brandID) ? 'INHOUSE' : (product?.brand || 'ITHYARAA')}
+                                                </p>
                                                 <div className="flex items-center gap-2 mt-2">
                                                     <span className="text-sm font-semibold text-gray-900">
                                                         ₹{salePrice}

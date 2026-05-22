@@ -116,7 +116,7 @@ export default function CustomProductInteractive({ productID, product, customInp
     const dispatch = useDispatch();
     const { toggleWishlist, isInWishlist, loading: wishlistLoading } = useWishlist();
     const isWishlisted = productID ? isInWishlist(productID) : false;
-    
+
     // Client states
     const [showSizeChart, setShowSizeChart] = useState(false);
     const [featuredImage, setFeaturedImage] = useState(product?.featuredImage?.[0]?.imgUrl || "");
@@ -133,7 +133,7 @@ export default function CustomProductInteractive({ productID, product, customInp
     const [showCrossSell, setShowCrossSell] = useState(false);
     const [crossSellProducts, setCrossSellProducts] = useState(product?.crossSellProducts || []);
     const cartBtnRef = useRef(null);
-    
+
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => { setIsMounted(true); }, []);
 
@@ -552,7 +552,7 @@ export default function CustomProductInteractive({ productID, product, customInp
 
                         <div style={{ padding: "0 10px" }}>
                             <div className="pdp-fade-up pdp-d1">
-                                <span className="pdp-brand-pill">{product.brand || "Custom"}</span>
+                                <span className="pdp-brand-pill">{(!product?.brand && !product?.brandID) ? 'Ithyaraa' : (product?.brand || 'Custom')}</span>
                                 <h1 className="pdp-name">{product.name}</h1>
                                 <span className="pdp-mto-tag">✦ Made-to-Order</span>
                             </div>

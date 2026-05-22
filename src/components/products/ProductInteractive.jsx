@@ -207,7 +207,7 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
 
                     {/* ── Product info ── */}
                     <div className="product-data-tab px-3">
-                        <p className="text-xs font-medium uppercase text-secondary-text-deep">{product.brand}</p>
+                        <p className="text-xs font-medium uppercase text-secondary-text-deep">{(!product?.brand && !product?.brandID) ? 'Ithyaraa' : (product?.brand || 'ITHYARAA')}</p>
                         <h1 className="text-xl md:text-2xl font-medium">{product.name}</h1>
 
                         {/* Rating */}
@@ -381,7 +381,7 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
                                     </p>
                                 )}
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-3 mb-6">
                                 {attributes.map((attr, index) => {
                                     const isLast = index === attributes.length - 1;
@@ -400,7 +400,7 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
                                                 </svg>
                                             </div>
-                                            <select 
+                                            <select
                                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full appearance-none"
                                                 value={selectedValue || ""}
                                                 onChange={(e) => handleSelectAttribute(attr.name, e.target.value)}

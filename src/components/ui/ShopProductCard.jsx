@@ -111,8 +111,12 @@ const ShopProductCard = ({ product }) => {
 
             {/* TEXT + PRICE */}
             <div className="px-[5px]">
-                <p className="text-[11px] font-normal uppercase text-gray-600">{product?.brand || 'ITHYARAA'}</p>
-                <p className="text-ellipsis truncate text-sm font-medium">{product?.name || product?.productName}</p>
+                <p className="text-[11px] font-normal uppercase text-gray-600">
+                    {(!product?.brand && !product?.brandID) ||
+                        product?.brand?.trim().toLowerCase() === "inhouse"
+                        ? "ITHYARAA"
+                        : (product?.brand || "ITHYARAA")}
+                </p> <p className="text-ellipsis truncate text-sm font-medium">{product?.name || product?.productName}</p>
             </div>
             <div className="pricing flex flex-row justify-start gap-2 items-center mt-1 px-[5px]">
                 <span className="font-semibold text-sm">₹{sale}</span>

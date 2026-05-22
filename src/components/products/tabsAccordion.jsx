@@ -23,7 +23,7 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                         onClick={() => toggleTab("descriptionTab")}
                         className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
                     >
-                        {tabHeading1?.toUpperCase()}
+                        PRODUCT SPECIFICATIONS
                         <span>{openTabs.descriptionTab ? "-" : "+"}</span>
                     </button>
                     {openTabs.descriptionTab && (
@@ -41,7 +41,7 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                         onClick={() => toggleTab("productTab1")}
                         className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
                     >
-                        PRODUCT DETAILS
+                        MATERIAL AND CARE
                         <span>{openTabs.productTab1 ? "-" : "+"}</span>
                     </button>
                     {openTabs.productTab1 && (
@@ -59,7 +59,7 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                         onClick={() => toggleTab("productTab2")}
                         className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
                     >
-                        ADDITIONAL INFORMATION
+                        STYLING AND SUGGESTION
                         <span>{openTabs.productTab2 ? "-" : "+"}</span>
                     </button>
                     {openTabs.productTab2 && (
@@ -108,7 +108,7 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                     </div>
                 )}
             </div>
-            
+
             <style>{`
                 .rich-text ul {
                     list-style-type: disc !important;

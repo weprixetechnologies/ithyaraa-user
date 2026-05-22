@@ -5,13 +5,30 @@ import Image from 'next/image';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import Link from 'next/link';
 import { useWishlist } from "@/contexts/WishlistContext";
 import logo from "../../../public/ithyaraa-logo.png";
 
 const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, products = [] }) => {
     const scrollRef = useRef(null)
     const { isInWishlist, toggleWishlist, loading } = useWishlist()
+
+    const getProductHref = (p) => {
+        const id = p?.productID;
+        const type = p?.type;
+        if (!id) return "/products";
+        switch (type) {
+            case 'variable':
+                return `/products/${id}`;
+            case 'combo':
+                return `/combo/${id}`;
+            case 'make_combo':
+                return `/make-combo/${id}`;
+            case 'customproduct':
+                return `/custom-product/${id}`;
+            default:
+                return `/products/${id}`;
+        }
+    };
 
 
     // const products = [
@@ -148,7 +165,7 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                     <div className="absolute inset-0 flex w-[200%] h-full transition-transform duration-500 ease-out will-change-transform group-hover:-translate-x-1/2">
                                         {/* Slide 1 */}
                                         <div className="relative w-1/2 h-full">
-                                            <Link href={`/products/${i.productID}`}>
+                                            <a href={getProductHref(i)}>
                                                 <Image
                                                     src={i.featuredImage?.[0]?.imgUrl || logo}
                                                     alt={i.name || 'Product image'}
@@ -157,12 +174,12 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                                     className="object-cover"
                                                     priority={false}
                                                 />
-                                            </Link>
+                                            </a>
                                         </div>
                                         {/* Slide 2 */}
 
                                         <div className="relative w-1/2 h-full">
-                                            <Link href={`/products/${i.productID}`}>
+                                            <a href={getProductHref(i)}>
                                                 <Image
                                                     src={i.featuredImage?.[1]?.imgUrl || i.featuredImage?.[0]?.imgUrl || logo}
                                                     alt={`${i.name || 'Product'} - alt`}
@@ -171,7 +188,7 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                                     className="object-cover"
                                                     priority={false}
                                                 />
-                                            </Link>
+                                            </a>
                                         </div>
 
 
@@ -202,9 +219,14 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                             </div>
 
                             {/* TEXT + PRICE (clickable) */}
-                            <Link href={`/products/${i.productID}`}>
+                            <a href={getProductHref(i)}>
                                 <div className="px-[5px]">
-                                    <p className="text-xs font-normal uppercase">{i.brand}</p>
+                                    <p className="text-xs font-normal uppercase">
+                                        {(!i.brand && !i.brandID) ||
+                                            i.brand?.trim().toLowerCase() === "inhouse"
+                                            ? "Ithyaraa"
+                                            : (i.brand || "Ithyaraa")}
+                                    </p>
                                     <p className="text-ellipsis truncate w-[40dvw] md:w-[18dvw] text-sm font-medium">{i.name}</p>
                                 </div>
                                 <div className="pricing flex flex-row justify-start gap-2 items-center mt-1 px-[5px]">
@@ -212,7 +234,7 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                     <span className="font-medium text-sm text-gray-500 line-through">₹{i.regularPrice}</span>
                                     <span className="text-green-600 font-medium text-xs">{i.discountValue}% OFF</span>
                                 </div>
-                            </Link>
+                            </a>
                         </div>
                     ))}
                 </div>

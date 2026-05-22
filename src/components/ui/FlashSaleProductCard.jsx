@@ -127,7 +127,7 @@ const FlashSaleProductCard = ({ product }) => {
             <div className="px-1 space-y-1">
                 <div className="flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-red-600">{product?.brand || 'ITHYARAA'}</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-red-600">{(!product?.brand && !product?.brandID) ? 'INHOUSE' : (product?.brand || 'ITHYARAA')}</p>
                         <p className="text-sm font-medium text-gray-900 truncate group-hover:text-red-600 transition-colors duration-200">
                             {product?.name || product?.productName}
                         </p>

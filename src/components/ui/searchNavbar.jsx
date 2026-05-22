@@ -204,9 +204,9 @@ const SearchNavbar = () => {
                                             <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
                                                 {product.name}
                                             </h3>
-                                            {product.brand && (
-                                                <p className="text-xs text-gray-500 mt-0.5">{product.brand}</p>
-                                            )}
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                {(!product?.brand && !product?.brandID) ? 'INHOUSE' : (product?.brand || 'ITHYARAA')}
+                                            </p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-sm font-semibold text-gray-900">
                                                     ₹{salePrice}
