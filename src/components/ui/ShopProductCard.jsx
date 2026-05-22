@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -47,7 +46,7 @@ const ShopProductCard = ({ product }) => {
 
 
     return (
-        <Link href={getProductHref(product)} className="flex-col flex gap-1">
+        <a href={getProductHref(product)} className="flex-col flex gap-1">
             <div
                 className="h-auto aspect-[2/3] w-full relative"
                 onMouseEnter={() => setHover(true)}
@@ -124,7 +123,7 @@ const ShopProductCard = ({ product }) => {
                     </>
                 )}
             </div>
-        </Link>
+        </a>
     );
 };
 

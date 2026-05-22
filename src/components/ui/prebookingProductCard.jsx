@@ -1,12 +1,9 @@
 import React from 'react'
 import Image from 'next/image'
 import PresaleCardCounter from './presalecardCounter'
-import { useRouter } from 'next/navigation'
 import logo from "../../../public/ithyaraa-logo.png"
 
 const PreBookingProductCard = ({ product }) => {
-    const router = useRouter()
-
     const featuredImage = product?.featuredImage || [];
     const imageUrl = featuredImage?.[0]?.imgUrl || logo;
 
@@ -15,7 +12,7 @@ const PreBookingProductCard = ({ product }) => {
     const isUpcoming = startDate && startDate > now;
 
     const handleCardClick = () => {
-        router.push(`/presale/product/${product.presaleProductID}`)
+        window.location.href = `/presale/product/${product.presaleProductID}`
     }
 
     return (

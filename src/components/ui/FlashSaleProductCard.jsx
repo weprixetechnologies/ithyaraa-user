@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { FaHeart, FaRegHeart, FaBolt } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -46,7 +45,7 @@ const FlashSaleProductCard = ({ product }) => {
     };
 
     return (
-        <Link href={getProductHref(product)} className="flex-col flex gap-2 group">
+        <a href={getProductHref(product)} className="flex-col flex gap-2 group">
             <div
                 className="h-auto aspect-[2/3] w-full relative rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-300"
                 onMouseEnter={() => setHover(true)}
@@ -142,7 +141,7 @@ const FlashSaleProductCard = ({ product }) => {
                     )}
                 </div>
             </div>
-        </Link>
+        </a>
     );
 };
 

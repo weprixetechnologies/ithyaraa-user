@@ -5,59 +5,51 @@ import Link from "next/link";
 import { FaCaretUp, FaCaretDown } from "react-icons/fa6";
 const hamburgerMenuItems = [
     {
-        label: "Home",
+        label: "HOME",
         href: "/",
         subItems: [],
     },
     {
-        label: "Shop With Us",
-        href: "/products",
+        label: "SHOP",
+        href: "/shop",
         subItems: [
-            { label: "Dresses", href: "/products/western" },
-            { label: "Top Picks", href: "/products/western" },
-            { label: "Ethnic Wear", href: "/products/ethnic" },
-            { label: "Celeb Choices", href: "/products/western" }
+            { label: "UNDER 299", href: "/shop?maxPrice=299" },
+            { label: "UNDER 399", href: "/shop?maxPrice=399" },
+            { label: "UNDER 599", href: "/shop?maxPrice=599" },
+            { label: "UNDER 799", href: "/shop?maxPrice=799" },
+            { label: "UNDER 999", href: "/shop?maxPrice=999" }
         ],
     },
     {
-        label: "Combo",
-        href: "/products",
-        subItems: [
-            { label: "Make Your Combo", href: "/products/combo/make" },
-            { label: "Try Our Combo", href: "/products/combo/try" },
-        ],
-    },
-    {
-        label: "Our Combo",
-        href: "/",
+        label: "SHOP BY CATEGORIES",
+        href: "/categories",
         subItems: [],
     },
     {
-        label: "Make Your Combo",
-        href: "/",
+        label: "SHOP BY BRAND",
+        href: "/brands",
         subItems: [],
     },
     {
-        label: "Customise Product",
-        href: "/",
+        label: "MAKE YOU COMBO",
+        href: "/shop?type=make_combo",
         subItems: [],
     },
     {
-        label: "Flash Sale",
-        href: "/flash-sale",
+        label: "OUR COMBO",
+        href: "/shop?type=combo",
         subItems: [],
     },
     {
-        label: "Offers",
+        label: "OFFERS",
         href: "/offers",
         subItems: [],
     },
     {
-        label: "Categories",
-        href: "/categories",
+        label: "FLASH SALE",
+        href: "/flash-sale",
         subItems: [],
-    },
-    // ...other items
+    }
 ];
 
 const HamburgerChildMenu = () => {
