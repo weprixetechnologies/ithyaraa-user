@@ -41,7 +41,7 @@ const PreBookingProductCard = ({ product }) => {
                 </div>
             </div>
             <div className="p-2">
-                <p className='text-[16px] font-medium text-center mb-2 line-clamp-2'>{product?.name}</p>
+                <p className='text-[16px] font-medium text-center mb-2 line-clamp-1'>{product?.name}</p>
                 <div className="flex justify-center items-center gap-2">
                     <span className="text-gray-500 text-sm font-medium line-through">₹{Math.round(product?.regularPrice || 0)}</span>
                     <span className="text-black text-lg font-bold">₹{Math.round(product?.salePrice || 0)}</span>
@@ -67,8 +67,8 @@ const PreBookingProductCard = ({ product }) => {
             <button
                 disabled={isUpcoming}
                 className={`w-full mt-2 font-semibold py-2 rounded-lg transition-all duration-300 ${isUpcoming
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-primary-yellow text-black cursor-pointer hover:text-white hover:bg-orange-500'
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-primary-yellow text-black cursor-pointer hover:text-white hover:bg-orange-500'
                     }`}
                 style={{ letterSpacing: '0.05em' }}
             >

@@ -67,38 +67,38 @@ const SelectComboSimple = ({ products, onVariationSelect }) => {
                                 {p.name}
                             </p>
 
-                                <div className="grid grid-cols-2 gap-2 mt-3">
-                                    {p.productAttributes.map((attr, attrIndex) => {
-                                        const isLast = attrIndex === p.productAttributes.length - 1;
-                                        const isOdd = p.productAttributes.length % 2 !== 0;
-                                        const colSpan = (isLast && isOdd) ? 'col-span-2' : 'col-span-1';
-                                        const selectedValue = selectedAttributes[index][attr.name];
+                            <div className="grid grid-cols-2 gap-2 mt-3">
+                                {p.productAttributes.map((attr, attrIndex) => {
+                                    const isLast = attrIndex === p.productAttributes.length - 1;
+                                    const isOdd = p.productAttributes.length % 2 !== 0;
+                                    const colSpan = (isLast && isOdd) ? 'col-span-2' : 'col-span-1';
+                                    const selectedValue = selectedAttributes[index][attr.name];
 
-                                        return (
-                                            <div key={attrIndex} className={`${colSpan} relative group`}>
-                                                <div className="border border-black p-2 py-2.5 flex justify-between items-center cursor-pointer bg-white hover:bg-gray-50 transition-colors">
-                                                    <span className="text-[11px] truncate pr-1">
-                                                        <span className="font-normal text-gray-600">{attr.name}: </span>
-                                                        <span className="font-bold text-black uppercase">{selectedValue || 'Select'}</span>
-                                                    </span>
-                                                    <svg className="w-3 h-3 flex-shrink-0 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                                                    </svg>
-                                                </div>
-                                                <select 
-                                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full appearance-none"
-                                                    value={selectedValue || ""}
-                                                    onChange={(e) => handleSelectAttribute(index, attr.name, e.target.value)}
-                                                >
-                                                    <option value="" disabled>Select {attr.name}</option>
-                                                    {attr.values.map((val, idx) => (
-                                                        <option key={idx} value={val}>{val}</option>
-                                                    ))}
-                                                </select>
+                                    return (
+                                        <div key={attrIndex} className={`${colSpan} relative group`}>
+                                            <div className="border border-black p-2 py-2.5 flex justify-between items-center cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                                                <span className="text-[11px] truncate pr-1">
+                                                    <span className="font-normal text-gray-600">{attr.name}: </span>
+                                                    <span className="font-bold text-black uppercase">{selectedValue || 'Select'}</span>
+                                                </span>
+                                                <svg className="w-3 h-3 flex-shrink-0 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                </svg>
                                             </div>
-                                        );
-                                    })}
-                                </div>
+                                            <select
+                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full appearance-none"
+                                                value={selectedValue || ""}
+                                                onChange={(e) => handleSelectAttribute(index, attr.name, e.target.value)}
+                                            >
+                                                <option value="" disabled>Select {attr.name}</option>
+                                                {attr.values.map((val, idx) => (
+                                                    <option key={idx} value={val}>{val}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    );
+                                })}
+                            </div>
 
                             <div className='mt-2'>
                                 {/* <p className='text-sm font-medium'>Availability:</p> */}

@@ -8,6 +8,7 @@ import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
 import axiosInstance from "@/lib/axiosInstance";
 import logo from "../../../public/ithyaraa-logo.png";
+import ShopProductCard from "@/components/ui/ShopProductCard";
 
 const safeParseProduct = (product) => {
     const parsed = { ...product };
@@ -204,99 +205,13 @@ const TabbedProductSection = ({
             {!loadingProducts && !error && (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4 lg:gap-6">
                     {products.map((product) => (
-                        <div key={product.productID} className="group">
-                            <div className="relative bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300">
-                                {/* Image Container */}
-                                <div className="aspect-[2/3] relative overflow-hidden">
-                                    <div className="absolute inset-0 flex w-[200%] h-full transition-transform duration-500 ease-out group-hover:-translate-x-1/2">
-                                        {/* Main Image */}
-                                        <div className="relative w-1/2 h-full">
-                                            <Link href={`/products/${product.productID}`}>
-                                                <Image
-                                                    src={product.featuredImage?.[0]?.imgUrl || product.featuredImage?.[0] || logo}
-                                                    alt={product.name}
-                                                    fill
-                                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 16vw"
-                                                    className="object-cover"
-                                                    onError={(e) => {
-                                                        console.warn('Image failed to load:', product.featuredImage?.[0]);
-                                                        e.target.src = logo.src || logo;
-                                                    }}
-                                                />
-                                            </Link>
-                                        </div>
-                                        {/* Hover Image */}
-                                        <div className="relative w-1/2 h-full">
-                                            <Link href={`/products/${product.productID}`}>
-                                                <Image
-                                                    src={product.featuredImage?.[1]?.imgUrl || product.featuredImage?.[1] || product.featuredImage?.[0]?.imgUrl || product.featuredImage?.[0] || logo}
-                                                    alt={`${product.name} - alt`}
-                                                    fill
-                                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 16vw"
-                                                    className="object-cover"
-                                                    onError={(e) => {
-                                                        console.warn('Hover image failed to load:', product.featuredImage?.[1]);
-                                                        e.target.src = logo.src || logo;
-                                                    }}
-                                                />
-                                            </Link>
-                                        </div>
-                                    </div>
-
-                                    {/* Wishlist Button */}
-                                    <button
-                                        onClick={() => handleToggleWishlist(product.productID)}
-                                        disabled={loading}
-                                        className={`absolute top-2 right-2 z-20 rounded-full p-2 bg-white/90 backdrop-blur-sm border border-gray-200 shadow-md hover:shadow-lg transition-all duration-200 flex justify-center items-center ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
-                                            }`}
-                                        aria-label={isInWishlist(product.productID) ? "Remove from wishlist" : "Add to wishlist"}
-                                    >
-                                        {isInWishlist(product.productID) ? (
-                                            <FaHeart size={14} color="red" />
-                                        ) : (
-                                            <FaRegHeart size={14} color="grey" />
-                                        )}
-                                    </button>
-
-                                    {/* Rating */}
-                                    {product.rating && (
-                                        <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 text-xs flex items-center gap-1 font-bold">
-                                            <TiStarFullOutline color="#ffd232" size={10} />
-                                            {product.rating}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Product Info */}
-                                <div className="p-3">
-                                    <Link href={`/products/${product.productID}`}>
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                                {product.brand}
-                                            </p>
-                                            <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight">
-                                                {product.name}
-                                            </h3>
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <span className="text-sm font-bold text-gray-900">
-                                                ₹{product.salePrice}
-                                            </span>
-                                            {product.regularPrice && product.regularPrice > product.salePrice && (
-                                                <>
-                                                    <span className="text-xs text-gray-500 line-through">
-                                                        ₹{product.regularPrice}
-                                                    </span>
-                                                    <span className="text-xs text-green-600 font-medium">
-                                                        {Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100)}% OFF
-                                                    </span>
-                                                </>
-                                            )}
-                                        </div>
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
+                        <ShopProductCard
+                            key={product.productID}
+                            product={product}
+                            isInWishlist={isInWishlist}
+                            onToggleWishlist={handleToggleWishlist}
+                            loading={loading}
+                        />
                     ))}
                 </div>
             )}

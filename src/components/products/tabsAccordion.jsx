@@ -27,8 +27,8 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                         <span>{openTabs.descriptionTab ? "-" : "+"}</span>
                     </button>
                     {openTabs.descriptionTab && (
-                        <div className="px-4 py-3 bg-white">
-                            {tabData1}
+                        <div className="px-4 py-3 bg-white rich-text">
+                            <div dangerouslySetInnerHTML={{ __html: tabData1 }} />
                         </div>
                     )}
                 </div>
@@ -45,7 +45,7 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                         <span>{openTabs.productTab1 ? "-" : "+"}</span>
                     </button>
                     {openTabs.productTab1 && (
-                        <div className="px-4 py-3 bg-white">
+                        <div className="px-4 py-3 bg-white rich-text">
                             <div dangerouslySetInnerHTML={{ __html: tab1 }} />
                         </div>
                     )}
@@ -63,7 +63,7 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                         <span>{openTabs.productTab2 ? "-" : "+"}</span>
                     </button>
                     {openTabs.productTab2 && (
-                        <div className="px-4 py-3 bg-white">
+                        <div className="px-4 py-3 bg-white rich-text">
                             <div dangerouslySetInnerHTML={{ __html: tab2 }} />
                         </div>
                     )}
@@ -108,6 +108,36 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                     </div>
                 )}
             </div>
+            
+            <style>{`
+                .rich-text ul {
+                    list-style-type: disc !important;
+                    padding-left: 1.5rem !important;
+                    margin-top: 0.5rem !important;
+                    margin-bottom: 0.5rem !important;
+                }
+                .rich-text ol {
+                    list-style-type: decimal !important;
+                    padding-left: 1.5rem !important;
+                    margin-top: 0.5rem !important;
+                    margin-bottom: 0.5rem !important;
+                }
+                .rich-text li {
+                    margin-bottom: 0.25rem !important;
+                }
+                .rich-text p {
+                    margin-bottom: 0.5rem !important;
+                }
+                .rich-text strong, .rich-text b {
+                    font-weight: 700 !important;
+                }
+                .rich-text em, .rich-text i {
+                    font-style: italic !important;
+                }
+                .rich-text u {
+                    text-decoration: underline !important;
+                }
+            `}</style>
         </div>
     );
 };

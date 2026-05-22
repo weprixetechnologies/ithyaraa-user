@@ -50,7 +50,7 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
 
             }
         } catch (error) {
-            console.error('Error fetching reviews:', error.response?.data || error.message);
+            console.warn('Error fetching reviews:', error.response?.data?.message || error.message || error);
             setReviews([]); // Set empty array on error
         } finally {
             setLoading(false);
@@ -215,7 +215,7 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
                 window.location.reload();
             }
         } catch (error) {
-            console.error('Error submitting review:', error);
+            console.warn('Error submitting review:', error.response?.data?.message || error.message || error);
             toast.error(error.response?.data?.message || 'Failed to submit review');
         } finally {
             setSubmitting(false);

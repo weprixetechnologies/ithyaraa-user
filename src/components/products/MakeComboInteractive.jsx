@@ -125,7 +125,7 @@ const ProductPickerModal = ({
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
                                                                     </svg>
                                                                 </div>
-                                                                <select 
+                                                                <select
                                                                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full appearance-none"
                                                                     value={selectedValue || ""}
                                                                     onChange={(e) => { e.stopPropagation(); onAttributeSelect(p.productID, attr.name, e.target.value); }}
