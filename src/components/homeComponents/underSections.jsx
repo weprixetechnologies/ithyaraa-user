@@ -1,6 +1,7 @@
 "use client"
 import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 const UnderSections = () => {
     return (
@@ -40,24 +41,24 @@ const UnderSections = () => {
                 </div>
                 <div className="w-full flex justify-center">
                     <div className="w-full md:w-4/5 grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                        <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg'>
-                            <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </div>
-                        <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg'>
-                            <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </div>
-                        <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg'>
-                            <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </div>
-                        <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg'>
-                            <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </div>
-                        <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg'>
-                            <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </div>
-                        <div className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg'>
-                            <Image src="/UNDER.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </div>
+                        <Link href="/shop?maxPrice=299" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
+                            <Image src="/under299.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
+                        </Link>
+                        <Link href="/shop?maxPrice=399" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
+                            <Image src="/under399.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
+                        </Link>
+                        <Link href="/shop?maxPrice=599" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
+                            <Image src="/under599.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
+                        </Link>
+                        <Link href="/shop?maxPrice=799" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
+                            <Image src="/under799.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
+                        </Link>
+                        <Link href="/shop?maxPrice=999" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
+                            <Image src="/under999.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
+                        </Link>
+                        <Link href="/offers" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
+                            <Image src="/viewoffer.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
+                        </Link>
                     </div>
                 </div>
             </div>
