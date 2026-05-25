@@ -737,10 +737,10 @@ export default function CustomProductInteractive({ productID, product, customInp
                             <div className="pdp-fade-up pdp-d5" style={{ marginTop: 20 }}>
                                 <Suspense fallback={<div className="pdp-skeleton" style={{ height: 120, borderRadius: 12 }} />}>
                                     <ProductTabs
-                                        tabHeading1="Description"
-                                        tabData1={product.description || "No description available."}
+                                        description={product.description}
                                         tab1={product.tab1}
                                         tab2={product.tab2}
+                                        tab3={product.tab3}
                                     />
                                 </Suspense>
                             </div>

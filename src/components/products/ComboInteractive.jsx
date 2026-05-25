@@ -267,10 +267,10 @@ const ComboInteractive = ({ productID, product, buyMoreProducts }) => {
 
                             <div className="pdp-fade-up pdp-d5" style={{ marginTop: 32 }}>
                                 <ProductTabs
-                                    tabHeading1="Description"
-                                    tabData1={product?.description || "No description available."}
+                                    description={product?.description}
                                     tab1={product?.tab1}
                                     tab2={product?.tab2}
+                                    tab3={product?.tab3}
                                 />
                             </div>
                         </div>

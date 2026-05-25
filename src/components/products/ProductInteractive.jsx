@@ -468,10 +468,10 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
                         {/* Tabs */}
                         <Suspense fallback={<div className="h-32 bg-gray-200 animate-pulse rounded-lg" />}>
                             <ProductTabs
-                                tabHeading1="Description"
-                                tabData1={product.description || "No description available."}
+                                description={product.description}
                                 tab1={product.tab1}
                                 tab2={product.tab2}
+                                tab3={product.tab3}
                             />
                         </Suspense>
                     </div>

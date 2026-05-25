@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from "react";
 
-const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
+const ProductTabs = ({ description, tab1, tab2, tab3 }) => {
     const [openTabs, setOpenTabs] = useState({
         descriptionTab: false,
         productTab1: false,
         productTab2: false,
+        productTab3: false,
         shippingTab: false,
         returnsTab: false,
     });
@@ -17,24 +18,24 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
     return (
         <div className="w-full max-w-3xl mx-auto mt-6 space-y-2">
             {/* Description Tab */}
-            {tabHeading1 && (
+            {description && (
                 <div className="cursor-pointer rounded-lg">
                     <button
                         onClick={() => toggleTab("descriptionTab")}
                         className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
                     >
-                        PRODUCT SPECIFICATIONS
+                        DESCRIPTION
                         <span>{openTabs.descriptionTab ? "-" : "+"}</span>
                     </button>
                     {openTabs.descriptionTab && (
                         <div className="px-4 py-3 bg-white rich-text">
-                            <div dangerouslySetInnerHTML={{ __html: tabData1 }} />
+                            <div dangerouslySetInnerHTML={{ __html: description }} />
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Product Tab 1 - Dynamic from API */}
+            {/* Product Tab 1 - MATERIAL AND CARE */}
             {tab1 && (
                 <div className="cursor-pointer rounded-lg">
                     <button
@@ -52,7 +53,7 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                 </div>
             )}
 
-            {/* Product Tab 2 - Dynamic from API */}
+            {/* Product Tab 2 - STYLING AND SUGGESTION */}
             {tab2 && (
                 <div className="cursor-pointer rounded-lg">
                     <button
@@ -65,6 +66,24 @@ const ProductTabs = ({ tabHeading1, tabData1, tab1, tab2 }) => {
                     {openTabs.productTab2 && (
                         <div className="px-4 py-3 bg-white rich-text">
                             <div dangerouslySetInnerHTML={{ __html: tab2 }} />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Product Tab 3 - PRODUCT SPECIFICATIONS */}
+            {tab3 && (
+                <div className="cursor-pointer rounded-lg">
+                    <button
+                        onClick={() => toggleTab("productTab3")}
+                        className="w-full text-left px-4 py-3 font-medium bg-gray-100 flex justify-between items-center rounded-lg cursor-pointer"
+                    >
+                        PRODUCT SPECIFICATIONS
+                        <span>{openTabs.productTab3 ? "-" : "+"}</span>
+                    </button>
+                    {openTabs.productTab3 && (
+                        <div className="px-4 py-3 bg-white rich-text">
+                            <div dangerouslySetInnerHTML={{ __html: tab3 }} />
                         </div>
                     )}
                 </div>

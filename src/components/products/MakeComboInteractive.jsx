@@ -739,10 +739,10 @@ const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dyna
                             <div className="pdp-fade-up pdp-fade-up-d5" style={{ marginTop: 20 }}>
                                 <Suspense fallback={<div className="pdp-skeleton" style={{ height: 120, borderRadius: 12 }} />}>
                                     <ProductTabs
-                                        tabHeading1="Description"
-                                        tabData1={comboData.description || "No description available."}
+                                        description={comboData.description}
                                         tab1={comboData.tab1}
                                         tab2={comboData.tab2}
+                                        tab3={comboData.tab3}
                                     />
                                 </Suspense>
                             </div>
