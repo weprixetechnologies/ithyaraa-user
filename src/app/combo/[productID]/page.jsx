@@ -4,7 +4,7 @@ import ComboInteractive from "@/components/products/ComboInteractive";
 const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
 
 async function getComboData(id) {
-    const res = await fetch(`http://localhost:7885/api/combo/detail-user/${id}`, { next: { revalidate: 60 } });
+    const res = await fetch(`https://backend.ithyaraa.com/api/combo/detail-user/${id}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     const body = await res.json();
     if (!body.data) return null;
@@ -14,7 +14,7 @@ async function getComboData(id) {
 // Reuse the fetchProducts / BuyMore Products logic
 async function getBuyMoreProducts() {
     const params = new URLSearchParams({ limit: "20", page: "1", type: "variable" });
-    const res = await fetch(`http://localhost:7885/api/products/all-products?${params.toString()}`, { next: { revalidate: 300 } });
+    const res = await fetch(`https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`, { next: { revalidate: 300 } });
     if (!res.ok) return [];
     const data = await res.json();
     return (data?.data || []).map(p => {
