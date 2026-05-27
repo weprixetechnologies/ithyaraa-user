@@ -18,6 +18,8 @@ import WishlistIcon from "../ui/WishlistIcon"
 import { useAuth } from "@/contexts/AuthContext"
 import CartDrawer from "../ui/CartDrawer"
 import SearchDrawer from "../ui/SearchDrawer"
+import menu1 from "../../../public/menu1.jpeg"
+import menu2 from "../../../public/menu2.jpeg"
 
 const ShopWithUs = () => {
 
@@ -30,7 +32,7 @@ const ShopWithUs = () => {
                         <Suspense fallback={<div className="w-full aspect-[222/333] bg-gray-200 animate-pulse rounded-2xl" />}>
                             <div className="relative w-full aspect-[222/333]">
                                 <Image
-                                    src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg"
+                                    src={menu1}
                                     alt="Category"
                                     fill
                                     className="rounded-2xl object-cover"
@@ -40,7 +42,7 @@ const ShopWithUs = () => {
                         <Suspense fallback={<div className="w-full aspect-[222/333] bg-gray-200 animate-pulse rounded-2xl" />}>
                             <div className="relative w-full aspect-[222/333]">
                                 <Image
-                                    src="https://images.bewakoof.com/uploads/grid/app/444x666-Desktop-Plus-size-Trending-Category-Icon-1747726805.jpg"
+                                    src={menu2}
                                     alt="Category"
                                     fill
                                     className="rounded-2xl object-cover"
