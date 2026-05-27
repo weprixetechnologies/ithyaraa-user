@@ -4,7 +4,7 @@ import CustomProductInteractive from "@/components/products/CustomProductInterac
 const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
 
 async function getProductData(id) {
-    const res = await fetch(`https://backend.ithyaraa.com/api/products/details/${id}`, { next: { revalidate: 60 } });
+    const res = await fetch(`http://localhost:7885/api/products/details/${id}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     const body = await res.json();
     if (!body.product) return null;
@@ -19,7 +19,7 @@ async function getProductData(id) {
 }
 
 async function getReviewStats(id) {
-    const res = await fetch(`https://backend.ithyaraa.com/api/reviews/product/${id}/stats`, { next: { revalidate: 300 } });
+    const res = await fetch(`http://localhost:7885/api/reviews/product/${id}/stats`, { next: { revalidate: 300 } });
     if (!res.ok) return null;
     const body = await res.json();
     return body.success ? body.data : null;
@@ -39,7 +39,7 @@ async function getDynamicSections() {
     const sections = await Promise.allSettled(
         shuffled.map(async (sectionid) => {
             const params = new URLSearchParams({ limit: "12", sectionid });
-            const res = await fetch(`https://backend.ithyaraa.com/api/products/all-products?${params}`, { next: { revalidate: 300 } });
+            const res = await fetch(`http://localhost:7885/api/products/all-products?${params}`, { next: { revalidate: 300 } });
             if (!res.ok) throw new Error("Failed");
             const data = await res.json();
             const products = (data?.data || []).map(p => ({

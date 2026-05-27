@@ -21,7 +21,7 @@ async function fetchSectionProducts({ limit = 20, page = 1, categoryID = "", typ
     if (categoryID) params.append("categoryID", categoryID);
     if (type) params.append("type", type);
     if (sectionid) params.append("sectionid", sectionid);
-    const res = await fetch(`https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`);
+    const res = await fetch(`http://localhost:7885/api/products/all-products?${params.toString()}`);
     if (!res.ok) throw new Error("Failed to fetch products");
     const data = await res.json();
     const parsedProducts = (data?.data || []).map((p) => {
@@ -36,7 +36,7 @@ async function fetchSectionProducts({ limit = 20, page = 1, categoryID = "", typ
 export async function generateMetadata({ params }) {
     const { productID } = await params;
     try {
-        const res = await axios.get(`https://backend.ithyaraa.com/api/products/details/${productID}`);
+        const res = await axios.get(`http://localhost:7885/api/products/details/${productID}`);
         const product = res.data.product;
 
         const featuredImageStr = safeParse(product.featuredImage);
@@ -63,8 +63,8 @@ export default async function ProductDetailPage({ params }) {
 
     // Fetch all initial page data concurrently
     const [productRes, reviewRes, buyMoreRes] = await Promise.allSettled([
-        axios.get(`https://backend.ithyaraa.com/api/products/details/${productID}`),
-        axios.get(`https://backend.ithyaraa.com/api/reviews/product/${productID}/stats`),
+        axios.get(`http://localhost:7885/api/products/details/${productID}`),
+        axios.get(`http://localhost:7885/api/reviews/product/${productID}/stats`),
         fetchSectionProducts({ limit: 20 })
     ]);
 

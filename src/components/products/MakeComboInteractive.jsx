@@ -85,7 +85,7 @@ const ProductPickerModal = ({
                                 >
                                     <div className="pdp-picker-img-wrap">
                                         <Image
-                                            src={p.featuredImage?.[0]?.imgUrl || "https://backend.ithyaraa.com/uploads/placeholder.jpg"}
+                                            src={p.featuredImage?.[0]?.imgUrl || "http://localhost:7885/uploads/placeholder.jpg"}
                                             alt={p.name}
                                             width={88}
                                             height={88}
