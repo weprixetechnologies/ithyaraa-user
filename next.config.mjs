@@ -63,6 +63,14 @@ const nextConfig = {
         }
         return config;
     },
+    async rewrites() {
+        return [
+            {
+                source: '/affiliate',
+                destination: '/profile?tab=applyaffiliate',
+            },
+        ];
+    },
 };
 
 export default nextConfig;

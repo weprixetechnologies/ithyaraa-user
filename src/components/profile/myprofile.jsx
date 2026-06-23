@@ -128,7 +128,7 @@ const MyProfile = ({ user }) => {
     return (
         <div>
             {/* Header */}
-            <div className="flex justify-between mb-3 py-2">
+            <div className="flex flex-col md:flex-row md:justify-between mb-3 py-2 gap-3 md:gap-0">
                 <div className="flex flex-col">
                     <p className="text-sm font-medium">Personal Info</p>
                     <p className="text-xs text-secondary-text-deep">
@@ -136,10 +136,10 @@ const MyProfile = ({ user }) => {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-3 py-2 bg-transparent border-gray-200 border rounded-lg">
+                    <button className="px-3 py-2 bg-transparent border-gray-200 border rounded-lg text-sm w-full md:w-auto">
                         Cancel
                     </button>
-                    <button className="px-3 py-2 bg-primary-yellow rounded-lg">
+                    <button className="px-3 py-2 bg-primary-yellow rounded-lg text-sm w-full md:w-auto">
                         Save Changes
                     </button>
                 </div>
@@ -147,7 +147,7 @@ const MyProfile = ({ user }) => {
             <hr className="border-gray-200" />
 
             {/* Full Name */}
-            <div className="flex justify-between mb-3 mt-4 pt-4">
+            <div className="flex flex-col md:flex-row md:justify-between mb-3 mt-4 pt-4 gap-2 md:gap-0">
                 <div className="flex flex-col">
                     <p className="text-sm font-medium">Full Name</p>
                 </div>
@@ -155,13 +155,13 @@ const MyProfile = ({ user }) => {
                     type="text"
                     value={profile.name || ""}
                     onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                    className="border-gray-200 border text-xs px-4 rounded-lg min-w-[400px] min-h-[35px]"
+                    className="border-gray-200 border text-xs px-4 rounded-lg w-full md:min-w-[400px] min-h-[35px]"
                     placeholder="Name"
                 />
             </div>
 
             {/* Email */}
-            <div className="flex justify-between mb-3 pt-2">
+            <div className="flex flex-col md:flex-row md:justify-between mb-3 pt-2 gap-2 md:gap-0">
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <p className="text-sm font-medium">Email Address</p>
@@ -172,18 +172,18 @@ const MyProfile = ({ user }) => {
                         )}
                     </div>
                 </div>
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
                     <input
                         type="email"
                         value={profile.emailID || ""}
                         onChange={(e) => setProfile({ ...profile, emailID: e.target.value })}
-                        className="border-gray-200 border text-xs px-4 rounded-lg min-w-[300px] min-h-[35px]"
+                        className="border-gray-200 border text-xs px-4 rounded-lg w-full sm:min-w-[300px] min-h-[35px]"
                         placeholder="Email"
                     />
                     {profile.verifiedEmail !== 1 && (
                         <button
                             onClick={isVerifyingEmail ? verifyEmailOtp : sendEmailVerificationOtp}
-                            className={`px-4 py-2 text-sm rounded-lg ${isVerifyingEmail ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
+                            className={`px-4 py-2 text-sm rounded-lg whitespace-nowrap ${isVerifyingEmail ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
                                 }`}
                         >
                             {isVerifyingEmail ? 'Verify' : 'Verify Email'}
@@ -194,7 +194,7 @@ const MyProfile = ({ user }) => {
 
             {/* Email OTP Input */}
             {isVerifyingEmail && (
-                <div className="flex justify-between mb-3 pt-2">
+                <div className="flex flex-col md:flex-row md:justify-between mb-3 pt-2 gap-2 md:gap-0">
                     <div className="flex flex-col">
                         <p className="text-sm font-medium">Enter OTP</p>
                     </div>
@@ -214,7 +214,7 @@ const MyProfile = ({ user }) => {
             )}
 
             {/* Phone */}
-            <div className="flex justify-between mb-3 pt-2">
+            <div className="flex flex-col md:flex-row md:justify-between mb-3 pt-2 gap-2 md:gap-0">
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <p className="text-sm font-medium">Phone Number</p>
@@ -225,18 +225,18 @@ const MyProfile = ({ user }) => {
                         )}
                     </div>
                 </div>
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
                     <input
                         type="tel"
                         value={profile.phonenumber || ""}
                         readOnly
-                        className="bg-gray-200 border-gray-200 border text-xs px-4 rounded-lg min-w-[300px] min-h-[35px]"
+                        className="bg-gray-200 border-gray-200 border text-xs px-4 rounded-lg w-full sm:min-w-[300px] min-h-[35px]"
                         placeholder="Phone Number"
                     />
                     {profile.verifiedPhone !== 1 && (
                         <button
                             onClick={isVerifyingPhone ? verifyPhoneOtp : sendPhoneVerificationOtp}
-                            className={`px-4 py-2 text-sm rounded-lg ${isVerifyingPhone ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
+                            className={`px-4 py-2 text-sm rounded-lg whitespace-nowrap ${isVerifyingPhone ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
                                 }`}
                         >
                             {isVerifyingPhone ? 'Verify' : 'Verify Phone'}
@@ -247,7 +247,7 @@ const MyProfile = ({ user }) => {
 
             {/* Phone OTP Input */}
             {isVerifyingPhone && (
-                <div className="flex justify-between mb-3 pt-2">
+                <div className="flex flex-col md:flex-row md:justify-between mb-3 pt-2 gap-2 md:gap-0">
                     <div className="flex flex-col">
                         <p className="text-sm font-medium">Enter OTP</p>
                     </div>
@@ -267,30 +267,30 @@ const MyProfile = ({ user }) => {
             )}
 
             {/* Username + UID */}
-            <div className="flex justify-between mb-3 pt-2">
+            <div className="flex flex-col md:flex-row md:justify-between mb-3 pt-2 gap-2 md:gap-0">
                 <div className="flex flex-col">
                     <p className="text-sm font-medium">Username and UID</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <input
                         type="text"
                         value={profile.username || ""}
                         readOnly
-                        className="bg-gray-200 border-gray-200 border text-xs px-4 rounded-lg min-w-[200px] min-h-[35px]"
+                        className="bg-gray-200 border-gray-200 border text-xs px-4 rounded-lg w-full sm:min-w-[200px] min-h-[35px]"
                         placeholder="Username"
                     />
                     <input
                         type="text"
                         value={profile.uid || ""}
                         readOnly
-                        className="bg-gray-200 border-gray-200 border text-xs px-4 rounded-lg min-w-[200px] min-h-[35px]"
+                        className="bg-gray-200 border-gray-200 border text-xs px-4 rounded-lg w-full sm:min-w-[200px] min-h-[35px]"
                         placeholder="UID"
                     />
                 </div>
             </div>
 
             {/* Wallet Balance */}
-            <div className="flex justify-between mb-7 pt-2">
+            <div className="flex flex-col md:flex-row md:justify-between mb-7 pt-2 gap-2 md:gap-0">
                 <div className="flex flex-col">
                     <p className="text-sm font-medium">Wallet Balance</p>
                     <p className="text-xs text-secondary-text-deep">
@@ -302,7 +302,7 @@ const MyProfile = ({ user }) => {
                         type="text"
                         value={`₹${parseFloat(profile.balance || 0).toFixed(2)}`}
                         readOnly
-                        className="bg-blue-50 border-blue-200 border text-xs px-4 rounded-lg min-w-[200px] min-h-[35px] font-semibold text-blue-700"
+                        className="bg-blue-50 border-blue-200 border text-xs px-4 rounded-lg w-full md:w-auto md:min-w-[200px] min-h-[35px] font-semibold text-blue-700"
                         placeholder="Wallet Balance"
                     />
                 </div>
@@ -311,15 +311,15 @@ const MyProfile = ({ user }) => {
             <hr className="border-gray-200" />
 
             {/* Profile Photo */}
-            <div className="flex justify-between mb-3 py-2">
+            <div className="flex flex-col md:flex-row md:justify-between mb-3 py-2 gap-4 md:gap-0">
                 <div className="flex flex-col">
                     <p className="text-sm font-medium">Profile Photo</p>
                     <p className="text-xs text-secondary-text-deep">
                         The photo will be displayed on your profile
                     </p>
                 </div>
-                <div className="flex gap-2">
-                    <div className="relative">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-2 items-start sm:items-center">
+                    <div className="relative shrink-0">
                         <Image
                             src={
                                 profile.featuredImage ||
@@ -331,9 +331,9 @@ const MyProfile = ({ user }) => {
                             alt="Profile Picture"
                         />
                     </div>
-                    <div className="flex flex-col justify-center items-center border-dashed border min-h-20 min-w-[200px] max-w-[300px] p-5">
+                    <div className="flex flex-col justify-center items-center border-dashed border min-h-20 w-full sm:w-auto sm:min-w-[200px] sm:max-w-[300px] p-5">
                         <IoIosCloudUpload className="text-blue-500" size={30} />
-                        <p className="text-xs text-center">
+                        <p className="text-xs text-center mt-2">
                             Click to Upload or Drag and drop
                             <br />
                             SVG, PNG or JPG (max 800x400px)

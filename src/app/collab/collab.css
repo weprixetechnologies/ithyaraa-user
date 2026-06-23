@@ -1,0 +1,547 @@
+/* ═════════════════════════════════════════════════
+   Collab with Ithyaraa — Page Styles
+   Brand: Black #000, Silver #c0c0c0, Yellow #ffd232,
+          Logo-orange #d97a3c
+   ═════════════════════════════════════════════════ */
+
+/* ── PAGE ── */
+.collab-page {
+  position: relative;
+  overflow-x: hidden;
+  background: #050505;
+  color: #f5f5f5;
+  font-family: var(--font-montserrat, "Montserrat", sans-serif);
+}
+
+/* ── ANIMATED BACKGROUND ── */
+.collab-bg-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.collab-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+.collab-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+}
+
+.collab-ring {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: 650px;
+  height: 650px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 210, 50, 0.06);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── HERO ── */
+.collab-hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 120px 24px 80px;
+  text-align: center;
+}
+
+.collab-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+      ellipse 70% 60% at 50% 40%,
+      rgba(217, 122, 60, 0.12) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 50% at 80% 20%,
+      rgba(255, 210, 50, 0.07) 0%,
+      transparent 60%
+    );
+}
+
+.collab-hero-badge {
+  display: inline-block;
+  padding: 8px 22px;
+  border-radius: 100px;
+  background: rgba(255, 210, 50, 0.1);
+  border: 1px solid rgba(255, 210, 50, 0.2);
+  color: #ffd232;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  backdrop-filter: blur(6px);
+}
+
+.collab-hero-content {
+  max-width: 820px;
+  position: relative;
+  z-index: 2;
+}
+
+.collab-hero-title {
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -1.5px;
+  margin-bottom: 24px;
+  color: #fff;
+}
+
+.collab-hero-brand {
+  background: linear-gradient(135deg, #ffd232 0%, #d97a3c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.collab-hero-sub {
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.7;
+  max-width: 600px;
+  margin: 0 auto 40px;
+  font-weight: 400;
+}
+
+/* ── CTA BUTTONS ── */
+.collab-hero-cta-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.collab-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 36px;
+  border-radius: 60px;
+  background: linear-gradient(135deg, #ffd232 0%, #d97a3c 100%);
+  color: #000;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: transform 0.25s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 0 0 rgba(255, 210, 50, 0);
+  cursor: pointer;
+}
+.collab-cta-primary:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 8px 40px rgba(255, 210, 50, 0.3);
+}
+
+.collab-cta-large {
+  padding: 20px 48px;
+  font-size: 17px;
+}
+
+.collab-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 16px 32px;
+  border-radius: 60px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  backdrop-filter: blur(4px);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+.collab-cta-secondary:hover {
+  border-color: rgba(255, 210, 50, 0.4);
+  color: #ffd232;
+  background: rgba(255, 210, 50, 0.05);
+}
+
+/* ── SCROLL INDICATOR ── */
+.collab-scroll-indicator {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 46px;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.collab-scroll-dot {
+  width: 4px;
+  height: 10px;
+  border-radius: 4px;
+  background: rgba(255, 210, 50, 0.6);
+}
+
+/* ── SECTIONS ── */
+.collab-section {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px;
+}
+
+.collab-section-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 16px;
+  letter-spacing: -0.8px;
+  color: #fff;
+}
+
+.collab-highlight {
+  background: linear-gradient(135deg, #ffd232 0%, #d97a3c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.collab-section-sub {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto 60px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+/* ── STATS ── */
+.collab-stats-section {
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+
+.collab-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.collab-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  transition: border-color 0.3s;
+}
+.collab-stat:hover {
+  border-color: rgba(255, 210, 50, 0.2);
+}
+
+.collab-stat-number {
+  font-size: 2.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffd232 0%, #d97a3c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.collab-stat-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ── BENEFIT CARDS ── */
+.collab-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.collab-benefit-card {
+  padding: 40px 32px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  transition: all 0.35s ease;
+  cursor: default;
+}
+.collab-benefit-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 210, 50, 0.15);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+}
+
+.collab-benefit-icon {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+}
+
+.collab-benefit-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.collab-benefit-desc {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── HOW IT WORKS STEPS ── */
+.collab-how-section {
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+
+.collab-steps-container {
+  position: relative;
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.collab-steps-line {
+  position: absolute;
+  left: 32px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 210, 50, 0.3),
+    rgba(217, 122, 60, 0.1)
+  );
+  border-radius: 999px;
+}
+
+.collab-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.collab-step-number {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 210, 50, 0.12) 0%, rgba(217, 122, 60, 0.12) 100%);
+  border: 1px solid rgba(255, 210, 50, 0.15);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #ffd232;
+}
+
+.collab-step-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #fff;
+}
+
+.collab-step-desc {
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
+}
+
+/* ── WHO CAN JOIN ── */
+.collab-who-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 800px;
+  margin: 40px auto 0;
+}
+
+.collab-who-card {
+  padding: 36px 32px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+.collab-who-card:hover {
+  border-color: rgba(255, 210, 50, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.collab-who-emoji {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 14px;
+}
+
+.collab-who-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.collab-who-desc {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
+}
+
+/* ── FINAL CTA ── */
+.collab-final-cta-section {
+  padding-bottom: 140px;
+}
+
+.collab-final-cta-box {
+  text-align: center;
+  padding: 80px 40px;
+  border-radius: 32px;
+  background: linear-gradient(
+      160deg,
+      rgba(255, 210, 50, 0.06) 0%,
+      rgba(217, 122, 60, 0.04) 50%,
+      rgba(0, 0, 0, 0) 100%
+    ),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 210, 50, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.collab-final-cta-title {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.collab-final-cta-sub {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 500px;
+  margin: 0 auto 40px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .collab-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .collab-benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .collab-hero {
+    padding: 100px 20px 60px;
+    min-height: 90vh;
+  }
+
+  .collab-section {
+    padding: 70px 20px;
+  }
+
+  .collab-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .collab-stat {
+    padding: 28px 16px;
+  }
+  .collab-stat-number {
+    font-size: 2rem;
+  }
+
+  .collab-benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .collab-who-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .collab-hero-cta-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .collab-final-cta-box {
+    padding: 50px 24px;
+    border-radius: 24px;
+  }
+
+  .collab-cta-primary,
+  .collab-cta-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .collab-scroll-indicator {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .collab-hero-title {
+    font-size: 2.2rem;
+    letter-spacing: -0.5px;
+  }
+  .collab-section-title {
+    font-size: 1.7rem;
+  }
+  .collab-steps-container {
+    gap: 28px;
+  }
+  .collab-step-number {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+  .collab-steps-line {
+    left: 24px;
+  }
+}

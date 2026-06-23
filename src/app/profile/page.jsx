@@ -57,7 +57,7 @@ const ProfilePage = () => {
             <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 items-start py-4 sm:py-5 gap-4 sm:gap-6">
                     {/* Tab buttons */}
-                    <div className="lg:col-span-3 order-2 lg:order-1">
+                    <div className="lg:col-span-3">
                         <div className="bg-white border border-gray-200 rounded-lg mb-4 p-3 sm:p-4">
                             <div className="flex flex-col sm:flex-col items-center w-full">
                                 <Image
@@ -199,7 +199,7 @@ const ProfilePage = () => {
                     </div>
 
                     {/* Tab content */}
-                    <div className="lg:col-span-9 order-1 lg:order-2">
+                    <div className="lg:col-span-9">
                         <div className=" rounded-lg  min-h-[400px]">
                             <Suspense fallback={<CardSkeleton className="h-96" />}>
                                 {activeTab === "accountdetail" && <AccountDetail user={user} />}

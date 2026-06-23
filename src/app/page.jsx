@@ -260,7 +260,7 @@ export default async function Home() {
       />
 
       <ProductSection
-        heading="Curated With Our Brand Partners"
+        heading="Curated With Brands"
         subHeading="Timeless Collections You'll Love"
         products={section_one}
       />

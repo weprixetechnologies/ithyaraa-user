@@ -121,23 +121,48 @@ const ShopWithUs = () => {
     )
 }
 
-const HamburgerMenu = ({ isLoggedIn, user }) => {
+const HamburgerMenu = ({ isLoggedIn, user, closeMenu }) => {
     const router = useRouter()
+
+    const handleProfileClick = () => {
+        if (closeMenu) closeMenu();
+        if (isLoggedIn) {
+            router.push('/profile');
+        } else {
+            router.push('/login');
+        }
+    };
 
     return (
         <div className="px-3 py-5">
             {isLoggedIn ? (
-                <div className="auth-content-hamburger flex flex-row gap-2 items-center">
-                    <IoPersonOutline size={28} className="text-gray-700" />
+                <div
+                    className="auth-content-hamburger flex flex-row gap-3 items-center cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                    onClick={handleProfileClick}
+                >
+                    {user?.profilePhoto ? (
+                        <Image
+                            src={user.profilePhoto}
+                            alt="Profile"
+                            width={40}
+                            height={40}
+                            className="h-[40px] w-[40px] rounded-full ring-1 ring-gray-200 object-cover"
+                        />
+                    ) : (
+                        <div className="h-[40px] w-[40px] rounded-full border bg-gray-100 flex items-center justify-center">
+                            <IoPersonOutline size={20} className="text-gray-500" />
+                        </div>
+                    )}
                     <div className="flex flex-col items-start">
-                        <p className="text-xs">Welcome Back</p>
-                        <p className="text-sm">{user?.name || user?.username || 'User'}</p>
+                        <p className="text-xs text-gray-500 font-medium">Welcome Back</p>
+                        <p className="text-sm font-semibold">{user?.name || user?.username || 'User'}</p>
                     </div>
                 </div>
             ) : (
                 <button
                     className="w-full text-sm font-medium bg-primary text-white px-4 py-2 rounded hover:bg-secondary transition-colors cursor-pointer"
                     onClick={() => {
+                        if (closeMenu) closeMenu();
                         router.push('/login')
                     }}
                 >
@@ -189,8 +214,8 @@ const Header = () => {
                         <Link href="/track-order" className="text-xs text-white hover:text-gray-300">
                             Track Your Order
                         </Link>
-                        <Link href="/newsletter" className="text-xs text-white hover:text-gray-300">
-                            Join Our Newsletters
+                        <Link href="/collab" className="text-xs text-white hover:text-gray-300">
+                            Collab with Ithyaraa
                         </Link>
                         <Link href="/download-mobile" className="text-xs text-white hover:text-gray-300">
                             Download Our Mobile Application
@@ -362,7 +387,7 @@ const Header = () => {
                 <div
                     className={`absolute top-0 left-0 w-[70%] rounded-r-2xl h-[100dvh] bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${hamburgerOpen ? "translate-x-0" : "-translate-x-full"}`}
                 >
-                    <HamburgerMenu isLoggedIn={isLoggedIn} user={user} />
+                    <HamburgerMenu isLoggedIn={isLoggedIn} user={user} closeMenu={() => setHamburgerOpen(false)} />
                 </div>
             </div>
 

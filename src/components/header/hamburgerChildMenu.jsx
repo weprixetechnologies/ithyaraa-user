@@ -49,6 +49,11 @@ const hamburgerMenuItems = [
         label: "FLASH SALE",
         href: "/flash-sale",
         subItems: [],
+    },
+    {
+        label: "PROFILE",
+        href: "/profile",
+        subItems: [],
     }
 ];
 
