@@ -4,9 +4,12 @@ import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
+import dynamic from 'next/dynamic';
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { useWishlist } from "@/contexts/WishlistContext";
 import logo from "../../../public/ithyaraa-logo.png";
+
+const AnimatedBlobs = dynamic(() => import('../homeComponents/AnimatedBlobs'), { ssr: false });
 
 const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, products = [] }) => {
     const scrollRef = useRef(null)
@@ -126,14 +129,33 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
     // console.log(products);
 
     return (
-        <>
+        <section className="relative overflow-x-clip w-full">
+            <AnimatedBlobs />
+            
             {/* Heading */}
-            <div className="flex flex-row justify-between px-5 mt-5 items-end mb-3 md:flex-col md:items-center">
-                <div className="flex flex-col">
-                    <p className="text-lg font-medium md:text-2xl text-left">{heading}</p>
-                    <p className="text-xs font-semibold text-secondary-text-deep md:text-center md:text-sm">{subHeading}</p>
+            <div className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-8 md:py-12 px-4 text-center animate-editorial-fade">
+                {/* Eyebrow Label */}
+                <div className="flex items-center justify-center gap-3 mb-3">
+                    <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
+                    <span className="font-parisienne text-[#ff7aa2] text-[16px] md:text-[18px] font-normal leading-none pt-1">
+                        Trending Now
+                    </span>
+                    <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
                 </div>
-                <button className="bg-primary-yellow h-[30px] px-2 text-xs font-medium rounded md:hidden">
+                
+                {/* Main Title */}
+                <h2 className="font-playfair font-medium text-[36px] md:text-[3rem] leading-[1] tracking-[-0.03em] text-[#111111] mb-[10px]">
+                    {heading}
+                </h2>
+                
+                {/* Subtitle */}
+                {subHeading && (
+                    <p className="font-medium text-[16px] md:text-[18px] lg:text-[20px] leading-[1.5] text-black max-w-[700px] mx-auto">
+                        {subHeading}
+                    </p>
+                )}
+                
+                <button className="mt-6 bg-primary-yellow h-[30px] px-4 text-xs font-medium rounded md:hidden">
                     Shop Now
                 </button>
             </div>
@@ -263,7 +285,7 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                     <IoIosArrowForward size={20} />
                 </button>
             </div>
-        </>
+        </section>
     );
 };
 

@@ -2,6 +2,16 @@
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
+
+const links = [
+    { href: "/shop?maxPrice=299", src: "/under299.png" },
+    { href: "/shop?maxPrice=399", src: "/under399.png" },
+    { href: "/shop?maxPrice=599", src: "/under599.png" },
+    { href: "/shop?maxPrice=799", src: "/under799.png" },
+    { href: "/shop?maxPrice=999", src: "/under999.png" },
+    { href: "/offers", src: "/viewoffer.png" },
+];
 
 const UnderSections = () => {
     return (
@@ -34,32 +44,35 @@ const UnderSections = () => {
                     z-index: 2;
                 }
             `}</style>
-            <div className='my-10 px-4 md:px-10'>
-                <div className="flex flex-col items-center mb-4">
+            <div className='my-10 px-4 md:px-10 overflow-x-clip'>
+                <div className="flex flex-col items-center mb-6">
                     <h2 className="text-2xl font-semibold uppercase md:text-3xl">Special Sections for you</h2>
                     <p className='text-lg md:text-xl font-medium'>Found a perfect place</p>
                 </div>
                 <div className="w-full flex justify-center">
-                    <div className="w-full md:w-4/5 grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                        <Link href="/shop?maxPrice=299" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
-                            <Image src="/under299.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </Link>
-                        <Link href="/shop?maxPrice=399" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
-                            <Image src="/under399.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </Link>
-                        <Link href="/shop?maxPrice=599" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
-                            <Image src="/under599.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </Link>
-                        <Link href="/shop?maxPrice=799" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
-                            <Image src="/under799.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </Link>
-                        <Link href="/shop?maxPrice=999" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
-                            <Image src="/under999.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </Link>
-                        <Link href="/offers" className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
-                            <Image src="/viewoffer.png" alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
-                        </Link>
-                    </div>
+                    <motion.div 
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-50px" }}
+                        transition={{ staggerChildren: 0.15 }}
+                        className="w-full md:w-4/5 grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6"
+                    >
+                        {links.map((item, index) => {
+                            const isEven = index % 2 === 0;
+                            const itemVariants = {
+                                hidden: { opacity: 0, x: isEven ? -100 : 100 },
+                                visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 60, damping: 15 } }
+                            };
+
+                            return (
+                                <motion.div key={index} variants={itemVariants}>
+                                    <Link href={item.href} className='ripple-container relative transition-transform duration-300 hover:-translate-x-1 hover:-translate-y-1 cursor-pointer shadow-lg rounded-lg block'>
+                                        <Image src={item.src} alt="Under this price" width={500} height={350} className='rounded-lg w-full h-auto' />
+                                    </Link>
+                                </motion.div>
+                            )
+                        })}
+                    </motion.div>
                 </div>
             </div>
         </>

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { IoChevronDownSharp, IoChevronUpSharp } from "react-icons/io5";
 import logo from "../../../public/ithyaraa-logo.png";
 
-const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
+const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages, discountValue }) => {
     const galleryRef = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -35,6 +35,12 @@ const ProductGallery = ({ featuredImage, setFeaturedImage, galleryImages }) => {
                             }`}
                         onLoadingComplete={() => setIsLoading(false)}
                     />
+                    
+                    {discountValue > 0 && (
+                        <div className="absolute top-2 right-2 bg-[#e84393] text-white text-xs md:text-sm font-semibold px-2 py-1 rounded shadow-md z-10">
+                            {discountValue}% OFF
+                        </div>
+                    )}
                 </div>
             </div>
             {/* Desktop Vertical Gallery */}

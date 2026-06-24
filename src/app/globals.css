@@ -1,6 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&family=Parisienne&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
-
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -41,9 +41,11 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-* {
-  box-sizing: border-box;
-  font-family: var(--font-montserrat);
+@layer base {
+  * {
+    box-sizing: border-box;
+    font-family: var(--font-montserrat);
+  }
 }
 
 @theme inline {
@@ -57,6 +59,9 @@
   --color-primary-logo-yellow: #d97a3c;
   --color-secondary-text-deep: rgb(115, 126, 147);
   --font-poppins: 'Poppins', sans-serif;
+  --font-playfair: 'Playfair Display', serif;
+  --font-parisienne: 'Parisienne', cursive;
+  --font-inter: 'Inter', sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -141,6 +146,14 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes fadeUpEditorial {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-editorial-fade {
+  animation: fadeUpEditorial 600ms ease-out forwards;
 }
 
 /* Utility classes */
@@ -462,4 +475,615 @@
     color: #111;
     text-decoration: none;
   }
+}
+
+/* ============================
+   STICKY DESKTOP HEADER STYLES
+   ============================ */
+
+/* Slide-down animation */
+@keyframes stickySlideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes stickySlideUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+/* Base: hidden on mobile */
+.sticky-header-desktop {
+  display: none;
+}
+
+/* Desktop only */
+@media (min-width: 768px) {
+  .sticky-header-desktop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    pointer-events: none;
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  .sticky-header-desktop.sticky-header-visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sticky-header-desktop.sticky-header-hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Shared inner container */
+  .sticky-header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* ---- Top Info Strip ---- */
+  .sticky-header-top-strip {
+    background: #f8f8f8;
+    border-bottom: 1px solid #eee;
+    padding: 6px 0;
+  }
+
+  .sticky-header-top-strip .sticky-header-inner {
+    justify-content: center;
+    gap: 48px;
+  }
+
+  .sticky-strip-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+
+  .sticky-strip-item svg {
+    color: #888;
+    flex-shrink: 0;
+  }
+
+  /* ---- Main Sticky Nav ---- */
+  .sticky-header-main {
+    background: #fff;
+    padding: 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .sticky-header-main .sticky-header-inner {
+    justify-content: space-between;
+    gap: 24px;
+    height: 80px;
+  }
+
+  /* Hamburger + Logo group */
+  .sticky-header-left-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  /* Logo */
+  .sticky-header-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .sticky-header-logo img {
+    height: 70px !important;
+    width: auto !important;
+  }
+
+  /* Navigation links */
+  .sticky-header-nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex-shrink: 0;
+  }
+
+  .sticky-nav-link {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #333;
+    text-decoration: none;
+    white-space: nowrap;
+    position: relative;
+    padding: 4px 0;
+    transition: color 0.2s ease;
+    letter-spacing: 0.01em;
+  }
+
+  .sticky-nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1.5px;
+    background: #000;
+    transition: width 0.25s ease;
+  }
+
+  .sticky-nav-link:hover {
+    color: #000;
+  }
+
+  .sticky-nav-link:hover::after {
+    width: 100%;
+  }
+
+  /* Sale link — pink/red accent */
+  .sticky-nav-sale {
+    color: #e84393;
+    font-weight: 600;
+  }
+
+  .sticky-nav-sale::after {
+    background: #e84393;
+  }
+
+  .sticky-nav-sale:hover {
+    color: #d63031;
+  }
+
+  /* ---- Shop Dropdown ---- */
+  .sticky-nav-dropdown-wrapper {
+    position: relative;
+  }
+
+  .sticky-nav-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .sticky-chevron {
+    transition: transform 0.25s ease;
+    margin-top: 1px;
+  }
+
+  .sticky-nav-dropdown-wrapper:hover .sticky-chevron {
+    transform: rotate(180deg);
+  }
+
+  .sticky-nav-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    min-width: 200px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    padding: 6px 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    z-index: 100;
+  }
+
+  .sticky-nav-dropdown-wrapper:hover .sticky-nav-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .sticky-dropdown-item {
+    display: block;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #444;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .sticky-dropdown-item:hover {
+    background: #f5f5f5;
+    color: #000;
+  }
+
+  /* ---- Right Actions (search + icons) ---- */
+  .sticky-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Search container override — make it compact in sticky */
+  .sticky-header-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .sticky-header-search .sticky-search-icon {
+    display: none; /* icon hidden, SearchNavbar has its own styling */
+  }
+
+  .sticky-header-search > div {
+    /* Override SearchNavbar width in sticky context */
+    width: 220px !important;
+    max-width: 220px !important;
+  }
+
+  .sticky-header-search input {
+    font-size: 12.5px !important;
+    height: 34px !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    border: 1px solid #ddd !important;
+    background: #f9f9f9 !important;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .sticky-header-search input::placeholder {
+    font-size: 12px;
+    color: #999;
+  }
+
+  .sticky-header-search input:focus {
+    border-color: #999 !important;
+    background: #fff !important;
+  }
+
+  /* Action icons */
+  .sticky-action-icon {
+    cursor: pointer;
+    color: #333;
+    transition: color 0.2s ease, transform 0.15s ease;
+  }
+
+  .sticky-action-icon:hover {
+    color: #000;
+    transform: scale(1.1);
+  }
+
+  /* ---- Hamburger Button ---- */
+  .sticky-hamburger-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .sticky-hamburger-btn:hover {
+    background: #f3f3f3;
+  }
+
+  .sticky-hamburger-line {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #222;
+    border-radius: 2px;
+    transition: width 0.25s ease, background-color 0.2s ease;
+  }
+
+  .sticky-hamburger-line--short {
+    width: 15px;
+  }
+
+  .sticky-hamburger-btn:hover .sticky-hamburger-line {
+    background: #000;
+  }
+
+  .sticky-hamburger-btn:hover .sticky-hamburger-line--short {
+    width: 22px;
+  }
+}
+
+/* ============================
+   FULLSCREEN MENU OVERLAY
+   ============================ */
+
+.fullscreen-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.fullscreen-menu-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(10, 10, 10, 0.88) 0%,
+    rgba(17, 17, 17, 0.85) 30%,
+    rgba(26, 26, 26, 0.82) 60%,
+    rgba(15, 15, 15, 0.88) 100%
+  );
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  z-index: 0;
+}
+
+/* Close button */
+.fullscreen-menu-close {
+  position: absolute;
+  top: 32px;
+  right: 40px;
+  z-index: 2;
+  background: none;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.fullscreen-menu-close:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Logo */
+.fullscreen-menu-logo {
+  position: absolute;
+  top: 28px;
+  left: 40px;
+  z-index: 2;
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 24px;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Navigation */
+.fullscreen-menu-nav {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  max-width: 700px;
+  padding: 0 48px;
+}
+
+.fullscreen-menu-item {
+  display: block;
+  text-decoration: none;
+  width: 100%;
+}
+
+.fullscreen-menu-item-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: -0.01em;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.fullscreen-menu-item:hover .fullscreen-menu-item-inner {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.fullscreen-menu-number {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.25);
+  font-variant-numeric: tabular-nums;
+  min-width: 24px;
+  letter-spacing: 0.05em;
+}
+
+.fullscreen-menu-item:hover .fullscreen-menu-number {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ---- Active item: moving border effect ---- */
+.fullscreen-menu-active .fullscreen-menu-item-inner {
+  position: relative;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+/* Top + Right border — travels clockwise */
+.fullscreen-menu-active .fullscreen-menu-item-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--border-angle, 0deg),
+    transparent 0%,
+    transparent 25%,
+    rgba(255, 255, 255, 0.6) 30%,
+    rgba(255, 255, 255, 0.9) 35%,
+    rgba(255, 255, 255, 0.6) 40%,
+    transparent 45%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: borderSpin 3s linear infinite;
+}
+
+/* Bottom + Left border — travels with offset */
+.fullscreen-menu-active .fullscreen-menu-item-inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--border-angle-2, 180deg),
+    transparent 0%,
+    transparent 25%,
+    rgba(255, 255, 255, 0.3) 30%,
+    rgba(255, 255, 255, 0.55) 35%,
+    rgba(255, 255, 255, 0.3) 40%,
+    transparent 45%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: borderSpin2 3s linear infinite;
+}
+
+@keyframes borderSpin {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
+@keyframes borderSpin2 {
+  to {
+    --border-angle-2: 540deg;
+  }
+}
+
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@property --border-angle-2 {
+  syntax: "<angle>";
+  initial-value: 180deg;
+  inherits: false;
+}
+
+/* Active number highlight */
+.fullscreen-menu-active .fullscreen-menu-number {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Flash Sale accent */
+.fullscreen-menu-sale .fullscreen-menu-item-inner {
+  color: #e84393;
+}
+
+.fullscreen-menu-sale:hover .fullscreen-menu-item-inner {
+  color: #fd79a8;
+  background: rgba(232, 67, 147, 0.08);
+}
+
+/* Active + Sale combo */
+.fullscreen-menu-active.fullscreen-menu-sale .fullscreen-menu-item-inner::before {
+  background: conic-gradient(
+    from var(--border-angle, 0deg),
+    transparent 0%,
+    transparent 25%,
+    rgba(232, 67, 147, 0.6) 30%,
+    rgba(253, 121, 168, 0.9) 35%,
+    rgba(232, 67, 147, 0.6) 40%,
+    transparent 45%,
+    transparent 100%
+  );
+}
+
+.fullscreen-menu-active.fullscreen-menu-sale .fullscreen-menu-item-inner::after {
+  background: conic-gradient(
+    from var(--border-angle-2, 180deg),
+    transparent 0%,
+    transparent 25%,
+    rgba(232, 67, 147, 0.3) 30%,
+    rgba(253, 121, 168, 0.55) 35%,
+    rgba(232, 67, 147, 0.3) 40%,
+    transparent 45%,
+    transparent 100%
+  );
+}
+
+/* Footer */
+.fullscreen-menu-footer {
+  position: absolute;
+  bottom: 36px;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.02em;
+}
+
+.fullscreen-menu-dot {
+  font-size: 8px;
+  opacity: 0.5;
 }

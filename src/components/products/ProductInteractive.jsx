@@ -202,12 +202,13 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
                             featuredImage={featuredImage}
                             setFeaturedImage={setFeaturedImage}
                             galleryImages={galleryImages}
+                            discountValue={product.discountValue}
                         />
                     </Suspense>
 
                     {/* ── Product info ── */}
                     <div className="product-data-tab px-3">
-                        <p className="text-xs font-medium uppercase text-secondary-text-deep">{(!product?.brand && !product?.brandID) ? 'Ithyaraa' : (product?.brand || 'ITHYARAA')}</p>
+                        <p className="text-xs font-medium uppercase text-[#e84393]">{(!product?.brand && !product?.brandID) ? 'Ithyaraa' : (product?.brand || 'ITHYARAA')}</p>
                         <h1 className="text-xl md:text-2xl font-medium">{product.name}</h1>
 
                         {/* Rating */}

@@ -3,6 +3,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { FaInstagram } from 'react-icons/fa';
+import dynamic from 'next/dynamic';
+
+const AnimatedBlobs = dynamic(() => import('../homeComponents/AnimatedBlobs'), { ssr: false });
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://backend.ithyaraa.com/api';
 
@@ -119,19 +122,36 @@ const ReelsSection = ({ heading = "Reels", subHeading = "Watch our latest storie
     if (reels.length === 0) return null;
 
     return (
-        <section className="my-10">
-            <div className="flex flex-row justify-between px-5 items-end mb-3 md:flex-col md:items-center">
-                <div className="flex flex-col">
-                    <p className="text-lg font-medium md:text-2xl">{heading}</p>
-                    <p className="text-xs font-semibold text-secondary-text-deep md:text-center md:text-sm">{subHeading}</p>
+        <section className="relative overflow-hidden w-full my-10">
+            <AnimatedBlobs />
+            <div className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-8 md:py-12 px-4 text-center animate-editorial-fade">
+                {/* Eyebrow Label */}
+                <div className="flex items-center justify-center gap-3 mb-3">
+                    <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
+                    <span className="font-parisienne text-[#ff7aa2] text-[16px] md:text-[18px] font-normal leading-none pt-1">
+                        Trending Now
+                    </span>
+                    <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
                 </div>
-
+                
+                {/* Main Title */}
+                <h2 className="font-playfair font-medium text-[36px] md:text-[3rem] leading-[1] tracking-[-0.03em] text-[#111111] mb-[10px]">
+                    {heading}
+                </h2>
+                
+                {/* Subtitle */}
+                {subHeading && (
+                    <p className="font-medium text-[16px] md:text-[18px] lg:text-[20px] leading-[1.5] text-black max-w-[700px] mx-auto">
+                        {subHeading}
+                    </p>
+                )}
+                
                 {/* ✅ Fixed: restored opening <a tag */}
                 <a
                     href="https://www.instagram.com/ithyaraa_official"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="md:hidden flex items-center gap-1.5 px-3 h-[30px] rounded text-white text-[10px] font-bold shadow-md bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045]"
+                    className="mt-6 md:hidden flex items-center justify-center gap-1.5 px-4 h-[30px] rounded text-white text-[12px] font-bold shadow-md bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045]"
                 >
                     <FaInstagram size={14} />
                     <span>Follow Us</span>

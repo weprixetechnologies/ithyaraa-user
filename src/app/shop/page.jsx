@@ -55,8 +55,6 @@ const ShopContent = () => {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-2 md:w-[90%] px-2  w-full">
                     {/* Desktop Sidebar */}
                     <aside className="hidden md:block md:col-span-3 pr-2 py-3 border-black h-[calc(100vh-70px)] md:h-[calc(100dvh-170px)] overflow-y-auto">
-                        <p className="text-xl font-medium mb-2">Filters :</p>
-                        <hr className="border-gray-200 mt-2" />
                         <FilterComponent />
                     </aside>
 
@@ -118,9 +116,7 @@ const ShopLoading = () => (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-2 md:w-[90%] px-2">
                 {/* Desktop Sidebar */}
                 <aside className="hidden md:block md:col-span-3 pr-2 py-3 border-black h-[calc(100vh-70px)] md:h-[calc(100dvh-170px)] overflow-y-auto">
-                    <p className="text-xl font-medium mb-2">Filters :</p>
-                    <hr className="border-gray-200 mt-2" />
-                    <div className="space-y-4">
+                    <div className="space-y-4 mt-2">
                         <div className="h-4 bg-gray-200 rounded animate-pulse" />
                         <div className="h-4 bg-gray-200 rounded animate-pulse" />
                         <div className="h-4 bg-gray-200 rounded animate-pulse" />

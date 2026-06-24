@@ -4,11 +4,14 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import dynamic from 'next/dynamic';
 import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
 import axiosInstance from "@/lib/axiosInstance";
 import logo from "../../../public/ithyaraa-logo.png";
 import ShopProductCard from "@/components/ui/ShopProductCard";
+
+const AnimatedBlobs = dynamic(() => import('../homeComponents/AnimatedBlobs'), { ssr: false });
 
 const safeParseProduct = (product) => {
     const parsed = { ...product };
@@ -150,10 +153,29 @@ const TabbedProductSection = ({
     };
 
     return (
-        <section className="py-8 px-4 md:px-6 lg:px-8">
-            <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{heading}</h2>
-                <p className="text-md text-gray-600">{subHeading}</p>
+        <section className="relative overflow-hidden w-full py-8 px-4 md:px-6 lg:px-8">
+            <AnimatedBlobs />
+            <div className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-8 md:py-12 px-4 text-center animate-editorial-fade">
+                {/* Eyebrow Label */}
+                <div className="flex items-center justify-center gap-3 mb-3">
+                    <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
+                    <span className="font-parisienne text-[#ff7aa2] text-[16px] md:text-[18px] font-normal leading-none pt-1">
+                        Trending Now
+                    </span>
+                    <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
+                </div>
+                
+                {/* Main Title */}
+                <h2 className="font-playfair font-medium text-[36px] md:text-[3rem] leading-[1] tracking-[-0.03em] text-[#111111] mb-[10px]">
+                    {heading}
+                </h2>
+                
+                {/* Subtitle */}
+                {subHeading && (
+                    <p className="font-medium text-[16px] md:text-[18px] lg:text-[20px] leading-[1.5] text-black max-w-[700px] mx-auto">
+                        {subHeading}
+                    </p>
+                )}
             </div>
 
             {/* Category Tabs */}

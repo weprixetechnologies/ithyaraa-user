@@ -20,6 +20,140 @@ import CartDrawer from "../ui/CartDrawer"
 import SearchDrawer from "../ui/SearchDrawer"
 import menu1 from "../../../public/menu1.jpeg"
 import menu2 from "../../../public/menu2.jpeg"
+import { motion, AnimatePresence } from "framer-motion"
+
+/* ===== Fullscreen Menu (Desktop Sticky Hamburger) ===== */
+const fullscreenMenuItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Shop With Us', href: '/shop' },
+    { label: 'Combo', href: '/shop?type=combo' },
+    { label: 'Make Your Combo', href: '/shop?type=make_combo' },
+    { label: 'Customise Your Own', href: '/shop?type=customproduct' },
+    { label: 'Offers', href: '/offers' },
+    { label: 'Categories', href: '/categories' },
+    { label: 'Flash Sale', href: '/flash-sale', isSale: true },
+    { label: 'Brands', href: '/brands' },
+]
+
+const FullscreenMenu = ({ isOpen, onClose }) => {
+    const pathname = usePathname()
+
+    // Check if a menu item is currently active
+    const isActive = (href) => {
+        const cleanHref = href.split('?')[0]
+        if (cleanHref === '/') return pathname === '/'
+        return pathname === cleanHref || pathname.startsWith(cleanHref + '/')
+    }
+
+    // Lock body scroll when menu is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+        return () => { document.body.style.overflow = '' }
+    }, [isOpen])
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    className="fullscreen-menu-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                    {/* Background pattern layer */}
+                    <motion.div
+                        className="fullscreen-menu-bg"
+                        initial={{ scale: 1.1 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 1.05 }}
+                        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    />
+
+                    {/* Close button */}
+                    <motion.button
+                        className="fullscreen-menu-close"
+                        onClick={onClose}
+                        initial={{ opacity: 0, rotate: -90 }}
+                        animate={{ opacity: 1, rotate: 0 }}
+                        exit={{ opacity: 0, rotate: 90 }}
+                        transition={{ duration: 0.3, delay: 0.1 }}
+                        whileHover={{ scale: 1.15, rotate: 90 }}
+                        whileTap={{ scale: 0.9 }}
+                    >
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </motion.button>
+
+                    {/* Logo at top */}
+                    <motion.div
+                        className="fullscreen-menu-logo"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.4, delay: 0.15 }}
+                    >
+                        <Image src={logo} alt="Ithyaraa" width={180} height={60} style={{ objectFit: 'contain' }} />
+                    </motion.div>
+
+                    {/* Menu items */}
+                    <nav className="fullscreen-menu-nav">
+                        {fullscreenMenuItems.map((item, index) => (
+                            <motion.div
+                                key={item.href + item.label}
+                                initial={{ opacity: 0, x: -60, filter: 'blur(8px)' }}
+                                animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                                exit={{ opacity: 0, x: 40, filter: 'blur(4px)' }}
+                                transition={{
+                                    duration: 0.45,
+                                    delay: 0.08 + index * 0.06,
+                                    ease: [0.22, 1, 0.36, 1]
+                                }}
+                            >
+                                <Link
+                                    href={item.href}
+                                    className={`fullscreen-menu-item ${item.isSale ? 'fullscreen-menu-sale' : ''} ${isActive(item.href) ? 'fullscreen-menu-active' : ''}`}
+                                    onClick={onClose}
+                                >
+                                    <motion.span
+                                        whileHover={{ x: 12, scale: 1.03 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                                        className="fullscreen-menu-item-inner"
+                                    >
+                                        <span className="fullscreen-menu-number">0{index + 1}</span>
+                                        {item.label}
+                                    </motion.span>
+                                </Link>
+                            </motion.div>
+                        ))}
+                    </nav>
+
+                    {/* Bottom info */}
+                    <motion.div
+                        className="fullscreen-menu-footer"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4, delay: 0.5 }}
+                    >
+                        <span>Free Shipping above ₹1499</span>
+                        <span className="fullscreen-menu-dot">•</span>
+                        <span>Easy 7-day Returns</span>
+                        <span className="fullscreen-menu-dot">•</span>
+                        <span>COD Available</span>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    )
+}
 
 const ShopWithUs = () => {
 
@@ -188,6 +322,8 @@ const Header = () => {
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
     const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
     const [searchDrawerOpen, setSearchDrawerOpen] = useState(false)
+    const [showStickyHeader, setShowStickyHeader] = useState(false)
+    const [fullscreenMenuOpen, setFullscreenMenuOpen] = useState(false)
 
     const dispatch = useDispatch()
     const cartCounter = useSelector((state) => state.cart.cartCount)
@@ -200,8 +336,19 @@ const Header = () => {
         }
     }, [isLoggedIn, dispatch, pathname])
 
+    // Scroll detection for sticky header
+    useEffect(() => {
+        const handleScroll = () => {
+            // Show sticky header after scrolling past 150px (past the normal header)
+            setShowStickyHeader(window.scrollY > 150)
+        }
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
+
     return (
         <div>
+            {/* ===== NORMAL DESKTOP HEADER ===== */}
             <div className="w-full h-auto flex-col md:flex hidden z-50 bg-white shadow-md" onMouseLeave={() => setMegaMenu({ isOpen: false, menuName: '' })}>
                 {/* Top Bar */}
                 <div className="w-full bg-primary py-3 flex flex-row justify-between items-center px-4">
@@ -348,6 +495,97 @@ const Header = () => {
 
 
             </div>
+
+            {/* ===== STICKY DESKTOP HEADER (appears on scroll) ===== */}
+            <div
+                className={`sticky-header-desktop ${showStickyHeader ? 'sticky-header-visible' : 'sticky-header-hidden'}`}
+            >
+                {/* Top info strip */}
+                <div className="sticky-header-top-strip">
+                    <div className="sticky-header-inner">
+                        <div className="sticky-strip-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+                            <span>Free Shipping on orders above ₹1499</span>
+                        </div>
+                        <div className="sticky-strip-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                            <span>Easy 7-day returns</span>
+                        </div>
+                        <div className="sticky-strip-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
+                            <span>Cash on Delivery available</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main sticky nav */}
+                <div className="sticky-header-main">
+                    <div className="sticky-header-inner">
+                        {/* Hamburger + Logo group */}
+                        <div className="sticky-header-left-group">
+                            {/* Hamburger icon */}
+                            <button
+                                className="sticky-hamburger-btn"
+                                onClick={() => setFullscreenMenuOpen(true)}
+                                aria-label="Open menu"
+                            >
+                                <span className="sticky-hamburger-line" />
+                                <span className="sticky-hamburger-line sticky-hamburger-line--short" />
+                                <span className="sticky-hamburger-line" />
+                            </button>
+
+                            {/* Logo */}
+                            <Link href="/" className="sticky-header-logo">
+                                <Image src={logo} alt="Ithyaraa" width={200} height={80} style={{ objectFit: 'contain' }} />
+                            </Link>
+                        </div>
+
+                        {/* Navigation Links */}
+                        <nav className="sticky-header-nav">
+                            <Link href="/" className="sticky-nav-link">Home</Link>
+                            <div className="sticky-nav-dropdown-wrapper">
+                                <Link href="/shop" className="sticky-nav-link sticky-nav-dropdown-trigger">
+                                    Shop
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="sticky-chevron"><polyline points="6 9 12 15 18 9"/></svg>
+                                </Link>
+                                <div className="sticky-nav-dropdown">
+                                    <Link href="/shop?type=customproduct" className="sticky-dropdown-item">Customise Your Own</Link>
+                                    <Link href="/shop?type=combo" className="sticky-dropdown-item">Combo</Link>
+                                    <Link href="/shop?type=make_combo" className="sticky-dropdown-item">Make Your Combo</Link>
+                                </div>
+                            </div>
+                            <Link href="/offers" className="sticky-nav-link">Offers</Link>
+                            <Link href="/categories" className="sticky-nav-link">Categories</Link>
+                            <Link href="/flash-sale" className="sticky-nav-link sticky-nav-sale">Flash Sale</Link>
+                        </nav>
+
+                        {/* Right section: search + icons */}
+                        <div className="sticky-header-actions">
+                            <div className="sticky-header-search">
+                                <svg className="sticky-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                                <SearchNavbar />
+                            </div>
+                            <IoPersonOutline
+                                size={22}
+                                className="sticky-action-icon"
+                                onClick={() => router.push('/profile')}
+                            />
+                            <WishlistIcon />
+                            <div className="relative cursor-pointer" onClick={() => setCartDrawerOpen(true)}>
+                                <LuShoppingCart size={22} className="sticky-action-icon" />
+                                {cartCounter > 0 && (
+                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                                        {cartCounter > 99 ? '99+' : cartCounter}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ===== FULLSCREEN MENU (Desktop Sticky Hamburger) ===== */}
+            <FullscreenMenu isOpen={fullscreenMenuOpen} onClose={() => setFullscreenMenuOpen(false)} />
 
             <div className="md:hidden  w-full h-[70px] px-4 bg-white border-b border-gray-200 flex items-center justify-between relative">
                 {/* Left: hamburger + logo */}
