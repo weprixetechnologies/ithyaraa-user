@@ -31,6 +31,9 @@ const PresaleSection = dynamic(() => import("@/components/homeComponents/presale
 const ReelsSection = dynamic(() => import("@/components/home/ReelsSection"), {
   loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
 });
+const TestimonialSlider = dynamic(() => import("@/components/home/TestimonialSlider"), {
+  loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
+});
 
 // ISR: regenerate this page every 3600 seconds (1 hour)
 export const revalidate = 3600;
@@ -290,6 +293,8 @@ export default async function Home() {
         heading="Our Stories"
         subHeading="Watch and be inspired"
       />
+
+      <TestimonialSlider />
 
       <TabbedProductSection
         heading="Shop by Category"
