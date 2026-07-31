@@ -52,9 +52,9 @@ const AUTOPLAY_INTERVAL = 4000;
 const POSITIONS = {
     "-2": { x: -520, scale: 0.55, rotateY: 40, zIndex: 1, opacity: 0.3, blur: 4 },
     "-1": { x: -280, scale: 0.75, rotateY: 25, zIndex: 2, opacity: 0.6, blur: 2 },
-    "0":  { x: 0,    scale: 1,    rotateY: 0,  zIndex: 5, opacity: 1,   blur: 0 },
-    "1":  { x: 280,  scale: 0.75, rotateY: -25, zIndex: 2, opacity: 0.6, blur: 2 },
-    "2":  { x: 520,  scale: 0.55, rotateY: -40, zIndex: 1, opacity: 0.3, blur: 4 },
+    "0": { x: 0, scale: 1, rotateY: 0, zIndex: 5, opacity: 1, blur: 0 },
+    "1": { x: 280, scale: 0.75, rotateY: -25, zIndex: 2, opacity: 0.6, blur: 2 },
+    "2": { x: 520, scale: 0.55, rotateY: -40, zIndex: 1, opacity: 0.3, blur: 4 },
     "hidden": { x: 0, scale: 0.4, rotateY: 0, zIndex: 0, opacity: 0, blur: 6 },
 };
 
@@ -211,7 +211,7 @@ const TestimonialSlider = () => {
     };
 
     return (
-        <section className="relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-[#fef7f8] via-white to-[#fef7f8]">
+        <section className="relative py-3 md:py-6 overflow-hidden bg-gradient-to-b from-[#fef7f8] via-white to-[#fef7f8]">
             {/* Background decorative elements */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-10 left-10 w-72 h-72 bg-rose-100/40 rounded-full blur-3xl" />
@@ -225,7 +225,7 @@ const TestimonialSlider = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.6 }}
-                className="flex flex-col items-center justify-center max-w-[900px] mx-auto px-4 text-center mb-12 md:mb-16 relative z-10"
+                className="flex flex-col items-center justify-center max-w-[900px] mx-auto px-4 text-center mb-4 md:mb-8 relative z-10"
             >
                 <div className="flex items-center justify-center gap-3 mb-3">
                     <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
@@ -273,11 +273,10 @@ const TestimonialSlider = () => {
                         <button
                             key={i}
                             onClick={() => handleDotClick(i)}
-                            className={`transition-all duration-300 rounded-full ${
-                                i === currentIndex
-                                    ? "w-8 h-2.5 bg-gradient-to-r from-[#ff7aa2] to-[#fb4a6f]"
-                                    : "w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400"
-                            }`}
+                            className={`transition-all duration-300 rounded-full ${i === currentIndex
+                                ? "w-8 h-2.5 bg-gradient-to-r from-[#ff7aa2] to-[#fb4a6f]"
+                                : "w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400"
+                                }`}
                             aria-label={`Go to testimonial ${i + 1}`}
                         />
                     ))}

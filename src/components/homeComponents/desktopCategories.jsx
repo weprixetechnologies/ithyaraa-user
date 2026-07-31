@@ -92,14 +92,14 @@ const DesktopCategories = ({
     });
 
     return (
-        <section ref={sectionRef} className="relative w-full py-8 overflow-x-clip">
+        <section ref={sectionRef} className="relative w-full py-3 overflow-x-clip">
             <AnimatedBlobs />
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6 }}
-                className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-8 md:py-12 px-4 text-center"
+                className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-4 md:py-4 px-4 text-center"
             >
                 {/* Eyebrow Label */}
                 <div className="flex items-center justify-center gap-3 mb-3">

@@ -124,7 +124,7 @@ const ReelsSection = ({ heading = "Reels", subHeading = "Watch our latest storie
     return (
         <section className="relative overflow-hidden w-full my-10">
             <AnimatedBlobs />
-            <div className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-8 md:py-12 px-4 text-center animate-editorial-fade">
+            <div className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-4 md:py-5 px-4 text-center animate-editorial-fade">
                 {/* Eyebrow Label */}
                 <div className="flex items-center justify-center gap-3 mb-3">
                     <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
@@ -133,19 +133,19 @@ const ReelsSection = ({ heading = "Reels", subHeading = "Watch our latest storie
                     </span>
                     <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
                 </div>
-                
+
                 {/* Main Title */}
                 <h2 className="font-playfair font-medium text-[36px] md:text-[3rem] leading-[1] tracking-[-0.03em] text-[#111111] mb-[10px]">
                     {heading}
                 </h2>
-                
+
                 {/* Subtitle */}
                 {subHeading && (
                     <p className="font-medium text-[16px] md:text-[18px] lg:text-[20px] leading-[1.5] text-black max-w-[700px] mx-auto">
                         {subHeading}
                     </p>
                 )}
-                
+
                 {/* ✅ Fixed: restored opening <a tag */}
                 <a
                     href="https://www.instagram.com/ithyaraa_official"

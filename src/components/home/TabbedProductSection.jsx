@@ -155,7 +155,7 @@ const TabbedProductSection = ({
     return (
         <section className="relative overflow-hidden w-full py-8 px-4 md:px-6 lg:px-8">
             <AnimatedBlobs />
-            <div className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-8 md:py-12 px-4 text-center animate-editorial-fade">
+            <div className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-4 md:py-6 px-4 text-center animate-editorial-fade">
                 {/* Eyebrow Label */}
                 <div className="flex items-center justify-center gap-3 mb-3">
                     <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>

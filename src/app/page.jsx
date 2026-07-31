@@ -80,6 +80,7 @@ async function getProducts({ limit = 20, page = 1, categoryID = "", type = "", s
   if (!res.ok) throw new Error(`Failed to fetch products (sectionid: ${sectionid})`);
 
   const data = await res.json();
+  console.log("Section Data", data);
 
   return {
     count: data.count,

@@ -11,6 +11,30 @@ import logo from "../../../public/ithyaraa-logo.png";
 
 const AnimatedBlobs = dynamic(() => import('../homeComponents/AnimatedBlobs'), { ssr: false });
 
+const ImageWithFallback = ({ src, fallbackSrc, alt, ...props }) => {
+    const [imgSrc, setImgSrc] = useState(src);
+    const [loading, setLoading] = useState(true);
+
+    return (
+        <>
+            {loading && (
+                <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg z-10" />
+            )}
+            <Image
+                {...props}
+                src={imgSrc}
+                alt={alt}
+                onError={() => {
+                    setImgSrc(fallbackSrc);
+                }}
+                onLoad={() => setLoading(false)}
+                unoptimized={true}
+                className={`${props.className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+            />
+        </>
+    );
+};
+
 const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, products = [] }) => {
     const scrollRef = useRef(null)
     const { isInWishlist, toggleWishlist, loading } = useWishlist()
@@ -131,9 +155,9 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
     return (
         <section className="relative overflow-x-clip w-full">
             <AnimatedBlobs />
-            
+
             {/* Heading */}
-            <div className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-8 md:py-12 px-4 text-center animate-editorial-fade">
+            <div className="flex flex-col items-center justify-center max-w-[900px] mx-auto py-4 md:py-5 px-4 text-center animate-editorial-fade">
                 {/* Eyebrow Label */}
                 <div className="flex items-center justify-center gap-3 mb-3">
                     <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
@@ -142,26 +166,26 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                     </span>
                     <span className="text-[#ff7aa2] text-[16px] md:text-[18px]">✦</span>
                 </div>
-                
+
                 {/* Main Title */}
                 <h2 className="font-playfair font-medium text-[36px] md:text-[3rem] leading-[1] tracking-[-0.03em] text-[#111111] mb-[10px]">
                     {heading}
                 </h2>
-                
+
                 {/* Subtitle */}
                 {subHeading && (
                     <p className="font-medium text-[16px] md:text-[18px] lg:text-[20px] leading-[1.5] text-black max-w-[700px] mx-auto">
                         {subHeading}
                     </p>
                 )}
-                
+
                 <button className="mt-6 bg-primary-yellow h-[30px] px-4 text-xs font-medium rounded md:hidden">
                     Shop Now
                 </button>
             </div>
 
             {/* Scrollable Product Row with Arrows */}
-            <div className="relative mb-5">
+            <div className="relative mb-2">
                 {/* Left Arrow (Desktop Only) */}
                 <button
                     type="button"
@@ -188,8 +212,9 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                         {/* Slide 1 */}
                                         <div className="relative w-1/2 h-full">
                                             <a href={getProductHref(i)}>
-                                                <Image
+                                                <ImageWithFallback
                                                     src={i.featuredImage?.[0]?.imgUrl || logo}
+                                                    fallbackSrc={logo}
                                                     alt={i.name || 'Product image'}
                                                     fill
                                                     sizes="(max-width: 768px) 40vw, 18vw"
@@ -202,8 +227,9 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
 
                                         <div className="relative w-1/2 h-full">
                                             <a href={getProductHref(i)}>
-                                                <Image
+                                                <ImageWithFallback
                                                     src={i.featuredImage?.[1]?.imgUrl || i.featuredImage?.[0]?.imgUrl || logo}
+                                                    fallbackSrc={logo}
                                                     alt={`${i.name || 'Product'} - alt`}
                                                     fill
                                                     sizes="(max-width: 768px) 40vw, 18vw"

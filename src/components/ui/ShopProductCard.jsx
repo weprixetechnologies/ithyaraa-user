@@ -11,6 +11,30 @@ const parseJSON = (val) => {
     try { return typeof val === 'string' ? JSON.parse(val) : (val || []); } catch { return []; }
 };
 
+const ImageWithFallback = ({ src, fallbackSrc, alt, ...props }) => {
+    const [imgSrc, setImgSrc] = useState(src);
+    const [loading, setLoading] = useState(true);
+
+    return (
+        <>
+            {loading && (
+                <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg z-10" />
+            )}
+            <Image
+                {...props}
+                src={imgSrc}
+                alt={alt}
+                onError={() => {
+                    setImgSrc(fallbackSrc);
+                }}
+                onLoad={() => setLoading(false)}
+                unoptimized={true}
+                className={`${props.className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+            />
+        </>
+    );
+};
+
 const ShopProductCard = ({ product }) => {
     const [hover, setHover] = useState(false);
     const { isInWishlist, toggleWishlist, loading } = useWishlist();
@@ -60,8 +84,9 @@ const ShopProductCard = ({ product }) => {
                     >
                         {/* Slide 1 */}
                         <div className="relative w-1/2 h-full">
-                            <Image
+                            <ImageWithFallback
                                 src={img1}
+                                fallbackSrc={logo}
                                 alt={product?.name || 'Product'}
                                 fill
                                 sizes="(max-width: 768px) 50vw, 25vw"
@@ -71,8 +96,9 @@ const ShopProductCard = ({ product }) => {
                         </div>
                         {/* Slide 2 */}
                         <div className="relative w-1/2 h-full">
-                            <Image
+                            <ImageWithFallback
                                 src={img2}
+                                fallbackSrc={logo}
                                 alt={`${product?.name || 'Product'} - alt`}
                                 fill
                                 sizes="(max-width: 768px) 50vw, 25vw"
