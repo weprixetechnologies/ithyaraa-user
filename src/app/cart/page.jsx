@@ -220,7 +220,7 @@ const Page = () => {
                 <CartItems />
               </Suspense>
               <div className="border border-gray-200 rounded-lg">
-                {(!cartRedux.cartDetail.shipping || cartRedux.cartDetail.shipping === 0) &&
+                {((Number(cartRedux.cartDetail?.subtotal || 0) - Number(cartRedux.cartDetail?.totalDiscount || 0) - couponDiscount) >= 999) &&
                   <p className='text-xs text-green-500 p-4 flex gap-2 items-center font-medium'>
                     <CiDeliveryTruck size={16} /> Yay! Your order is eligible for free delivery...
                   </p>

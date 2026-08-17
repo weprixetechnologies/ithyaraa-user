@@ -141,11 +141,12 @@ const BuyNowModal = ({
         const pid = product?.productID || product?.id;
         if (!pid) return;
         try {
+            const netSubtotal = Math.max(0, subtotal - offerSaving - couponDiscount);
             const res = await axiosInstance.get('/order/buy-now/shipping-fee', {
                 params: {
                     productID: pid,
                     brandID: brandID || product?.brandID,
-                    subtotal: subtotal
+                    subtotal: netSubtotal
                 }
             });
             if (res.data?.success) {
@@ -154,7 +155,7 @@ const BuyNowModal = ({
         } catch (err) {
             console.error('Failed to fetch shipping fee', err);
         }
-    }, [product, brandID, subtotal]);
+    }, [product, brandID, subtotal, offerSaving, couponDiscount]);
 
     const activeCoupon = couponApplied ? couponCode.trim() : undefined;
 

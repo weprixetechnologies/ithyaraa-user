@@ -31,12 +31,23 @@ const toAttributeArray = (variationValues) => {
 
 const buildOfferText = (offer) => {
     if (!offer) return null;
-    const { offerType, offerName, buyCount, getCount } = offer;
+    const { offerType, offerName, buyCount, getCount, discountType, discountValue, productScope } = offer;
+    if (offerName && offerName.trim()) {
+        return { headline: offerName, action: "Add eligible item(s) to cart to unlock" };
+    }
     const type = String(offerType || "").toLowerCase();
     if (type === "buy_x_get_y" || type === "bogo") {
         if (buyCount === 1 && getCount === 1) return { headline: "Buy 1 Get 1 FREE", action: "Add 2 to cart to unlock" };
         if (buyCount === 2 && getCount === 1) return { headline: "Buy 2 Get 1 FREE", action: `Add ${buyCount + getCount} to cart to unlock` };
         return { headline: `Buy ${buyCount} Get ${getCount} FREE`, action: `Add ${buyCount + getCount} to cart to unlock` };
+    }
+    if (type === "buy_x_get_off") {
+        const discText = discountType === 'percentage' ? `${discountValue}% OFF` : `₹${discountValue} OFF`;
+        const scopeText = productScope === 'same_product' ? ' (Same Product)' : '';
+        return {
+            headline: `Buy ${buyCount} Get ${discText}${scopeText}`,
+            action: `Add ${buyCount} ${productScope === 'same_product' ? 'of this item' : 'eligible item(s)'} to cart to unlock`
+        };
     }
     return { headline: offerName || "Special Offer", action: "Add to cart to unlock" };
 };

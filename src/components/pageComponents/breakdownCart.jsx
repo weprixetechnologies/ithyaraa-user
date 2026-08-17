@@ -5,9 +5,23 @@ import breakdown from './../../../public/breakdown-image.png';
 const BreakdownCart = ({ breakdownData, couponDiscount = 0, appliedCoupon = null, paymentMode = 'cod' }) => {
     const isCOD = paymentMode === 'cod' || paymentMode === 'COD';
     const handlingFee = isCOD ? 8 : 0;
-    // breakdownData.total is already (subtotal - discount), so we subtract coupon and add handling fee
-    const subtotalAfterCoupon = breakdownData.total - couponDiscount;
-    const finalTotal = subtotalAfterCoupon + handlingFee;
+
+    const baseSubtotal = Number(breakdownData.subtotal || 0);
+    const itemDiscount = Number(breakdownData.totalDiscount || 0);
+    const totalCouponDisc = Number(couponDiscount || 0);
+
+    // Calculate net item price after item offer discounts and coupon discounts (excluding handling and shipping)
+    const itemNetPrice = Math.max(0, baseSubtotal - itemDiscount - totalCouponDisc);
+
+    // Determine active shipping charge: free only if net item total >= 999
+    let activeShipping = Number(breakdownData.shipping || 0);
+    if (itemNetPrice < 999 && activeShipping === 0) {
+        activeShipping = 50; // Standard shipping fee below free threshold
+    } else if (itemNetPrice >= 999) {
+        activeShipping = 0; // Free shipping threshold met
+    }
+
+    const finalTotal = itemNetPrice + activeShipping + handlingFee;
 
     return (
         <div className='border border-gray-200 px-2 py-3 w-full rounded-lg'>
@@ -21,21 +35,21 @@ const BreakdownCart = ({ breakdownData, couponDiscount = 0, appliedCoupon = null
             <p className='text-sm text-secondary-text-deep'>Price Details</p>
             <div className="grid grid-cols-2 justify-between">
                 <div className='font-medium text-sm'>Base Price</div>
-                <div className="text-right font-medium text-sm">₹{breakdownData.subtotal}</div>
+                <div className="text-right font-medium text-sm">₹{baseSubtotal}</div>
 
                 <div className='font-medium text-sm'>Discount Applied</div>
-                <div className="text-right font-medium text-sm">-₹{breakdownData.totalDiscount}</div>
+                <div className="text-right font-medium text-sm">-₹{itemDiscount}</div>
 
                 {appliedCoupon && (
                     <>
                         <div className='font-medium text-sm text-green-600'>Coupon Discount ({appliedCoupon.couponCode || appliedCoupon.couponID})</div>
-                        <div className="text-right font-medium text-sm text-green-600">-₹{couponDiscount}</div>
+                        <div className="text-right font-medium text-sm text-green-600">-₹{totalCouponDisc}</div>
                     </>
                 )}
 
                 <div className='font-medium text-sm'>Shipping Charges</div>
                 <div className="text-right font-medium text-sm font-bold text-green-600">
-                    {breakdownData.shipping > 0 ? `₹${breakdownData.shipping}` : 'Free'}
+                    {activeShipping > 0 ? `₹${activeShipping}` : 'Free'}
                 </div>
 
                 {isCOD && (

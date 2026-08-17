@@ -21,6 +21,7 @@ const OffersPage = () => {
     const filters = [
         { id: 'all', label: 'All Offers', icon: FaTag },
         { id: 'buy_x_get_y', label: 'Buy & Get', icon: FaGift },
+        { id: 'buy_x_get_off', label: 'Buy More Save More', icon: FaTag },
         { id: 'buy_x_at_x', label: 'Heavily Discounted', icon: FaPercent },
     ];
 
@@ -58,6 +59,8 @@ const OffersPage = () => {
                 switch (activeFilter) {
                     case 'buy_x_get_y':
                         return offer.offerType === 'buy_x_get_y';
+                    case 'buy_x_get_off':
+                        return offer.offerType === 'buy_x_get_off';
                     case 'buy_x_at_x':
                         return offer.offerType === 'buy_x_at_x';
                     default:
@@ -72,6 +75,8 @@ const OffersPage = () => {
         switch (type) {
             case 'buy_x_get_y':
                 return <FaGift className={className || "text-purple-500"} />;
+            case 'buy_x_get_off':
+                return <FaTag className={className || "text-emerald-500"} />;
             case 'buy_x_at_x':
                 return <FaPercent className={className || "text-[#fb4a6f]"} />;
             default:
@@ -83,7 +88,11 @@ const OffersPage = () => {
         if (offer.offerType === 'buy_x_get_y') {
             return `Buy ${offer.buyCount || 1} Get ${offer.getCount || 1}`;
         } else if (offer.offerType === 'buy_x_at_x') {
-            return offer.buyAt ? `At ₹${offer.buyAt}` : 'Fixed Price';
+            return offer.buyAt ? `Buy ${offer.buyCount || 2} at ₹${offer.buyAt}` : 'Fixed Price';
+        } else if (offer.offerType === 'buy_x_get_off') {
+            const discText = offer.discountType === 'percentage' ? `${offer.discountValue}% OFF` : `₹${offer.discountValue} OFF`;
+            const scopeText = offer.productScope === 'same_product' ? ' (Same Product)' : '';
+            return `Buy ${offer.buyCount || 2} Get ${discText}${scopeText}`;
         }
         return 'Special Deal';
     };
@@ -332,20 +341,14 @@ const OffersPage = () => {
                                     </div>
                                     
                                     {/* Offer Description (Small Top Text) */}
-                                    <p className="text-sm font-semibold text-gray-500 mb-1">
+                                    <p className="text-sm font-semibold text-gray-500 mb-1 font-mono tracking-wide">
                                         {formatOfferDescription(offer)}
                                     </p>
 
-                                    {/* Main Title (Large Pink Text) */}
+                                    {/* Main Title (Large Pink Text: offer.offerName as created in details) */}
                                     <h3 className="text-[28px] leading-tight font-bold text-[#fb4a6f] mb-6">
-                                        {formatOfferDescription(offer)}
+                                        {offer.offerName || formatOfferDescription(offer)}
                                     </h3>
-
-                                    {offer.buyAt && (
-                                        <p className="text-sm text-gray-500 mb-4 font-medium">
-                                            Valid on orders above ₹{offer.buyAt}
-                                        </p>
-                                    )}
 
                                     {/* Action Button */}
                                     <div className="w-full bg-[#fb4a6f] text-white py-3.5 px-4 rounded-xl font-medium hover:bg-rose-600 transition-colors flex items-center justify-center gap-2 shadow-sm">

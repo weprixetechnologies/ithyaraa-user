@@ -323,6 +323,7 @@ const ProductDetail = () => {
     const end = product.preSaleEndDate ? new Date(product.preSaleEndDate) : null;
     const isUpcoming = start && now < start;
     const isActive = start && end && now >= start && now <= end;
+    const isEnded = end && now > end;
 
     const addToCart = async () => {
         if (!selectedVariation || selectedVariation.variationStock === 0) {
@@ -465,6 +466,14 @@ const ProductDetail = () => {
 
     // Open prebooking modal
     const handlePreBookNow = () => {
+        if (isUpcoming) {
+            toast.error('Pre-sale has not started yet.');
+            return;
+        }
+        if (isEnded) {
+            toast.error('Pre-sale has ended.');
+            return;
+        }
         if (!selectedVariation || selectedVariation.variationStock === 0) {
             toast.error('Please select a valid variation.');
             return;
@@ -593,9 +602,35 @@ const ProductDetail = () => {
                             )}
                         </div>
 
-                        {/* Presale Countdown - similar to flash sale countdown */}
-                        {isActive && product.preSaleEndDate && (
-                            <CountdownTimer endTime={product.preSaleEndDate} label="PRESALE ENDS IN:" />
+                        {/* Presale Countdown & Status Badge */}
+                        {isUpcoming && (
+                            <div className="mt-3 mb-2">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-yellow-100 text-yellow-800 mb-2">
+                                    Pre-Sale Starts Soon
+                                </span>
+                                {product.preSaleStartDate && (
+                                    <CountdownTimer endTime={product.preSaleStartDate} label="PRESALE STARTS IN:" />
+                                )}
+                            </div>
+                        )}
+
+                        {isActive && (
+                            <div className="mt-3 mb-2">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-green-100 text-green-800 mb-2">
+                                    Pre-Sale Live
+                                </span>
+                                {product.preSaleEndDate && (
+                                    <CountdownTimer endTime={product.preSaleEndDate} label="PRESALE ENDS IN:" />
+                                )}
+                            </div>
+                        )}
+
+                        {isEnded && (
+                            <div className="mt-3 mb-2">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-200 text-gray-700">
+                                    Pre-Sale Ended
+                                </span>
+                            </div>
                         )}
 
                         {product.isFlashSale && <CountdownTimer endTime={product.flashSaleEndTime} />}
@@ -665,23 +700,36 @@ const ProductDetail = () => {
 
                             {/* Action buttons */}
                             <button
-                                className="flex-1 py-2 rounded-lg text-center cursor-pointer relative overflow-hidden text-black font-bold transition-all duration-300 hover:scale-105 active:scale-95"
+                                disabled={isUpcoming || isEnded}
+                                className={`flex-1 py-2 rounded-lg text-center relative overflow-hidden font-bold transition-all duration-300 ${
+                                    isUpcoming || isEnded
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'cursor-pointer text-black hover:scale-105 active:scale-95'
+                                }`}
                                 onClick={handlePreBookNow}
-                                style={{
-                                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
-                                    boxShadow: '0 10px 25px -5px rgba(234, 179, 8, 0.5), 0 0 20px rgba(234, 179, 8, 0.3)',
-                                }}
+                                style={
+                                    isUpcoming || isEnded
+                                        ? {}
+                                        : {
+                                            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                                            boxShadow: '0 10px 25px -5px rgba(234, 179, 8, 0.5), 0 0 20px rgba(234, 179, 8, 0.3)',
+                                        }
+                                }
                             >
-                                <span className="relative z-10">Pre-Book Now</span>
-                                <div
-                                    className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                                    style={{
-                                        width: '50%',
-                                        height: '100%',
-                                        background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.7) 50%, transparent 100%)',
-                                        animation: 'shine 2.5s infinite ease-in-out',
-                                    }}
-                                />
+                                <span className="relative z-10">
+                                    {isUpcoming ? 'Coming Soon' : isEnded ? 'Presale Ended' : 'Pre-Book Now'}
+                                </span>
+                                {!isUpcoming && !isEnded && (
+                                    <div
+                                        className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                                        style={{
+                                            width: '50%',
+                                            height: '100%',
+                                            background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.7) 50%, transparent 100%)',
+                                            animation: 'shine 2.5s infinite ease-in-out',
+                                        }}
+                                    />
+                                )}
                             </button>
 
                         </div>
