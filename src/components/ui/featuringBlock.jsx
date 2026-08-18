@@ -29,8 +29,8 @@ const FeatureCard = ({ block, idx, scrollYProgress }) => {
         if (block.minPrice) params.append('minPrice', block.minPrice);
         if (block.maxPrice) params.append('maxPrice', block.maxPrice);
         if (block.offer) params.append('offerID', block.offer);
-        
-        return `/products/shop?${params.toString()}`;
+        const qs = params.toString();
+        return `/shop${qs ? `?${qs}` : ''}`;
     };
 
     return (

@@ -9,6 +9,8 @@ import { WishlistProvider } from "@/contexts/WishlistContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 import ReferralTracker from "@/components/ReferralTracker";
+import { Suspense } from "react";
+import NavigationProgress from "@/components/ui/NavigationProgress";
 
 const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"], weight: ["400", "500", "700"] });
 const roboto = Roboto({ variable: "--font-roboto", subsets: ["latin"], weight: ["400", "500", "700"] });
@@ -42,6 +44,9 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${montserrat.variable} ${roboto.variable} ${poppins.variable}`}>
       <body>
         <StoreProvider>
+          <Suspense fallback={null}>
+            <NavigationProgress />
+          </Suspense>
           <AuthProvider>
             <WishlistProvider>
               <ReferralTracker />
