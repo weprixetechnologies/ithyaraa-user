@@ -139,12 +139,18 @@ const ProductPickerModal = ({
                                                         );
                                                     })}
                                                 </div>
-                                                {filtered.length > 0 && (
-                                                    <span className={`pdp-stock ${filtered[0].variationStock > 0 ? "in" : "out"}`} style={{ marginTop: 6 }}>
-                                                        <span className="pdp-stock-dot" />
-                                                        {filtered[0].variationStock > 0 ? "In Stock" : "Out of Stock"}
-                                                    </span>
-                                                )}
+                                                {(() => {
+                                                    // Only show stock badge when ALL attributes have been selected
+                                                    const allAttrsSelected = p.productAttributes.every(attr => attrs[attr.name]);
+                                                    if (!allAttrsSelected || filtered.length === 0) return null;
+                                                    const inStock = filtered[0].variationStock > 0;
+                                                    return (
+                                                        <span className={`pdp-stock ${inStock ? "in" : "out"}`} style={{ marginTop: 6 }}>
+                                                            <span className="pdp-stock-dot" />
+                                                            {inStock ? "In Stock" : "Out of Stock"}
+                                                        </span>
+                                                    );
+                                                })()}
                                             </div>
                                         )}
                                     </div>

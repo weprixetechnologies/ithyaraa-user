@@ -52,40 +52,34 @@ const safeParse = (value) => {
 
 const JSON_FIELDS = ["galleryImage", "featuredImage", "categories"];
 
-function parseProducts(data) {
-  return (data?.data || []).map((product) => {
-    const parsed = { ...product };
-    JSON_FIELDS.forEach((field) => {
-      if (field in parsed) {
-        parsed[field] = safeParse(parsed[field]);
-      }
+/**
+ * Fetch all active homepage tag-managed sections with products in a SINGLE API call
+ */
+async function getActiveTagSections() {
+  try {
+    const res = await fetch(`${API_BASE}/homepage-tag-sections/active?limit=20`, {
+      next: { revalidate },
     });
-    return parsed;
-  });
-}
+    if (!res.ok) return [];
+    const json = await res.json();
+    if (!json?.success) return [];
 
-async function getProducts({ limit = 20, page = 1, categoryID = "", type = "", sectionid = "" } = {}) {
-  const params = new URLSearchParams();
-  params.append("limit", String(limit));
-  params.append("page", String(page));
-  if (categoryID) params.append("categoryID", categoryID);
-  if (type) params.append("type", type);
-  if (sectionid) params.append("sectionid", sectionid);
-
-  const res = await fetch(
-    `${API_BASE}/products/all-products?${params.toString()}`,
-    { next: { revalidate } }
-  );
-
-  if (!res.ok) throw new Error(`Failed to fetch products (sectionid: ${sectionid})`);
-
-  const data = await res.json();
-  console.log("Section Data", data);
-
-  return {
-    count: data.count,
-    data: parseProducts(data),
-  };
+    return (json?.data || []).map((sec) => ({
+      ...sec,
+      products: (sec.products || []).map((product) => {
+        const parsed = { ...product };
+        JSON_FIELDS.forEach((field) => {
+          if (field in parsed) {
+            parsed[field] = safeParse(parsed[field]);
+          }
+        });
+        return parsed;
+      }),
+    }));
+  } catch (err) {
+    console.error("[Home] Error fetching active tag sections:", err);
+    return [];
+  }
 }
 
 async function getCategories() {
@@ -170,11 +164,9 @@ function normalizeBanners(banners = []) {
 }
 
 export default async function Home() {
-  // FIX: Fetch all data in parallel instead of sequentially
+  // Fetch all homepage data concurrently in parallel
   const [
-    sectionOneResult,
-    sectionTwoResult,
-    sectionThreeResult,
+    tagSectionsResult,
     categoriesResult,
     homepageSectionsResult,
     sliderBannersResult,
@@ -182,9 +174,7 @@ export default async function Home() {
     presaleResult,
     tabbedResult,
   ] = await Promise.allSettled([
-    getProducts({ sectionid: "brand_picks" }),
-    getProducts({ sectionid: "new_arrivals" }),
-    getProducts({ sectionid: "dress_month" }),
+    getActiveTagSections(),
     getCategories(),
     getHomepageSections(),
     getSliderBanners(),
@@ -194,9 +184,7 @@ export default async function Home() {
   ]);
 
   // Safely unwrap each result with a fallback
-  const section_one = sectionOneResult.status === "fulfilled" ? sectionOneResult.value.data : [];
-  const section_two = sectionTwoResult.status === "fulfilled" ? sectionTwoResult.value.data : [];
-  const section_three = sectionThreeResult.status === "fulfilled" ? sectionThreeResult.value.data : [];
+  const tagSections = tagSectionsResult.status === "fulfilled" ? tagSectionsResult.value : [];
   const categories = categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
   const homepageSections = homepageSectionsResult.status === "fulfilled" ? homepageSectionsResult.value : [];
   const sliderBanners = sliderBannersResult.status === "fulfilled" ? sliderBannersResult.value : { mobile: [], desktop: [] };
@@ -206,9 +194,7 @@ export default async function Home() {
 
   // Log any fetch failures for observability
   [
-    ["brand_picks", sectionOneResult],
-    ["new_arrivals", sectionTwoResult],
-    ["dress_month", sectionThreeResult],
+    ["tagSections", tagSectionsResult],
     ["categories", categoriesResult],
     ["homepageSections", homepageSectionsResult],
     ["sliderBanners", sliderBannersResult],
@@ -226,6 +212,10 @@ export default async function Home() {
 
   const finalMobileSlides = mobileSlides.length > 0 ? mobileSlides : FALLBACK_SLIDES;
   const finalDesktopSlides = desktopSlides.length > 0 ? desktopSlides : FALLBACK_SLIDES;
+
+  // Split tag sections dynamically for optimal visual rhythm
+  const topTagSections = tagSections.length > 2 ? tagSections.slice(0, 2) : tagSections;
+  const bottomTagSections = tagSections.length > 2 ? tagSections.slice(2) : [];
 
   return (
     <>
@@ -263,17 +253,14 @@ export default async function Home() {
         categories={categories}
       />
 
-      <ProductSection
-        heading="Curated With Brands"
-        subHeading="Timeless Collections You'll Love"
-        products={section_one}
-      />
-
-      <ProductSection
-        heading="The New Edit"
-        subHeading="Collections You Will Definitely Love"
-        products={section_two}
-      />
+      {topTagSections.map((sec) => (
+        <ProductSection
+          key={sec.id || sec.tag}
+          heading={sec.title}
+          subHeading={sec.description}
+          products={sec.products || []}
+        />
+      ))}
 
       <UnderSections />
 
@@ -284,11 +271,14 @@ export default async function Home() {
         initialPagination={presaleInitial.pagination}
       />
 
-      <ProductSection
-        heading="Trending Picks"
-        subHeading="Our Curated Dress of the Month"
-        products={section_three}
-      />
+      {bottomTagSections.map((sec) => (
+        <ProductSection
+          key={sec.id || sec.tag}
+          heading={sec.title}
+          subHeading={sec.description}
+          products={sec.products || []}
+        />
+      ))}
 
       <ReelsSection
         heading="Our Stories"

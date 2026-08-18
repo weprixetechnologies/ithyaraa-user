@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { BsFillStarFill, BsStar } from "react-icons/bs";
 import { toast } from "react-toastify";
 import { CiHeart, CiRuler } from "react-icons/ci";
-import { FaHeart } from "react-icons/fa";
+import { FaHeart, FaWhatsapp } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { addCartAsync } from "@/redux/slices/cartSlice";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -535,6 +535,106 @@ export default function CustomProductInteractive({ productID, product, customInp
                     .pdp-buynow-wrap { display:block; width:100%; }
                     .pdp-buynow-wrap > * { width:100% !important; height:48px !important; padding:0 16px !important; box-sizing:border-box; }
                 }
+
+                /* ── WhatsApp Customisation Banner ── */
+                .pdp-wa-banner {
+                    display: block;
+                    text-decoration: none;
+                    background: #063025;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    margin: 20px 0 6px;
+                    border: 1px solid rgba(37, 211, 102, 0.25);
+                    box-shadow: 0 4px 20px rgba(6, 48, 37, 0.15), 0 2px 8px rgba(37, 211, 102, 0.1);
+                    transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+                    cursor: pointer;
+                }
+                .pdp-wa-banner:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 30px rgba(6, 48, 37, 0.25), 0 4px 16px rgba(37, 211, 102, 0.2);
+                    border-color: rgba(37, 211, 102, 0.5);
+                }
+                .pdp-wa-img-wrap {
+                    width: 100%;
+                    height: 165px;
+                    overflow: hidden;
+                    background: #041f18;
+                    position: relative;
+                }
+                .pdp-wa-img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                    transition: transform 0.4s ease;
+                }
+                .pdp-wa-banner:hover .pdp-wa-img {
+                    transform: scale(1.03);
+                }
+                .pdp-wa-body {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    padding: 14px 18px;
+                    background: linear-gradient(135deg, #0A3C2F 0%, #05271E 100%);
+                }
+                .pdp-wa-icon-circle {
+                    width: 42px;
+                    height: 42px;
+                    border-radius: 50%;
+                    background: #25D366;
+                    color: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    flex-shrink: 0;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+                    transition: transform 0.2s ease;
+                }
+                .pdp-wa-banner:hover .pdp-wa-icon-circle {
+                    transform: scale(1.08);
+                }
+                .pdp-wa-content {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .pdp-wa-eyebrow {
+                    font-size: 10.5px;
+                    font-weight: 800;
+                    letter-spacing: 0.6px;
+                    text-transform: uppercase;
+                    color: #E2D1A6;
+                    margin: 0 0 2px;
+                    line-height: 1.3;
+                }
+                .pdp-wa-cta-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                }
+                .pdp-wa-number {
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #ffffff;
+                    letter-spacing: 0.5px;
+                }
+                .pdp-wa-sub {
+                    font-size: 11.5px;
+                    color: rgba(255, 255, 255, 0.75);
+                    margin: 0;
+                }
+                .pdp-wa-arrow {
+                    color: #25D366;
+                    font-size: 18px;
+                    font-weight: bold;
+                    transition: transform 0.2s ease;
+                    flex-shrink: 0;
+                }
+                .pdp-wa-banner:hover .pdp-wa-arrow {
+                    transform: translateX(4px);
+                }
             `}</style>
 
             <div className="pdp-root">
@@ -650,6 +750,43 @@ export default function CustomProductInteractive({ productID, product, customInp
                                     ))}
                                 </div>
                             )}
+
+                            {/* WhatsApp Customisation Banner */}
+                            <div className="pdp-fade-up pdp-d3">
+                                <a
+                                    href={`https://wa.me/919059143748?text=${encodeURIComponent(
+                                        `Hi Ithyaraa, I have a query regarding product customisation for ${product?.name || 'Custom Product'} (Product ID: ${productID || product?.productID || ''}). https://ithyaraa.com/custom-product/${productID || product?.productID || ''}`
+                                    )}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="pdp-wa-banner"
+                                >
+                                    <div className="pdp-wa-img-wrap">
+                                        <img
+                                            src="/whatsapp_customisation_banner.jpg"
+                                            alt="Need More Customisation - Contact Support WhatsApp"
+                                            className="pdp-wa-img"
+                                        />
+                                    </div>
+                                    <div className="pdp-wa-body">
+                                        <div className="pdp-wa-icon-circle">
+                                            <FaWhatsapp />
+                                        </div>
+                                        <div className="pdp-wa-content">
+                                            <p className="pdp-wa-eyebrow">
+                                                CONTACT ON WHATSAPP FOR QUERIES AND MORE CUSTOMISATION
+                                            </p>
+                                            <div className="pdp-wa-cta-row">
+                                                <span className="pdp-wa-number">+91 90591 43748</span>
+                                                <span className="pdp-wa-sub">· Chat with our designers</span>
+                                            </div>
+                                        </div>
+                                        <div className="pdp-wa-arrow">
+                                            →
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
 
                             <div className="pdp-action-card pdp-fade-up pdp-d4">
                                 <div className="pdp-btn-row">

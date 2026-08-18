@@ -11,6 +11,8 @@ const SECTION_META = {
     TOP_DEALS: { heading: "Top Deals", subHeading: "Unbeatable prices on favorites" },
 };
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
+
 const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
 
 // ─── API Helpers ──────────────────────────────────────────────────────────────
@@ -21,7 +23,7 @@ async function fetchSectionProducts({ limit = 20, page = 1, categoryID = "", typ
     if (categoryID) params.append("categoryID", categoryID);
     if (type) params.append("type", type);
     if (sectionid) params.append("sectionid", sectionid);
-    const res = await fetch(`https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`);
+    const res = await fetch(`${API_BASE}/products/all-products?${params.toString()}`);
     if (!res.ok) throw new Error("Failed to fetch products");
     const data = await res.json();
     const parsedProducts = (data?.data || []).map((p) => {
@@ -32,11 +34,31 @@ async function fetchSectionProducts({ limit = 20, page = 1, categoryID = "", typ
     return { count: data.count, data: parsedProducts };
 }
 
+async function fetchActiveTagSections(limit = 12) {
+    try {
+        const res = await fetch(`${API_BASE}/homepage-tag-sections/active?limit=${limit}`, { next: { revalidate: 300 } });
+        if (!res.ok) return [];
+        const json = await res.json();
+        return (json?.data || []).map(sec => ({
+            id: sec.tag,
+            heading: sec.title,
+            subHeading: sec.description,
+            products: (sec.products || []).map(p => {
+                const parsed = { ...p };
+                ["galleryImage", "featuredImage", "categories"].forEach(f => { if (f in parsed) parsed[f] = safeParse(parsed[f]); });
+                return parsed;
+            })
+        }));
+    } catch {
+        return [];
+    }
+}
+
 // ─── SEO Metadata ─────────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
     const { productID } = await params;
     try {
-        const res = await axios.get(`https://backend.ithyaraa.com/api/products/details/${productID}`);
+        const res = await axios.get(`${API_BASE}/products/details/${productID}`);
         const product = res.data.product;
 
         const featuredImageStr = safeParse(product.featuredImage);
@@ -62,10 +84,11 @@ export default async function ProductDetailPage({ params }) {
     const { productID } = await params;
 
     // Fetch all initial page data concurrently
-    const [productRes, reviewRes, buyMoreRes] = await Promise.allSettled([
-        axios.get(`https://backend.ithyaraa.com/api/products/details/${productID}`),
-        axios.get(`https://backend.ithyaraa.com/api/reviews/product/${productID}/stats`),
-        fetchSectionProducts({ limit: 20 })
+    const [productRes, reviewRes, buyMoreRes, tagSectionsRes] = await Promise.allSettled([
+        axios.get(`${API_BASE}/products/details/${productID}`),
+        axios.get(`${API_BASE}/reviews/product/${productID}/stats`),
+        fetchSectionProducts({ limit: 20 }),
+        fetchActiveTagSections(12)
     ]);
 
     if (productRes.status === "rejected" || !productRes.value.data.product) {
@@ -82,18 +105,7 @@ export default async function ProductDetailPage({ params }) {
         : { averageRating: 0, totalReviews: 0, ratingBreakdown: [] };
 
     const buyMoreProducts = buyMoreRes.status === "fulfilled" ? buyMoreRes.value.data : [];
-
-    // Select random unique sections and fetch concurrently
-    const shuffled = [...SECTION_POOL].sort(() => Math.random() - 0.5).slice(0, 3);
-    const sectionPromises = shuffled.map(async (id) => {
-        try {
-            const data = await fetchSectionProducts({ sectionid: id, limit: 12 });
-            if (data.data.length > 0) return { id, products: data.data, ...SECTION_META[id] };
-        } catch { return null; }
-    });
-
-    let dynamicSections = await Promise.all(sectionPromises);
-    dynamicSections = dynamicSections.filter(Boolean); // Clean out nulls
+    const dynamicSections = (tagSectionsRes.status === "fulfilled" ? tagSectionsRes.value : []).filter(s => s.products && s.products.length > 0);
 
     const price = productData.salePrice || productData.regularPrice;
 
