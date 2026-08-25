@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaCaretUp, FaCaretDown } from "react-icons/fa6";
-const hamburgerMenuItems = [
+import axiosInstance from "@/lib/axiosInstance";
+
+const initialMenuItems = [
     {
         label: "HOME",
         href: "/",
@@ -28,10 +30,11 @@ const hamburgerMenuItems = [
     {
         label: "SHOP BY BRAND",
         href: "/brands",
+        isBrandSection: true,
         subItems: [],
     },
     {
-        label: "MAKE YOU COMBO",
+        label: "MAKE YOUR COMBO",
         href: "/shop?type=make_combo",
         subItems: [],
     },
@@ -59,42 +62,66 @@ const hamburgerMenuItems = [
 
 const HamburgerChildMenu = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
+    const [brandSubItems, setBrandSubItems] = useState([]);
+
+    useEffect(() => {
+        const fetchBrands = async () => {
+            try {
+                const res = await axiosInstance.get("/admin/brands");
+                if (res.data?.success && Array.isArray(res.data.data)) {
+                    const topBrands = res.data.data.slice(0, 6).map((b) => ({
+                        label: (b.name || b.username || "Brand").toUpperCase(),
+                        href: `/brands/${b.uid}`
+                    }));
+                    topBrands.push({ label: "VIEW ALL BRANDS →", href: "/brands" });
+                    setBrandSubItems(topBrands);
+                }
+            } catch (err) {
+                console.error("Error fetching brands for mobile menu:", err);
+            }
+        };
+        fetchBrands();
+    }, []);
 
     return (
         <div className="hamburger-child-list">
             <ul className="flex flex-col gap-2">
-                {hamburgerMenuItems.map((item, idx) => (
-                    <li
-                        key={item.label}
-                        className="relative text-sm font-medium hover:text-gray-900 py-2 border-b border-gray-200"
-                    >
-                        <div
-                            className="flex justify-between items-center cursor-pointer"
-                            onClick={() =>
-                                setOpenDropdown(openDropdown === idx ? null : idx)
-                            }
+                {initialMenuItems.map((item, idx) => {
+                    const subItems = item.isBrandSection ? brandSubItems : item.subItems;
+
+                    return (
+                        <li
+                            key={item.label}
+                            className="relative text-sm font-medium hover:text-gray-900 py-2 border-b border-gray-200"
                         >
-                            <Link href={item.href} className="text-black">{item.label}</Link>
-                            {item.subItems.length > 0 && (
-                                <span>{openDropdown === idx ? <FaCaretUp /> : <FaCaretDown />}</span>
+                            <div
+                                className="flex justify-between items-center cursor-pointer"
+                                onClick={() =>
+                                    setOpenDropdown(openDropdown === idx ? null : idx)
+                                }
+                            >
+                                <Link href={item.href} className="text-black">{item.label}</Link>
+                                {subItems.length > 0 && (
+                                    <span>{openDropdown === idx ? <FaCaretUp /> : <FaCaretDown />}</span>
+                                )}
+                            </div>
+                            {subItems.length > 0 && openDropdown === idx && (
+                                <ul className="ml-4 mt-2 flex flex-col">
+                                    {subItems.map((sub) => (
+                                        <li key={sub.label} className="border-l-1 border-[#c0c0c0] p-2">
+                                            <Link
+                                                href={sub.href}
+                                                className="text-gray-600 hover:text-primary text-xs"
+                                            >
+                                                {sub.label}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
                             )}
-                        </div>
-                        {item.subItems.length > 0 && openDropdown === idx && (
-                            <ul className="ml-4 mt-2 flex flex-col ">
-                                {item.subItems.map((sub) => (
-                                    <li key={sub.label} className="border-l-1 border-[#c0c0c0] p-2">
-                                        <Link
-                                            href={sub.href}
-                                            className=" text-gray-600 hover:text-primary"
-                                        >
-                                            {sub.label}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </li>
-                ))}
+                        </li>
+                    );
+                })}
             </ul>
         </div>
     );

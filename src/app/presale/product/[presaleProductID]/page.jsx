@@ -701,11 +701,10 @@ const ProductDetail = () => {
                             {/* Action buttons */}
                             <button
                                 disabled={isUpcoming || isEnded}
-                                className={`flex-1 py-2 rounded-lg text-center relative overflow-hidden font-bold transition-all duration-300 ${
-                                    isUpcoming || isEnded
-                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        : 'cursor-pointer text-black hover:scale-105 active:scale-95'
-                                }`}
+                                className={`flex-1 py-2 rounded-lg text-center relative overflow-hidden font-bold transition-all duration-300 ${isUpcoming || isEnded
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'cursor-pointer text-black hover:scale-105 active:scale-95'
+                                    }`}
                                 onClick={handlePreBookNow}
                                 style={
                                     isUpcoming || isEnded

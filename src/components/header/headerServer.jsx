@@ -44,7 +44,7 @@ export default function HeaderServer({ megaMenuOpen, megaMenuName }) {
                         <li><Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Our Combos</Link></li>
                         <li><Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Make Your Combo</Link></li>
                         <li><Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Customise Your Own</Link></li>
-                        <li><Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Brands</Link></li>
+                        <li><Link href="/brands" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Brands</Link></li>
                     </ul>
 
                     {/* Mega Menu */}

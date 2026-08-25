@@ -22,6 +22,7 @@ import menu1 from "../../../public/menu1.jpeg"
 import menu2 from "../../../public/menu2.jpeg"
 import { motion, AnimatePresence } from "framer-motion"
 import ShopWithUs from "./ShopWithUs"
+import BrandsDropdown from "./BrandsDropdown"
 
 /* ===== Fullscreen Menu (Desktop Sticky Hamburger) ===== */
 const fullscreenMenuItems = [
@@ -377,13 +378,14 @@ const Header = () => {
                                 </Link>
                             </li>
 
-                            <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
+                            <li onMouseEnter={() => setMegaMenu({ isOpen: true, menuName: 'brands' })}>
                                 <Link
                                     href="/brands"
-                                    className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                                    className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap flex items-center gap-1"
                                     prefetch={false}
                                 >
                                     Brands
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${megaMenu.isOpen && megaMenu.menuName === 'brands' ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>
                                 </Link>
                             </li>
                             {/* Other nav items */}
@@ -392,6 +394,9 @@ const Header = () => {
                         {/* Mega Menu Dropdown */}
                         {megaMenu.isOpen && megaMenu.menuName === 'home' && (
                             <ShopWithUs />
+                        )}
+                        {megaMenu.isOpen && megaMenu.menuName === 'brands' && (
+                            <BrandsDropdown />
                         )}
                     </div>
                 </section>
@@ -460,6 +465,7 @@ const Header = () => {
                             <Link href="/offers" className="sticky-nav-link">Offers</Link>
                             <Link href="/categories" className="sticky-nav-link">Categories</Link>
                             <Link href="/flash-sale" className="sticky-nav-link sticky-nav-sale">Flash Sale</Link>
+                            <Link href="/brands" className="sticky-nav-link">Brands</Link>
                         </nav>
 
                         {/* Right section: search + icons */}

@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { motion, useScroll, useTransform } from 'framer-motion'
+import CategoryBrandsModal from './CategoryBrandsModal'
 
 const AnimatedBlobs = dynamic(() => import('./AnimatedBlobs'), { ssr: false })
 
@@ -31,7 +32,7 @@ const itemVariants = {
     visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 60, damping: 15 } }
 };
 
-const CategoryCard = ({ category, idx, scrollYProgress, isDesktop }) => {
+const CategoryCard = ({ category, idx, scrollYProgress, isDesktop, onOpenBrands }) => {
     const imageUrl = getCategoryImage(category);
 
     // Move Y up to -100px staggered by index when scrolling past 30% from top
@@ -73,6 +74,24 @@ const CategoryCard = ({ category, idx, scrollYProgress, isDesktop }) => {
                     {category.categoryName || `Category ${idx + 1}`}
                 </span>
             </Link>
+
+            {/* VIEW BRANDS Button */}
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onOpenBrands(category);
+                }}
+                className={`mt-2 font-semibold text-center text-gray-700 hover:text-white bg-white hover:bg-[#fb4a6f] border border-gray-200 hover:border-[#fb4a6f] rounded-full transition-all duration-200 shadow-sm flex items-center justify-center gap-1 active:scale-95 ${
+                    isDesktop ? 'px-3 py-1 text-[11px]' : 'px-2 py-0.5 text-[9px]'
+                }`}
+            >
+                <span>VIEW BRANDS</span>
+                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
         </motion.div>
     );
 };
@@ -80,10 +99,24 @@ const CategoryCard = ({ category, idx, scrollYProgress, isDesktop }) => {
 const DesktopCategories = ({
     heading = "Our Latest Collections",
     subHeading,
-    categories = []
+    categories = [],
+    categoryBrandsMap = {}
 }) => {
     const displayCategories = categories.slice(0, 6);
     const sectionRef = useRef(null);
+
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [isBrandsModalOpen, setIsBrandsModalOpen] = useState(false);
+
+    const handleOpenBrands = (category) => {
+        setSelectedCategory(category);
+        setIsBrandsModalOpen(true);
+    };
+
+    const handleCloseBrands = () => {
+        setIsBrandsModalOpen(false);
+        setSelectedCategory(null);
+    };
 
     // Offset triggers when the bottom of the section reaches 50% from the top of the viewport
     const { scrollYProgress } = useScroll({
@@ -139,7 +172,14 @@ const DesktopCategories = ({
                             className="flex gap-4"
                         >
                             {displayCategories.map((category, idx) => (
-                                <CategoryCard key={category.categoryID || idx} category={category} idx={idx} scrollYProgress={scrollYProgress} isDesktop={false} />
+                                <CategoryCard
+                                    key={category.categoryID || idx}
+                                    category={category}
+                                    idx={idx}
+                                    scrollYProgress={scrollYProgress}
+                                    isDesktop={false}
+                                    onOpenBrands={handleOpenBrands}
+                                />
                             ))}
                         </motion.div>
                     </div>
@@ -153,13 +193,29 @@ const DesktopCategories = ({
                         className="hidden md:grid grid-cols-6 gap-6 justify-items-center"
                     >
                         {displayCategories.map((category, idx) => (
-                            <CategoryCard key={category.categoryID || idx} category={category} idx={idx} scrollYProgress={scrollYProgress} isDesktop={true} />
+                            <CategoryCard
+                                key={category.categoryID || idx}
+                                category={category}
+                                idx={idx}
+                                scrollYProgress={scrollYProgress}
+                                isDesktop={true}
+                                onOpenBrands={handleOpenBrands}
+                            />
                         ))}
                     </motion.div>
                 </div>
             </div>
+
+            {/* Category Brands Modal */}
+            <CategoryBrandsModal
+                isOpen={isBrandsModalOpen}
+                onClose={handleCloseBrands}
+                category={selectedCategory}
+                categoryBrandsMap={categoryBrandsMap}
+            />
         </section>
     )
 }
 
 export default DesktopCategories
+

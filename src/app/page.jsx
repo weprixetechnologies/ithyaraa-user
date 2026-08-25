@@ -34,11 +34,14 @@ const ReelsSection = dynamic(() => import("@/components/home/ReelsSection"), {
 const TestimonialSlider = dynamic(() => import("@/components/home/TestimonialSlider"), {
   loading: () => <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
 });
+const BrandSection = dynamic(() => import("@/components/home/BrandSection"), {
+  loading: () => <div className="h-64 bg-gray-200 animate-pulse rounded-lg" />
+});
 
 // ISR: regenerate this page every 3600 seconds (1 hour)
 export const revalidate = 3600;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7885/api";
 
 // Helper to safely JSON.parse any field
 const safeParse = (value) => {
@@ -143,6 +146,34 @@ async function getInitialTabbedProducts(limit = 12) {
   };
 }
 
+async function getBrands() {
+  try {
+    const res = await fetch(`${API_BASE}/admin/brands`, {
+      next: { revalidate },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data?.data || [];
+  } catch (err) {
+    console.error("[Home] Error fetching brands:", err);
+    return [];
+  }
+}
+
+async function getCategoryBrandsMap() {
+  try {
+    const res = await fetch(`${API_BASE}/categories/brands-map`, {
+      next: { revalidate },
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data?.data || {};
+  } catch (err) {
+    console.error("[Home] Error fetching category brands map:", err);
+    return {};
+  }
+}
+
 // Fallback slides (replace these with your own brand assets)
 const FALLBACK_SLIDES = [
   { src: "/images/fallback-banner-1.jpg" },
@@ -173,6 +204,8 @@ export default async function Home() {
     featuredBlocksResult,
     presaleResult,
     tabbedResult,
+    brandsResult,
+    categoryBrandsMapResult,
   ] = await Promise.allSettled([
     getActiveTagSections(),
     getCategories(),
@@ -181,6 +214,8 @@ export default async function Home() {
     getFeaturedBlocks(),
     getPresaleProducts(),
     getInitialTabbedProducts(12),
+    getBrands(),
+    getCategoryBrandsMap(),
   ]);
 
   // Safely unwrap each result with a fallback
@@ -191,6 +226,8 @@ export default async function Home() {
   const featuredBlocks = featuredBlocksResult.status === "fulfilled" ? featuredBlocksResult.value : [];
   const presaleInitial = presaleResult.status === "fulfilled" ? presaleResult.value : { data: [], pagination: null };
   const tabbedInitial = tabbedResult.status === "fulfilled" ? tabbedResult.value : { data: [], pagination: null };
+  const brands = brandsResult.status === "fulfilled" ? brandsResult.value : [];
+  const categoryBrandsMap = categoryBrandsMapResult.status === "fulfilled" ? categoryBrandsMapResult.value : {};
 
   // Log any fetch failures for observability
   [
@@ -201,6 +238,8 @@ export default async function Home() {
     ["featuredBlocks", featuredBlocksResult],
     ["presale", presaleResult],
     ["tabbedProducts", tabbedResult],
+    ["brands", brandsResult],
+    ["categoryBrandsMap", categoryBrandsMapResult],
   ].forEach(([label, result]) => {
     if (result.status === "rejected") {
       console.error(`[Home] Failed to fetch "${label}":`, result.reason);
@@ -242,6 +281,12 @@ export default async function Home() {
       />
 
       <RollingText text1="YOUNG ELEGANT SURPRISING" text2="PRIMARY DRESES" direction="left" />
+      {/* brand */}
+      <BrandSection
+        heading="Brands We Partner With"
+        subHeading="Discover trusted fashion brands & creators"
+        brands={brands}
+      />
 
       <FeaturingBlock blocks={featuredBlocks} />
 
@@ -251,7 +296,9 @@ export default async function Home() {
         heading="Our Latest Collections"
         subHeading="Browse by category"
         categories={categories}
+        categoryBrandsMap={categoryBrandsMap}
       />
+
 
       {topTagSections.map((sec) => (
         <ProductSection
