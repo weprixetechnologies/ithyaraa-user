@@ -18,10 +18,10 @@ const CategoriesDropdown = () => {
             try {
                 setLoading(true);
 
-                // Fetch categories and categories-brands map concurrently
+                // Fetch categories and new megamenu categories-brands map concurrently
                 const [catRes, mapRes] = await Promise.allSettled([
                     axiosInstance.get("/categories/public?limit=100"),
-                    axiosInstance.get("/categories/brands-map")
+                    axiosInstance.get("/categories/megamenu-brands")
                 ]);
 
                 if (!isMounted) return;
