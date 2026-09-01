@@ -282,11 +282,15 @@ const CategoriesDropdown = () => {
                                 {activeBrands.map((brand) => {
                                     const brandName = brand.name || brand.username || "Brand";
                                     const initial = brandName.charAt(0).toUpperCase();
+                                    const isIthyaraaInhouse = brand.uid === "ithyaraa-inhouse" || brand.username?.toLowerCase() === "ithyaraa";
+                                    const brandHref = isIthyaraaInhouse 
+                                        ? `/shop?categoryID=${activeCategory.categoryID}` 
+                                        : `/brands/${brand.uid}`;
 
                                     return (
                                         <Link
                                             key={brand.uid}
-                                            href={`/brands/${brand.uid}`}
+                                            href={brandHref}
                                             className="group flex flex-col items-center p-3 rounded-xl bg-gray-50 hover:bg-pink-50/50 hover:shadow-sm border border-transparent hover:border-pink-100 transition-all text-center"
                                         >
                                             <div className="relative w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-[#fb4a6f] to-[#ffb6c6] mb-2 shadow-xs">
