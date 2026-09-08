@@ -5,6 +5,7 @@ import Image from "next/image";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { useProductBadges } from "@/contexts/ProductBadgesContext";
 import logo from "../../../public/ithyaraa-logo.png";
 
 const parseJSON = (val) => {
@@ -38,7 +39,9 @@ const ImageWithFallback = ({ src, fallbackSrc, alt, ...props }) => {
 const ShopProductCard = ({ product }) => {
     const [hover, setHover] = useState(false);
     const { isInWishlist, toggleWishlist, loading } = useWishlist();
+    const { getProductBadges } = useProductBadges();
 
+    const productBadges = getProductBadges(product?.productID);
     const isWishlisted = isInWishlist(product?.productID);
 
     const images = parseJSON(product?.featuredImage);
@@ -109,6 +112,22 @@ const ShopProductCard = ({ product }) => {
                     </div>
 
 
+
+                    {/* Dynamic Product Badges */}
+                    {productBadges && productBadges.length > 0 && (
+                        <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start pointer-events-none">
+                            {productBadges.map((badge, idx) => (
+                                <span
+                                    key={badge.id || idx}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md tracking-tight leading-none uppercase"
+                                    style={{ backgroundColor: badge.bgColor, color: badge.textColor }}
+                                >
+                                    {badge.icon && <span>{badge.icon}</span>}
+                                    <span>{badge.name}</span>
+                                </span>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Wishlist */}
                     <button

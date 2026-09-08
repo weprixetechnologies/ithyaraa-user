@@ -41,7 +41,7 @@ const BrandSection = dynamic(() => import("@/components/home/BrandSection"), {
 // ISR: regenerate this page every 3600 seconds (1 hour)
 export const revalidate = 3600;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7885/api";
 
 // Helper to safely JSON.parse any field
 const safeParse = (value) => {
@@ -281,12 +281,7 @@ export default async function Home() {
       />
 
       <RollingText text1="YOUNG ELEGANT SURPRISING" text2="PRIMARY DRESES" direction="left" />
-      {/* brand */}
-      <BrandSection
-        heading="Brands We Partner With"
-        subHeading="Discover trusted fashion brands & creators"
-        brands={brands}
-      />
+
 
       <FeaturingBlock blocks={featuredBlocks} />
 
@@ -342,6 +337,13 @@ export default async function Home() {
         initialPagination={tabbedInitial.pagination}
         initialLimit={12}
         loadMoreLimit={12}
+      />
+
+      {/* brand */}
+      <BrandSection
+        heading="Brands We Partner With"
+        subHeading="Discover trusted fashion brands & creators"
+        brands={brands}
       />
     </>
   );

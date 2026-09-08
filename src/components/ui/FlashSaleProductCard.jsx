@@ -5,6 +5,7 @@ import Image from "next/image";
 import { FaHeart, FaRegHeart, FaBolt } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { useProductBadges } from "@/contexts/ProductBadgesContext";
 import logo from "../../../public/ithyaraa-logo.png";
 
 const parseJSON = (val) => {
@@ -14,6 +15,9 @@ const parseJSON = (val) => {
 const FlashSaleProductCard = ({ product }) => {
     const [hover, setHover] = useState(false);
     const { isInWishlist, toggleWishlist, loading } = useWishlist();
+    const { getProductBadges } = useProductBadges();
+
+    const productBadges = getProductBadges(product?.productID);
 
     const isWishlisted = isInWishlist(product?.productID);
 
@@ -85,10 +89,22 @@ const FlashSaleProductCard = ({ product }) => {
                 {/* Overlays */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 pointer-events-none" />
 
-                {/* Flash Sale Badge */}
-                <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg transform -rotate-1 origin-top-left">
-                    <FaBolt size={8} className="animate-pulse" />
-                    <span>FLASH DEAL</span>
+                {/* Flash Sale & Custom Badges Container */}
+                <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start pointer-events-none">
+                    <div className="flex items-center gap-1 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg transform -rotate-1 origin-top-left">
+                        <FaBolt size={8} className="animate-pulse" />
+                        <span>FLASH DEAL</span>
+                    </div>
+                    {productBadges && productBadges.map((badge, idx) => (
+                        <span
+                            key={badge.id || idx}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md uppercase"
+                            style={{ backgroundColor: badge.bgColor, color: badge.textColor }}
+                        >
+                            {badge.icon && <span>{badge.icon}</span>}
+                            <span>{badge.name}</span>
+                        </span>
+                    ))}
                 </div>
 
                 {/* Discount Badge */}

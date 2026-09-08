@@ -11,6 +11,7 @@ import { useDispatch } from "react-redux";
 import { addCartComboAsync } from "@/redux/slices/cartSlice";
 import SelectComboSimple from "@/components/products/selectComboSimple";
 import BuyNowButton from "@/components/BuyNowButton";
+import ProductShareButton from "@/components/products/ProductShareButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const ComboInteractive = ({ productID, product, buyMoreProducts }) => {
@@ -254,6 +255,7 @@ const ComboInteractive = ({ productID, product, buyMoreProducts }) => {
                                 <div className="pdp-icon-btn">
                                     <CiHeart /> <span>Add to Wishlist</span>
                                 </div>
+                                <ProductShareButton product={product} />
                                 {product?.sizeChartUrl && (
                                     <button
                                         type="button"

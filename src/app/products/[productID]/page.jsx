@@ -11,7 +11,7 @@ const SECTION_META = {
     TOP_DEALS: { heading: "Top Deals", subHeading: "Unbeatable prices on favorites" },
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7885/api";
 
 const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
 
@@ -63,15 +63,28 @@ export async function generateMetadata({ params }) {
 
         const featuredImageStr = safeParse(product.featuredImage);
         const imageUrl = featuredImageStr?.[0]?.imgUrl || '/og-image.jpg';
+        const title = `${product.name} | ITHYARAA`;
+        const description = product.description?.substring(0, 160) || `Buy ${product.name} at Ithyaraa.`;
+        const productUrl = `https://ithyaraa.com/products/${productID}`;
 
         return {
-            title: `${product.name} | ITHYARAA`,
-            description: product.description?.substring(0, 160) || `Buy ${product.name} at Ithyaraa.`,
+            title,
+            description,
             openGraph: {
-                title: `${product.name} | ITHYARAA`,
-                description: product.description?.substring(0, 160) || `Buy ${product.name} at Ithyaraa.`,
-                images: [imageUrl],
+                title,
+                description,
+                url: productUrl,
+                siteName: 'ITHYARAA',
+                images: [{ url: imageUrl, width: 1200, height: 630, alt: product.name }],
                 type: 'website'
+            },
+            twitter: {
+                card: 'summary_large_image',
+                title,
+                description,
+                images: [imageUrl],
+                site: '@ithyaraa',
+                creator: '@ithyaraa'
             }
         };
     } catch (err) {

@@ -4,7 +4,7 @@ import ComboInteractive from "@/components/products/ComboInteractive";
 const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
 
 async function getComboData(id) {
-    const res = await fetch(`https://backend.ithyaraa.com/api/combo/detail-user/${id}`, { next: { revalidate: 60 } });
+    const res = await fetch(`http://localhost:7885/api/combo/detail-user/${id}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     const body = await res.json();
     if (!body.data) return null;
@@ -14,7 +14,7 @@ async function getComboData(id) {
 // Reuse the fetchProducts / BuyMore Products logic
 async function getBuyMoreProducts() {
     const params = new URLSearchParams({ limit: "20", page: "1", type: "variable" });
-    const res = await fetch(`https://backend.ithyaraa.com/api/products/all-products?${params.toString()}`, { next: { revalidate: 300 } });
+    const res = await fetch(`http://localhost:7885/api/products/all-products?${params.toString()}`, { next: { revalidate: 300 } });
     if (!res.ok) return [];
     const data = await res.json();
     return (data?.data || []).map(p => {
@@ -30,17 +30,31 @@ async function getBuyMoreProducts() {
 export async function generateMetadata({ params }) {
     const { productID } = await params;
     const product = await getComboData(productID);
-    if (!product) return { title: "Combo Not Found" };
+    if (!product) return { title: "Combo Not Found | ITHYARAA" };
 
-    const firstImage = product.featuredImage?.[0]?.imgUrl || "";
+    const firstImage = product.featuredImage?.[0]?.imgUrl || '/og-image.jpg';
+    const title = `${product.name} | ITHYARAA Combo`;
+    const description = product.description?.substring(0, 160) || "Get the best combo offers at Ithyaraa.";
+    const productUrl = `https://ithyaraa.com/combo/${productID}`;
+
     return {
-        title: `${product.name} | Ithyaraa Combo`,
-        description: product.description || "Get the best combo offers at Ithyaraa.",
+        title,
+        description,
         openGraph: {
-            title: product.name,
-            description: product.description,
-            images: firstImage ? [{ url: firstImage }] : [],
+            title,
+            description,
+            url: productUrl,
+            siteName: 'ITHYARAA',
+            images: firstImage ? [{ url: firstImage, width: 1200, height: 630, alt: product.name }] : [],
             type: "website"
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: firstImage ? [firstImage] : [],
+            site: '@ithyaraa',
+            creator: '@ithyaraa'
         }
     };
 }

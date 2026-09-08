@@ -9,6 +9,7 @@ import { useDispatch } from "react-redux";
 import { addCartAsync } from "@/redux/slices/cartSlice";
 import { useWishlist } from "@/contexts/WishlistContext";
 import BuyNowButton from "@/components/BuyNowButton";
+import ProductShareButton from "@/components/products/ProductShareButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
@@ -853,6 +854,7 @@ export default function CustomProductInteractive({ productID, product, customInp
                                         {isWishlisted ? <FaHeart size={13} /> : <CiHeart size={15} />}
                                         {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
                                     </button>
+                                    <ProductShareButton product={product} />
                                     {product?.sizeChartUrl && (
                                         <button
                                             type="button"

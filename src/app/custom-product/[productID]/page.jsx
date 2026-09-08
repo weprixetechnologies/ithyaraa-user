@@ -4,7 +4,7 @@ import CustomProductInteractive from "@/components/products/CustomProductInterac
 const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
 
 async function getProductData(id) {
-    const res = await fetch(`https://backend.ithyaraa.com/api/products/details/${id}`, { next: { revalidate: 60 } });
+    const res = await fetch(`http://localhost:7885/api/products/details/${id}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     const body = await res.json();
     if (!body.product) return null;
@@ -19,7 +19,7 @@ async function getProductData(id) {
 }
 
 async function getReviewStats(id) {
-    const res = await fetch(`https://backend.ithyaraa.com/api/reviews/product/${id}/stats`, { next: { revalidate: 300 } });
+    const res = await fetch(`http://localhost:7885/api/reviews/product/${id}/stats`, { next: { revalidate: 300 } });
     if (!res.ok) return null;
     const body = await res.json();
     return body.success ? body.data : null;
@@ -39,7 +39,7 @@ async function getDynamicSections() {
     const sections = await Promise.allSettled(
         shuffled.map(async (sectionid) => {
             const params = new URLSearchParams({ limit: "12", sectionid });
-            const res = await fetch(`https://backend.ithyaraa.com/api/products/all-products?${params}`, { next: { revalidate: 300 } });
+            const res = await fetch(`http://localhost:7885/api/products/all-products?${params}`, { next: { revalidate: 300 } });
             if (!res.ok) throw new Error("Failed");
             const data = await res.json();
             const products = (data?.data || []).map(p => ({
@@ -57,17 +57,31 @@ async function getDynamicSections() {
 export async function generateMetadata({ params }) {
     const { productID } = await params;
     const product = await getProductData(productID);
-    if (!product) return { title: "Product Not Found" };
+    if (!product) return { title: "Product Not Found | ITHYARAA" };
 
-    const firstImage = product.featuredImage?.[0]?.imgUrl || "";
+    const firstImage = product.featuredImage?.[0]?.imgUrl || '/og-image.jpg';
+    const title = `${product.name} | ITHYARAA Customization`;
+    const description = product.description?.substring(0, 160) || "Customize your exclusive apparel with Ithyaraa.";
+    const productUrl = `https://ithyaraa.com/custom-product/${productID}`;
+
     return {
-        title: `${product.name} | Ithyaraa Customization`,
-        description: product.description || "Customize your exclusive apparel with Ithyaraa.",
+        title,
+        description,
         openGraph: {
-            title: product.name,
-            description: product.description,
-            images: firstImage ? [{ url: firstImage }] : [],
+            title,
+            description,
+            url: productUrl,
+            siteName: 'ITHYARAA',
+            images: firstImage ? [{ url: firstImage, width: 1200, height: 630, alt: product.name }] : [],
             type: "website"
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: firstImage ? [firstImage] : [],
+            site: '@ithyaraa',
+            creator: '@ithyaraa'
         }
     };
 }

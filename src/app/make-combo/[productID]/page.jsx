@@ -4,7 +4,7 @@ import MakeComboInteractive from "@/components/products/MakeComboInteractive";
 const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
 
 async function getMakeComboData(id) {
-    const res = await fetch(`https://backend.ithyaraa.com/api/make-combo/detail-user/${id}`, { next: { revalidate: 60 } });
+    const res = await fetch(`http://localhost:7885/api/make-combo/detail-user/${id}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     const body = await res.json();
     if (!body.data) return null;
@@ -12,7 +12,7 @@ async function getMakeComboData(id) {
 }
 
 async function getReviewStats(id) {
-    const res = await fetch(`https://backend.ithyaraa.com/api/reviews/product/${id}/stats`, { next: { revalidate: 300 } });
+    const res = await fetch(`http://localhost:7885/api/reviews/product/${id}/stats`, { next: { revalidate: 300 } });
     if (!res.ok) return null;
     const body = await res.json();
     return body.success ? body.data : null;
@@ -32,7 +32,7 @@ async function getDynamicSections() {
     const sections = await Promise.allSettled(
         shuffled.map(async (sectionid) => {
             const params = new URLSearchParams({ limit: "12", sectionid });
-            const res = await fetch(`https://backend.ithyaraa.com/api/products/all-products?${params}`, { next: { revalidate: 300 } });
+            const res = await fetch(`http://localhost:7885/api/products/all-products?${params}`, { next: { revalidate: 300 } });
             if (!res.ok) throw new Error("Failed");
             const data = await res.json();
             const products = (data?.data || []).map(p => ({
@@ -50,17 +50,31 @@ async function getDynamicSections() {
 export async function generateMetadata({ params }) {
     const { productID } = await params;
     const product = await getMakeComboData(productID);
-    if (!product) return { title: "Combo Not Found" };
+    if (!product) return { title: "Combo Not Found | ITHYARAA" };
 
-    const firstImage = product.featuredImage?.[0]?.imgUrl || "";
+    const firstImage = product.featuredImage?.[0]?.imgUrl || '/og-image.jpg';
+    const title = `${product.name} | ITHYARAA Build Your Combo`;
+    const description = product.description?.substring(0, 160) || "Build your own custom combo at Ithyaraa.";
+    const productUrl = `https://ithyaraa.com/make-combo/${productID}`;
+
     return {
-        title: `${product.name} | Ithyaraa Build Your Combo`,
-        description: product.description || "Build your own custom combo at Ithyaraa.",
+        title,
+        description,
         openGraph: {
-            title: product.name,
-            description: product.description,
-            images: firstImage ? [{ url: firstImage }] : [],
+            title,
+            description,
+            url: productUrl,
+            siteName: 'ITHYARAA',
+            images: firstImage ? [{ url: firstImage, width: 1200, height: 630, alt: product.name }] : [],
             type: "website"
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: firstImage ? [firstImage] : [],
+            site: '@ithyaraa',
+            creator: '@ithyaraa'
         }
     };
 }

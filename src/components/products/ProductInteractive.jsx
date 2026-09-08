@@ -12,6 +12,8 @@ import CountdownTimer from "@/components/products/CountdownTimer";
 import CrossSellModal from "@/components/products/crossSellModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import BuyNowButton from "@/components/BuyNowButton";
+import ProductShareButton from "@/components/products/ProductShareButton";
+import { useProductBadges } from "@/contexts/ProductBadgesContext";
 
 const ProductGallery = lazy(() => import("@/components/products/productGallery"));
 const ProductTabs = lazy(() => import("@/components/products/tabsAccordion"));
@@ -56,6 +58,8 @@ const buildOfferText = (offer) => {
 const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, dynamicSections }) => {
     const searchParams = useSearchParams();
     const [referBy, setReferBy] = useState(null);
+    const { getProductBadges } = useProductBadges();
+    const productBadges = getProductBadges(product?.productID);
 
     useEffect(() => {
         const stored = localStorage.getItem("referBy");
@@ -219,6 +223,21 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
 
                     {/* ── Product info ── */}
                     <div className="product-data-tab px-3">
+                        {/* Dynamic Badges */}
+                        {productBadges && productBadges.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mb-2">
+                                {productBadges.map((badge, idx) => (
+                                    <span
+                                        key={badge.id || idx}
+                                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-xs uppercase tracking-tight"
+                                        style={{ backgroundColor: badge.bgColor, color: badge.textColor }}
+                                    >
+                                        {badge.icon && <span>{badge.icon}</span>}
+                                        <span>{badge.name}</span>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                         <p className="text-xs font-medium uppercase text-[#e84393]">{(!product?.brand && !product?.brandID) ? 'Ithyaraa' : (product?.brand || 'ITHYARAA')}</p>
                         <h1 className="text-xl md:text-2xl font-medium">{product.name}</h1>
 
@@ -453,8 +472,8 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
                             />
                         </div>
 
-                        {/* Wishlist + size guide */}
-                        <div className="flex gap-4 pt-2">
+                        {/* Wishlist + size guide + Share */}
+                        <div className="flex gap-4 pt-2 flex-wrap items-center">
                             <button
                                 onClick={handleWishlistToggle}
                                 disabled={wishlistLoading}
@@ -466,6 +485,7 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
                                 {isWishlisted ? <FaHeart className="text-red-500" /> : <CiHeart />}
                                 <p className="pl-1">{isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}</p>
                             </button>
+                            <ProductShareButton product={product} />
                             {product?.type === "variable" && product?.sizeChartUrl && (
                                 <button
                                     type="button"

@@ -20,10 +20,10 @@ const ForgotAction = () => {
         if (typeof window !== 'undefined') {
             const hostname = window.location.hostname;
             if (hostname === '192.168.1.12' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
-                return 'https://backend.ithyaraa.com/api';
+                return 'http://localhost:7885/api';
             }
         }
-        return 'https://backend.ithyaraa.com/api';
+        return 'http://localhost:7885/api';
     };
 
     // Reusable identifier validation

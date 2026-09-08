@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import StoreProvider from "@/redux/provider";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProductBadgesProvider } from "@/contexts/ProductBadgesContext";
 
 import ReferralTracker from "@/components/ReferralTracker";
 import { Suspense } from "react";
@@ -49,13 +50,15 @@ export default function RootLayout({ children }) {
           </Suspense>
           <AuthProvider>
             <WishlistProvider>
-              <ReferralTracker />
-              <ToastContainer />
-              <Header />
-              <main className="min-h-screen">
-                {children}
-              </main>
-              <Footer />
+              <ProductBadgesProvider>
+                <ReferralTracker />
+                <ToastContainer />
+                <Header />
+                <main className="min-h-screen">
+                  {children}
+                </main>
+                <Footer />
+              </ProductBadgesProvider>
             </WishlistProvider>
           </AuthProvider>
         </StoreProvider>

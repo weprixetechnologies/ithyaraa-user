@@ -20,8 +20,11 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+import AppliedOffersHeader from './AppliedOffersHeader';
+
 const CartItems = ({ selectedItems = [], onSelectionChange }) => {
     const cartState = useSelector((state) => state.cart.cart)
+    const cartDetail = useSelector((state) => state.cart.cartDetail);
     const dispatch = useDispatch();
     const router = useRouter();
     const [removingItems, setRemovingItems] = useState(new Set());
@@ -258,6 +261,7 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
 
     return (
         <div className='mt-5'>
+            <AppliedOffersHeader appliedOffers={cartDetail?.appliedOffers} cartItems={cartData} />
             <div className="flex items-center justify-between mb-3">
                 <p className='font-medium text-lg'>Your Cart Items</p>
                 <div className="flex items-center gap-3">
@@ -377,7 +381,7 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                                 {i.description}
                                             </p>
                                         )}
-                                        <div className="cart-pricing flex gap-2 items-center">
+                                        <div className="cart-pricing flex gap-2 items-center flex-wrap">
                                             <p className="text-sm md:text-lg font-medium"> ₹{i.lineTotalAfter}</p>
                                             {i.salePrice !== i.regularPrice && (
                                                 <p className="text-sm md:text-lg font-medium text-secondary-text-deep line-through"> ₹{i.regularPrice * i.quantity}</p>
@@ -386,6 +390,13 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                                 <p className="text-xs md:text-sm font-light text-green-500">(Saved ₹{((i.regularPrice - i.salePrice) * i.quantity).toFixed(0)})</p>
                                             )}
                                         </div>
+                                        {i.offerApplied && (
+                                            <div className="mt-1 flex items-center gap-1.5">
+                                                <span className="text-[11px] px-2 py-0.5 bg-green-100 text-green-700 font-semibold rounded-full border border-green-200">
+                                                    🏷️ Offer Applied: {i.offerName || 'Special Offer'}
+                                                </span>
+                                            </div>
+                                        )}
                                         <p className='text-xs mt-2'>Selected Variation</p>
                                         <div className="flex flex-row flex-wrap gap-2 mt-1">
                                             {i.variationValues?.map((v, index) =>

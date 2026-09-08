@@ -9,6 +9,7 @@ import Image from "next/image";
 import { useDispatch } from "react-redux";
 import { addCartComboAsync } from "@/redux/slices/cartSlice";
 import BuyNowButton from "@/components/BuyNowButton";
+import ProductShareButton from "@/components/products/ProductShareButton";
 import SelectCombo from "@/components/products/selectCombo";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -85,7 +86,7 @@ const ProductPickerModal = ({
                                 >
                                     <div className="pdp-picker-img-wrap">
                                         <Image
-                                            src={p.featuredImage?.[0]?.imgUrl || "https://backend.ithyaraa.com/uploads/placeholder.jpg"}
+                                            src={p.featuredImage?.[0]?.imgUrl || "http://localhost:7885/uploads/placeholder.jpg"}
                                             alt={p.name}
                                             width={88}
                                             height={88}
@@ -724,6 +725,7 @@ const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dyna
                                         {isWishlisted ? <FaHeart size={13} /> : <CiHeart size={15} />}
                                         {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
                                     </button>
+                                    <ProductShareButton product={comboData} />
                                     {comboData?.sizeChartUrl && (
                                         <button
                                             type="button"
