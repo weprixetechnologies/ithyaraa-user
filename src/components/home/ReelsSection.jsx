@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 
 const AnimatedBlobs = dynamic(() => import('../homeComponents/AnimatedBlobs'), { ssr: false });
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7885/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://backend.ithyaraa.com/api';
 
 const ReelItem = ({ reel }) => {
     const videoRef = useRef(null);

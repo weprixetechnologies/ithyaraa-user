@@ -1,7 +1,7 @@
 import FaqAccordion from "@/components/faq/FaqAccordion";
 import FaqContactBlock from "@/components/faq/FaqContactBlock";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7885/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
 const REVALIDATE = 86400; // 24 hours ISR
 
 async function getFaqs() {

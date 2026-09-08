@@ -41,7 +41,7 @@ const BrandSection = dynamic(() => import("@/components/home/BrandSection"), {
 // ISR: regenerate this page every 3600 seconds (1 hour)
 export const revalidate = 3600;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7885/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
 
 // Helper to safely JSON.parse any field
 const safeParse = (value) => {

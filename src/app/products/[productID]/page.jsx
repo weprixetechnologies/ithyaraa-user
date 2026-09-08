@@ -11,7 +11,7 @@ const SECTION_META = {
     TOP_DEALS: { heading: "Top Deals", subHeading: "Unbeatable prices on favorites" },
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7885/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
 
 const safeParse = (v) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return v; } };
 
