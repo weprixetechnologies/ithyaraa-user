@@ -7,6 +7,7 @@ import { TiStarFullOutline } from "react-icons/ti";
 import dynamic from 'next/dynamic';
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { useProductBadges } from "@/contexts/ProductBadgesContext";
 import logo from "../../../public/ithyaraa-logo.png";
 
 const AnimatedBlobs = dynamic(() => import('../homeComponents/AnimatedBlobs'), { ssr: false });
@@ -38,6 +39,7 @@ const ImageWithFallback = ({ src, fallbackSrc, alt, ...props }) => {
 const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, products = [] }) => {
     const scrollRef = useRef(null)
     const { isInWishlist, toggleWishlist, loading } = useWishlist()
+    const { getProductBadges } = useProductBadges()
 
     const getProductHref = (p) => {
         const id = p?.productID;
@@ -201,12 +203,29 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                     ref={scrollRef}
                     className="flex flex-row gap-3 overflow-x-auto py-2 px-5 scroll-smooth"
                 >
-                    {products?.map((i) => (
+                    {products?.map((i) => {
+                        const productBadges = getProductBadges(i.productID);
+                        return (
                         <div className="flex-col flex gap-1" key={i.productID}>
                             {/* IMAGE CARD */}
                             <div className="h-auto aspect-[2/3] w-[40dvw] md:w-[18dvw] max-w-[40dvw] md:max-w-[18dvw] relative">
                                 {/* hover group is on the rounded container */}
                                 <div className="absolute inset-0 rounded-lg overflow-hidden group">
+                                    {/* Dynamic Product Badges */}
+                                    {productBadges && productBadges.length > 0 && (
+                                        <div className="absolute top-2 left-2 z-20 flex flex-col gap-1 items-start pointer-events-none">
+                                            {productBadges.map((badge, idx) => (
+                                                <span
+                                                    key={badge.id || idx}
+                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md tracking-tight leading-none uppercase"
+                                                    style={{ backgroundColor: badge.bgColor, color: badge.textColor }}
+                                                >
+                                                    {badge.icon && <span>{badge.icon}</span>}
+                                                    <span>{badge.name}</span>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                     {/* slider: 200% width (two slides), translate on hover */}
                                     <div className="absolute inset-0 flex w-[200%] h-full transition-transform duration-500 ease-out will-change-transform group-hover:-translate-x-1/2">
                                         {/* Slide 1 */}
@@ -284,7 +303,8 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                 </div>
                             </a>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Right Arrow (Desktop Only) */}

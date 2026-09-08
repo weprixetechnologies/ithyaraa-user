@@ -2,8 +2,12 @@ import React from 'react'
 import Image from 'next/image'
 import PresaleCardCounter from './presalecardCounter'
 import logo from "../../../public/ithyaraa-logo.png"
+import { useProductBadges } from "@/contexts/ProductBadgesContext"
 
 const PreBookingProductCard = ({ product }) => {
+    const { getProductBadges } = useProductBadges();
+    const productBadges = getProductBadges(product?.productID || product?.presaleProductID);
+
     const featuredImage = product?.featuredImage || [];
     const imageUrl = featuredImage?.[0]?.imgUrl || logo;
 
@@ -20,8 +24,23 @@ const PreBookingProductCard = ({ product }) => {
             onClick={handleCardClick}
             className="w-full sm:w-[250px] overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer hover:shadow-lg hover:shadow-gray-300 hover:p-2 rounded-lg relative"
         >
+            {/* Dynamic Product Badges */}
+            {productBadges && productBadges.length > 0 && (
+                <div className="absolute top-4 left-4 z-20 flex flex-col gap-1 items-start pointer-events-none">
+                    {productBadges.map((badge, idx) => (
+                        <span
+                            key={badge.id || idx}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md tracking-tight leading-none uppercase"
+                            style={{ backgroundColor: badge.bgColor, color: badge.textColor }}
+                        >
+                            {badge.icon && <span>{badge.icon}</span>}
+                            <span>{badge.name}</span>
+                        </span>
+                    ))}
+                </div>
+            )}
             {isUpcoming && (
-                <div className="absolute top-4 left-4 z-10 bg-black text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-md">
+                <div className={`absolute ${productBadges?.length ? 'top-12' : 'top-4'} left-4 z-10 bg-black text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-md`}>
                     Upcoming
                 </div>
             )}
