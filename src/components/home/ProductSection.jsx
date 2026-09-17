@@ -38,7 +38,8 @@ const ImageWithFallback = ({ src, fallbackSrc, alt, ...props }) => {
 
 const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, products = [] }) => {
     const scrollRef = useRef(null)
-    const { isInWishlist, toggleWishlist, loading } = useWishlist()
+    const [togglingMap, setTogglingMap] = useState({})
+    const { isInWishlist, toggleWishlist } = useWishlist()
     const { getProductBadges } = useProductBadges()
 
     const getProductHref = (p) => {
@@ -59,90 +60,14 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
         }
     };
 
-
-    // const products = [
-    //     {
-    //         productID: '1',
-    //         name: 'Exclusive Launch Top By Yuthsy - You are Special',
-    //         featuredImage: [
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-grey-oversized-joggers-646474-1736252675-1.jpg' },
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-black-super-loose-fit-joggers-617465-1737461061-1.jpg' },
-    //         ],
-    //         brand: 'ITHYARAA',
-    //         regularPrice: 1099,
-    //         salePrice: 899,
-    //         discountValue: 18,
-    //         rating: 4.8
-    //     },
-    //     {
-    //         productID: '2',
-    //         name: 'Classic Black Hoodie',
-    //         featuredImage: [
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-black-super-loose-fit-joggers-617465-1737461061-1.jpg' },
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-blue-super-baggy-fit-mid-rise-jeans-624681-1751010116-1.jpg' },
-    //         ],
-    //         brand: 'BEWAKOOF',
-    //         regularPrice: 1599,
-    //         salePrice: 1299,
-    //         discountValue: 19,
-    //         rating: 4.6
-    //     },
-    //     {
-    //         productID: '3',
-    //         name: 'Premium White Sneakers',
-    //         featuredImage: [
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-blue-super-baggy-fit-mid-rise-jeans-624681-1751010116-1.jpg' },
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-blue-baggy-fit-distressed-cargo-mid-rise-jeans-624259-1749102371-1.jpg' },
-    //         ],
-    //         brand: 'CAMPUS',
-    //         regularPrice: 2499,
-    //         salePrice: 1999,
-    //         discountValue: 20,
-    //         rating: 4.9
-    //     },
-    //     {
-    //         productID: '4',
-    //         name: 'Denim Jacket - Limited Edition',
-    //         featuredImage: [
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-blue-baggy-fit-distressed-cargo-mid-rise-jeans-624259-1749102371-1.jpg' },
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-blue-super-baggy-fit-mid-rise-jeans-624681-1751010116-1.jpg' },
-    //         ],
-    //         brand: 'LEVIS',
-    //         regularPrice: 3499,
-    //         salePrice: 2999,
-    //         discountValue: 14,
-    //         rating: 4.7
-    //     },
-    //     {
-    //         productID: '5',
-    //         name: 'Everyday Joggers',
-    //         featuredImage: [
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-blue-baggy-fit-distressed-cargo-mid-rise-jeans-624259-1749102371-1.jpg' },
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-grey-oversized-joggers-646474-1736252675-1.jpg' },
-    //         ],
-    //         brand: 'LEVIS',
-    //         regularPrice: 3499,
-    //         salePrice: 2999,
-    //         discountValue: 14,
-    //         rating: 4.7
-    //     },
-    //     {
-    //         productID: '6',
-    //         name: 'Street Denim',
-    //         featuredImage: [
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-blue-baggy-fit-distressed-cargo-mid-rise-jeans-624259-1749102371-1.jpg' },
-    //             { imgUrl: 'https://images.bewakoof.com/t320/men-s-black-super-loose-fit-joggers-617465-1737461061-1.jpg' },
-    //         ],
-    //         brand: 'LEVIS',
-    //         regularPrice: 3499,
-    //         salePrice: 2999,
-    //         discountValue: 14,
-    //         rating: 4.7
-    //     },
-    // ];
-
     const handleToggleWishlist = async (productID) => {
-        await toggleWishlist(productID);
+        if (togglingMap[productID]) return;
+        setTogglingMap(prev => ({ ...prev, [productID]: true }));
+        try {
+            await toggleWishlist(productID);
+        } finally {
+            setTogglingMap(prev => ({ ...prev, [productID]: false }));
+        }
     };
 
     const scrollLeft = () => {
@@ -205,6 +130,7 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                 >
                     {products?.map((i) => {
                         const productBadges = getProductBadges(i.productID);
+                        const isToggling = Boolean(togglingMap[i.productID]);
                         return (
                         <div className="flex-col flex gap-1" key={i.productID}>
                             {/* IMAGE CARD */}
@@ -264,12 +190,12 @@ const ProductSection = ({ heading, subHeading, shopLink, buttonWant = false, pro
                                     {/* WISHLIST BUTTON (float on top) */}
                                     <button
                                         onClick={() => handleToggleWishlist(i.productID)}
-                                        disabled={loading}
+                                        disabled={isToggling}
                                         className={`absolute top-2 right-2 z-20 rounded-full p-2 
                                bg-gradient-to-b from-white to-gray-100 
                                border border-gray-200 shadow-md 
                                hover:shadow-sm active:shadow-inner 
-                               transition-all duration-200 flex justify-center items-center ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+                               transition-all duration-200 flex justify-center items-center ${isToggling ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
                                             }`}
                                         aria-label={isInWishlist(i.productID) ? "Remove from wishlist" : "Add to wishlist"}
                                     >

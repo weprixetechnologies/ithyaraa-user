@@ -80,7 +80,8 @@ const ProductDetail = () => {
     const [showCheckoutModal, setShowCheckoutModal] = useState(false)
     const dispatch = useDispatch()
     const cart = useSelector((state) => state.cart.cartCount)
-    const { toggleWishlist, isInWishlist, loading: wishlistLoading, wishlistProductIds } = useWishlist()
+    const [wishlistToggling, setWishlistToggling] = useState(false)
+    const { toggleWishlist, isInWishlist, wishlistProductIds } = useWishlist()
     const [showSizeChart, setShowSizeChart] = useState(false);
 
     // Check wishlist status - use wishlistProductIds to avoid dependency issues
@@ -482,8 +483,13 @@ const ProductDetail = () => {
     };
 
     const handleWishlistToggle = async () => {
-        if (!presaleProductID) return;
-        await toggleWishlist(presaleProductID);
+        if (!presaleProductID || wishlistToggling) return;
+        setWishlistToggling(true);
+        try {
+            await toggleWishlist(presaleProductID);
+        } finally {
+            setWishlistToggling(false);
+        }
     };
 
     return (
@@ -735,7 +741,7 @@ const ProductDetail = () => {
                         <div className="flex gap-4 pt-2">
                             <button
                                 onClick={handleWishlistToggle}
-                                disabled={wishlistLoading}
+                                disabled={wishlistToggling}
                                 className={`flex items-center transition-colors ${isWishlisted
                                     ? 'text-red-500 hover:text-red-600'
                                     : 'hover:text-secondary-text-deep text-gray-600'

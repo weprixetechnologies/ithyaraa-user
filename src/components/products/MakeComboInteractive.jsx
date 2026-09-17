@@ -185,7 +185,8 @@ const ProductPickerModal = ({
 // ─── Main Component ───────────────────────────────────────────────────────────
 const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dynamicSections }) => {
     const dispatch = useDispatch();
-    const { toggleWishlist, isInWishlist, loading: wishlistLoading } = useWishlist();
+    const [wishlistToggling, setWishlistToggling] = useState(false);
+    const { toggleWishlist, isInWishlist } = useWishlist();
     const isWishlisted = productID ? isInWishlist(productID) : false;
 
     // ── Core state ─────────────────────────────────────────────────────────
@@ -719,8 +720,16 @@ const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dyna
                                 <div className="pdp-icon-actions">
                                     <button
                                         className={`pdp-icon-btn${isWishlisted ? " w-on" : ""}`}
-                                        onClick={() => productID && toggleWishlist(productID)}
-                                        disabled={wishlistLoading}
+                                        onClick={async () => {
+                                            if (!productID || wishlistToggling) return;
+                                            setWishlistToggling(true);
+                                            try {
+                                                await toggleWishlist(productID);
+                                            } finally {
+                                                setWishlistToggling(false);
+                                            }
+                                        }}
+                                        disabled={wishlistToggling}
                                     >
                                         {isWishlisted ? <FaHeart size={13} /> : <CiHeart size={15} />}
                                         {isWishlisted ? "Wishlisted" : "Add to Wishlist"}

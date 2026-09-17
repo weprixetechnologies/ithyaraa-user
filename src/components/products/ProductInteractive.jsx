@@ -84,7 +84,8 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
 
     const dispatch = useDispatch();
     const cart = useSelector((state) => state.cart.cartCount);
-    const { toggleWishlist, isInWishlist, loading: wishlistLoading } = useWishlist();
+    const [wishlistToggling, setWishlistToggling] = useState(false);
+    const { toggleWishlist, isInWishlist } = useWishlist();
     const isWishlisted = productID ? isInWishlist(productID) : false;
 
     // ── Increment / Decrement ─────────────────────────────────────────────────
@@ -167,8 +168,13 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
     };
 
     const handleWishlistToggle = async () => {
-        if (!productID) return;
-        await toggleWishlist(productID);
+        if (!productID || wishlistToggling) return;
+        setWishlistToggling(true);
+        try {
+            await toggleWishlist(productID);
+        } finally {
+            setWishlistToggling(false);
+        }
     };
 
     // ── Memoised fallback product section ─────────────────────────────────────
@@ -476,7 +482,7 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
                         <div className="flex gap-4 pt-2 flex-wrap items-center">
                             <button
                                 onClick={handleWishlistToggle}
-                                disabled={wishlistLoading}
+                                disabled={wishlistToggling}
                                 className={`flex items-center transition-colors min-h-[44px] ${isWishlisted
                                     ? "text-red-500 hover:text-red-600"
                                     : "hover:text-secondary-text-deep text-gray-600"

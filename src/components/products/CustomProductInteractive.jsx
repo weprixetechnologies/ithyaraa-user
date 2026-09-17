@@ -115,7 +115,8 @@ export default function CustomProductInteractive({ productID, product, customInp
     }, [searchParams]);
 
     const dispatch = useDispatch();
-    const { toggleWishlist, isInWishlist, loading: wishlistLoading } = useWishlist();
+    const [wishlistToggling, setWishlistToggling] = useState(false);
+    const { toggleWishlist, isInWishlist } = useWishlist();
     const isWishlisted = productID ? isInWishlist(productID) : false;
 
     // Client states
@@ -848,8 +849,16 @@ export default function CustomProductInteractive({ productID, product, customInp
                                 <div className="pdp-icon-row">
                                     <button
                                         className={`pdp-icon-btn${isWishlisted ? " wishlisted" : ""}`}
-                                        onClick={() => productID && toggleWishlist(productID)}
-                                        disabled={wishlistLoading}
+                                        onClick={async () => {
+                                            if (!productID || wishlistToggling) return;
+                                            setWishlistToggling(true);
+                                            try {
+                                                await toggleWishlist(productID);
+                                            } finally {
+                                                setWishlistToggling(false);
+                                            }
+                                        }}
+                                        disabled={wishlistToggling}
                                     >
                                         {isWishlisted ? <FaHeart size={13} /> : <CiHeart size={15} />}
                                         {isWishlisted ? "Wishlisted" : "Add to Wishlist"}

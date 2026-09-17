@@ -23,8 +23,8 @@ export const WishlistProvider = ({ children }) => {
     const [initialized, setInitialized] = useState(false);
 
     // Fetch wishlist items
-    const fetchWishlist = async () => {
-        setLoading(true);
+    const fetchWishlist = async (showLoading = false) => {
+        if (showLoading) setLoading(true);
         try {
             const { data } = await axiosInstance.get('/wishlist/get-wishlist');
             if (data?.success) {
@@ -44,7 +44,7 @@ export const WishlistProvider = ({ children }) => {
             setWishlistProductIds(new Set());
             return [];
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     };
 
@@ -150,7 +150,7 @@ export const WishlistProvider = ({ children }) => {
     // Initialize wishlist on mount only if user is authenticated and not on login page
     useEffect(() => {
         if (!initialized && isUserAuthenticated() && pathname !== '/login') {
-            fetchWishlist().finally(() => setInitialized(true));
+            fetchWishlist(false).finally(() => setInitialized(true));
         } else if (!isUserAuthenticated() || pathname === '/login') {
             // If user is not authenticated or on login page, mark as initialized to prevent further attempts
             setInitialized(true);
@@ -160,7 +160,7 @@ export const WishlistProvider = ({ children }) => {
     // Force refresh wishlist data
     const refreshWishlist = useCallback(async () => {
         if (isUserAuthenticated() && pathname !== '/login') {
-            await fetchWishlist();
+            await fetchWishlist(true);
         }
     }, [pathname]);
 

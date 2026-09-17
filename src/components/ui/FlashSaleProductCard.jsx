@@ -14,7 +14,8 @@ const parseJSON = (val) => {
 
 const FlashSaleProductCard = ({ product }) => {
     const [hover, setHover] = useState(false);
-    const { isInWishlist, toggleWishlist, loading } = useWishlist();
+    const [toggling, setToggling] = useState(false);
+    const { isInWishlist, toggleWishlist } = useWishlist();
     const { getProductBadges } = useProductBadges();
 
     const productBadges = getProductBadges(product?.productID);
@@ -118,10 +119,16 @@ const FlashSaleProductCard = ({ product }) => {
                 <button
                     onClick={async (e) => {
                         e.preventDefault();
-                        await toggleWishlist(product?.productID);
+                        if (toggling) return;
+                        setToggling(true);
+                        try {
+                            await toggleWishlist(product?.productID);
+                        } finally {
+                            setToggling(false);
+                        }
                     }}
-                    disabled={loading}
-                    className={`absolute top-2 right-2 z-20 rounded-full p-2 bg-white/90 backdrop-blur-sm border border-gray-100 shadow-md hover:bg-white active:scale-95 transition-all duration-200 flex justify-center items-center ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                    disabled={toggling}
+                    className={`absolute top-2 right-2 z-20 rounded-full p-2 bg-white/90 backdrop-blur-sm border border-gray-100 shadow-md hover:bg-white active:scale-95 transition-all duration-200 flex justify-center items-center ${toggling ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                     aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                 >

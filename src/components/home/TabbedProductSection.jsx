@@ -37,7 +37,7 @@ const TabbedProductSection = ({
     initialLimit = 12,
     loadMoreLimit = 8
 }) => {
-    const { isInWishlist, toggleWishlist, loading } = useWishlist();
+    const { isInWishlist, toggleWishlist } = useWishlist();
     const [activeTab, setActiveTab] = useState('all');
     const [products, setProducts] = useState(() => (initialProducts?.length ? initialProducts.map(safeParseProduct) : []));
     const [categories, setCategories] = useState(categoriesProp?.length ? categoriesProp : []);
@@ -230,9 +230,6 @@ const TabbedProductSection = ({
                         <ShopProductCard
                             key={product.productID}
                             product={product}
-                            isInWishlist={isInWishlist}
-                            onToggleWishlist={handleToggleWishlist}
-                            loading={loading}
                         />
                     ))}
                 </div>

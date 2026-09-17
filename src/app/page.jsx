@@ -37,6 +37,7 @@ const TestimonialSlider = dynamic(() => import("@/components/home/TestimonialSli
 const BrandSection = dynamic(() => import("@/components/home/BrandSection"), {
   loading: () => <div className="h-64 bg-gray-200 animate-pulse rounded-lg" />
 });
+const FloatingCouponWidget = dynamic(() => import("@/components/home/FloatingCouponWidget"));
 
 // ISR: regenerate this page every 3600 seconds (1 hour)
 export const revalidate = 3600;
@@ -345,6 +346,9 @@ export default async function Home() {
         subHeading="Discover trusted fashion brands & creators"
         brands={brands}
       />
+
+      {/* Floating Coupon Widget (CSR) */}
+      <FloatingCouponWidget />
     </>
   );
 }

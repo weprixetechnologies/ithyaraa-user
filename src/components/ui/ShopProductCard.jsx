@@ -38,7 +38,8 @@ const ImageWithFallback = ({ src, fallbackSrc, alt, ...props }) => {
 
 const ShopProductCard = ({ product }) => {
     const [hover, setHover] = useState(false);
-    const { isInWishlist, toggleWishlist, loading } = useWishlist();
+    const [toggling, setToggling] = useState(false);
+    const { isInWishlist, toggleWishlist } = useWishlist();
     const { getProductBadges } = useProductBadges();
 
     const productBadges = getProductBadges(product?.productID);
@@ -133,10 +134,16 @@ const ShopProductCard = ({ product }) => {
                     <button
                         onClick={async (e) => {
                             e.preventDefault();
-                            await toggleWishlist(product?.productID);
+                            if (toggling) return;
+                            setToggling(true);
+                            try {
+                                await toggleWishlist(product?.productID);
+                            } finally {
+                                setToggling(false);
+                            }
                         }}
-                        disabled={loading}
-                        className={`absolute top-2 right-2 z-2 rounded-full p-2 bg-gradient-to-b from-white to-gray-100 border border-gray-200 shadow-md hover:shadow-sm active:shadow-inner transition-all duration-200 flex justify-center items-center ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+                        disabled={toggling}
+                        className={`absolute top-2 right-2 z-2 rounded-full p-2 bg-gradient-to-b from-white to-gray-100 border border-gray-200 shadow-md hover:shadow-sm active:shadow-inner transition-all duration-200 flex justify-center items-center ${toggling ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
                             }`}
                         aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                     >

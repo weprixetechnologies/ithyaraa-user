@@ -6,7 +6,7 @@ import { FaHeart } from 'react-icons/fa';
 import { useWishlist } from '@/contexts/WishlistContext';
 
 const WishlistIcon = () => {
-    const { wishlistCount, loading } = useWishlist();
+    const { wishlistCount } = useWishlist();
 
     return (
         <Link
