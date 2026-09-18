@@ -130,12 +130,15 @@ const BuyNowModal = ({
 
     const handlingFee = useMemo(() => (paymentMode === 'COD' ? 8 : 0), [paymentMode]);
 
+    const offerSaving = useMemo(() => {
+        return offerDetails?.offerApplied ? Number(offerDetails.savedAmount || 0) : 0;
+    }, [offerDetails]);
+
     const totalAfterCoupon = useMemo(() => {
         if (serverShippingFee === null) return null; // Indicate loading
-        const offerSaving = offerDetails?.offerApplied ? Number(offerDetails.savedAmount || 0) : 0;
         const raw = subtotal - offerSaving - couponDiscount + (serverShippingFee || 0) + handlingFee;
         return raw > 0 ? Number(raw.toFixed(2)) : 0;
-    }, [subtotal, couponDiscount, offerDetails, serverShippingFee, handlingFee]);
+    }, [subtotal, offerSaving, couponDiscount, serverShippingFee, handlingFee]);
 
     const fetchShippingFee = useCallback(async () => {
         const pid = product?.productID || product?.id;
