@@ -145,12 +145,13 @@ const ProductPickerModal = ({
                                                     const allAttrsSelected = p.productAttributes.every(attr => attrs[attr.name]);
                                                     if (!allAttrsSelected || filtered.length === 0) return null;
                                                     const inStock = filtered[0].variationStock > 0;
-                                                                    {val}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    return (
+                                                        <span className={`pdp-stock ${inStock ? "in" : "out"}`} style={{ marginTop: 6 }}>
+                                                            <span className="pdp-stock-dot" />
+                                                            {inStock ? "In Stock" : "Out of Stock"}
+                                                        </span>
+                                                    );
+                                                })()}
                                             </div>
                                         )}
 
