@@ -14,7 +14,7 @@ import BuyNowButton from "@/components/BuyNowButton";
 import ProductShareButton from "@/components/products/ProductShareButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-const ComboInteractive = ({ productID, product, buyMoreProducts }) => {
+const ComboInteractive = ({ productID, product, buyMoreProducts, reviewStats }) => {
     const dispatch = useDispatch();
     const [count, setCount] = useState(1);
     const [productQuantity, setProductQuantity] = useState(100);
@@ -209,16 +209,23 @@ const ComboInteractive = ({ productID, product, buyMoreProducts }) => {
                                 <h1 className="pdp-name">{product.name}</h1>
                             </div>
 
-                            <div className="pdp-rating-row pdp-fade-up pdp-d2">
-                                <div className="pdp-stars">
-                                    {[...Array(5)].map((_, i) => (
-                                        <BsFillStarFill key={i} className="pdp-star" />
-                                    ))}
+                            {reviewStats?.totalReviews > 0 && (
+                                <div className="pdp-rating-row pdp-fade-up pdp-d2">
+                                    <div className="pdp-stars">
+                                        {[...Array(5)].map((_, i) => (
+                                            <BsFillStarFill
+                                                key={i}
+                                                className={i < Math.round(reviewStats.averageRating) ? "pdp-star" : "pdp-star pdp-star--empty"}
+                                            />
+                                        ))}
+                                    </div>
+                                    <p className="pdp-rating-num">{reviewStats.averageRating?.toFixed(1)}</p>
+                                    <div className="pdp-sep" />
+                                    <p className="pdp-review-ct">
+                                        {reviewStats.totalReviews} {reviewStats.totalReviews === 1 ? "review" : "reviews"}
+                                    </p>
                                 </div>
-                                <p className="pdp-rating-num">{product.rating || 4.5}</p>
-                                <div className="pdp-sep" />
-                                <p className="pdp-review-ct">98 reviews</p>
-                            </div>
+                            )}
 
                             <div className="pdp-fade-up pdp-d3" style={{ marginTop: 24 }}>
                                 <SelectComboSimple products={product.products} onVariationSelect={handleVariationSelect} />
@@ -283,7 +290,7 @@ const ComboInteractive = ({ productID, product, buyMoreProducts }) => {
                         <ProductSection products={buyMoreProducts} heading={'Must Try Outfits'} subHeading={'Curated Choice Now'} />
 
                         <div style={{ marginTop: 64 }}>
-                            <Reviews />
+                            <Reviews reviewStats={reviewStats} />
                         </div>
 
                         <div style={{ marginTop: 64 }}>

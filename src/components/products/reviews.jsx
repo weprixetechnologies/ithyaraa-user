@@ -363,7 +363,7 @@ const Reviews = ({ reviewStats: initialReviewStats }) => {
             <div className="flex flex-col md:grid md:grid-cols-2 gap-2 p-2">
                 <div className="w-full grid grid-cols-3 col-span-1 mb-5 md:mb-0">
                     <div className="col-span-1 flex flex-col justify-center items-center">
-                        <span className='text-4xl'>{reviewStats.averageRating.toFixed(1)}</span>
+                        <span className='text-4xl'>{(reviewStats.averageRating ?? 0).toFixed(1)}</span>
                         <p className='text-xs text-secondary-text-deep font-medium'>{totalRatings} rating{totalRatings !== 1 ? 's' : ''}</p>
                     </div>
                     <div className="col-span-2 flex flex-col gap-2 justify-center">

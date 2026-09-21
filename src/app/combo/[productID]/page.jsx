@@ -11,6 +11,13 @@ async function getComboData(id) {
     return body.data;
 }
 
+async function getReviewStats(id) {
+    const res = await fetch(`https://backend.ithyaraa.com/api/reviews/product/${id}/stats`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    const body = await res.json();
+    return body.success ? body.data : null;
+}
+
 // Reuse the fetchProducts / BuyMore Products logic
 async function getBuyMoreProducts() {
     const params = new URLSearchParams({ limit: "20", page: "1", type: "variable" });
@@ -62,12 +69,14 @@ export async function generateMetadata({ params }) {
 export default async function ComboDetailPage({ params }) {
     const { productID } = await params;
 
-    const [productRes, buyMoreRes] = await Promise.allSettled([
+    const [productRes, reviewRes, buyMoreRes] = await Promise.allSettled([
         getComboData(productID),
+        getReviewStats(productID),
         getBuyMoreProducts()
     ]);
 
     const product = productRes.status === "fulfilled" ? productRes.value : null;
+    const reviewStats = reviewRes.status === "fulfilled" ? reviewRes.value : null;
     const buyMoreProducts = buyMoreRes.status === "fulfilled" ? buyMoreRes.value : [];
 
     if (!product) notFound();
@@ -104,6 +113,14 @@ export default async function ComboDetailPage({ params }) {
         }
     };
 
+    if (reviewStats && reviewStats.totalReviews > 0) {
+        productSchema.aggregateRating = {
+            "@type": "AggregateRating",
+            "ratingValue": reviewStats.averageRating || 5,
+            "reviewCount": reviewStats.totalReviews
+        };
+    }
+
     return (
         <>
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
@@ -111,6 +128,10 @@ export default async function ComboDetailPage({ params }) {
             <ComboInteractive
                 productID={productID}
                 product={product}
+                reviewStats={reviewStats || {
+                    totalReviews: 0, averageRating: 0,
+                    ratingBreakdown: [5, 4, 3, 2, 1].map(r => ({ rating: r, count: 0 }))
+                }}
                 buyMoreProducts={buyMoreProducts}
             />
         </>
