@@ -10,8 +10,8 @@ const MobileSortSheet = ({ isOpen, onClose }) => {
     const searchParams = useSearchParams();
 
     const selectedSort = useMemo(() => {
-        const sb = searchParams.get('sortBy') || 'createdAt';
-        const so = (searchParams.get('sortOrder') || 'DESC').toUpperCase();
+        const sb = searchParams.get('sortBy') || 'displayOrder';
+        const so = (searchParams.get('sortOrder') || 'ASC').toUpperCase();
         return `${sb}-${so}`;
     }, [searchParams]);
 
@@ -25,6 +25,7 @@ const MobileSortSheet = ({ isOpen, onClose }) => {
     };
 
     const sortOptions = [
+        { id: 'displayOrder-ASC', label: 'Featured / Recommended' },
         { id: 'createdAt-DESC', label: 'Newest First' },
         { id: 'createdAt-ASC', label: 'Oldest First' },
         { id: 'salePrice-ASC', label: 'Price: Low to High' },
