@@ -46,7 +46,7 @@ const Divider = () => (
 const ProductPickerModal = ({
     isOpen, onClose, availableProducts, selectedProducts,
     selectedAttributes, selectedVariations,
-    onToggleProduct, onAttributeSelect, onConfirm,
+    onToggleProduct, onAttributeSelect, onConfirm, requiredSelections = 3,
 }) => {
     if (!isOpen) return null;
 
