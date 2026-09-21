@@ -39,8 +39,8 @@ const BrandSection = dynamic(() => import("@/components/home/BrandSection"), {
 });
 const FloatingCouponWidget = dynamic(() => import("@/components/home/FloatingCouponWidget"));
 
-// ISR: regenerate this page every 3600 seconds (1 hour)
-export const revalidate = 3600;
+// ISR: regenerate this page every 60 seconds
+export const revalidate = 60;
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.ithyaraa.com/api";
 

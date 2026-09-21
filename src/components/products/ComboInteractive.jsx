@@ -199,7 +199,7 @@ const ComboInteractive = ({ productID, product, buyMoreProducts }) => {
                             <ProductGallery
                                 featuredImage={featuredImage}
                                 setFeaturedImage={setFeaturedImage}
-                                galleryImages={product.featuredImage || []}
+                                galleryImages={product.galleryImage || []}
                             />
                         </div>
 

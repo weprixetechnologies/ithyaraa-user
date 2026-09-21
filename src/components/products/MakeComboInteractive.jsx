@@ -581,7 +581,7 @@ const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dyna
                                 <ProductGallery
                                     featuredImage={featuredImage}
                                     setFeaturedImage={setFeaturedImage}
-                                    galleryImages={comboData.featuredImage || []}
+                                    galleryImages={comboData.galleryImage || []}
                                 />
                             </Suspense>
                         </div>
