@@ -145,14 +145,21 @@ const ProductPickerModal = ({
                                                     const allAttrsSelected = p.productAttributes.every(attr => attrs[attr.name]);
                                                     if (!allAttrsSelected || filtered.length === 0) return null;
                                                     const inStock = filtered[0].variationStock > 0;
-                                                    return (
-                                                        <span className={`pdp-stock ${inStock ? "in" : "out"}`} style={{ marginTop: 6 }}>
-                                                            <span className="pdp-stock-dot" />
-                                                            {inStock ? "In Stock" : "Out of Stock"}
-                                                        </span>
-                                                    );
-                                                })()}
+                                                                    {val}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
+                                        )}
+
+                                        {isSelected && filtered.length > 0 && (
+                                            <p className="pdp-picker-stock">
+                                                {filtered[0]?.variationStock > 0
+                                                    ? `In stock (${filtered[0].variationStock})`
+                                                    : "Out of stock"}
+                                            </p>
                                         )}
                                     </div>
                                 </div>
@@ -164,7 +171,7 @@ const ProductPickerModal = ({
                 <div className="pdp-modal-footer">
                     <p className="pdp-modal-count">
                         <span className="pdp-modal-count-num">{selectedProducts.length}</span>
-                        <span className="pdp-modal-count-of">/3 selected</span>
+                        <span className="pdp-modal-count-of">/{requiredSelections} selected</span>
                     </p>
                     <div style={{ display: "flex", gap: 10 }}>
                         <button className="pdp-btn-outline" onClick={onClose}>Cancel</button>
@@ -188,6 +195,9 @@ const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dyna
     const [wishlistToggling, setWishlistToggling] = useState(false);
     const { toggleWishlist, isInWishlist } = useWishlist();
     const isWishlisted = productID ? isInWishlist(productID) : false;
+
+    // ── Dynamic Required Selections set by Admin (default 3) ──────────────────
+    const requiredSelections = Number(comboData?.requiredSelections) || 3;
 
     // ── Core state ─────────────────────────────────────────────────────────
     const [featuredImage, setFeaturedImage] = useState(comboData?.featuredImage?.[0]?.imgUrl || "");
@@ -247,7 +257,10 @@ const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dyna
             setSelectedVariations(prev => { const n = { ...prev }; delete n[p.productID]; return n; });
             setSelectedAttributes(prev => { const n = { ...prev }; delete n[p.productID]; return n; });
         } else {
-            if (selectedProducts.length >= 3) { toast.error("Maximum 3 products allowed"); return; }
+            if (selectedProducts.length >= requiredSelections) {
+                toast.error(`Maximum ${requiredSelections} products allowed`);
+                return;
+            }
             setSelectedProducts(prev => [...prev, p]);
         }
     };
@@ -267,7 +280,7 @@ const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dyna
     };
 
     const handleConfirmModal = () => {
-        if (selectedProducts.length === 0) { toast.error("Please select at least one product"); return; }
+        if (selectedProducts.length === 0) { toast.error(`Please select ${requiredSelections} products`); return; }
         const missing = selectedProducts.filter(p => !selectedVariations[p.productID]);
         if (missing.length > 0) { toast.error("Please select a variation for each product"); return; }
         setIsModalOpen(false);
@@ -797,6 +810,7 @@ const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dyna
                 onToggleProduct={toggleProductSelection}
                 onAttributeSelect={handleAttributeSelect}
                 onConfirm={handleConfirmModal}
+                requiredSelections={requiredSelections}
             />
 
             {comboData?.sizeChartUrl && (
