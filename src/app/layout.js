@@ -1,4 +1,3 @@
-import { Montserrat, Roboto, Poppins } from "next/font/google";
 import Header from "@/components/header/header";
 import Footer from "@/components/footer/Footer";
 import "./globals.css";
@@ -12,10 +11,6 @@ import { ProductBadgesProvider } from "@/contexts/ProductBadgesContext";
 import ReferralTracker from "@/components/ReferralTracker";
 import { Suspense } from "react";
 import NavigationProgress from "@/components/ui/NavigationProgress";
-
-const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"], weight: ["400", "500", "700"] });
-const roboto = Roboto({ variable: "--font-roboto", subsets: ["latin"], weight: ["400", "500", "700"] });
-const poppins = Poppins({ variable: "--font-poppins", subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"] });
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://ithyaraa.com'),
@@ -42,7 +37,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${montserrat.variable} ${roboto.variable} ${poppins.variable}`}>
+    <html lang="en">
       <body>
         <StoreProvider>
           <Suspense fallback={null}>
