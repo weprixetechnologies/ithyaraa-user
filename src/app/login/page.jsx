@@ -33,7 +33,7 @@ const LoginPage = () => {
     }
 
     return (
-        <div className='bg-white h-[100dvh] w-full flex flex-col md:grid md:grid-cols-2 md:gap-5'>
+        <div className='bg-white w-full flex flex-col md:grid md:grid-cols-2 md:gap-5'>
             {/* Image Section */}
             <div className="relative w-full aspect-[400/245] md:aspect-[591/898] h-[250px] md:h-auto">
                 <Image

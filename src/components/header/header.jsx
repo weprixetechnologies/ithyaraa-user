@@ -259,7 +259,7 @@ const Header = () => {
                 <div className="w-full bg-primary py-3 flex flex-row justify-between items-center px-4">
                     <div className="flex-row flex items-center gap-2">
                         <p className="text-xs text-white">
-                            Enjoy Free Delivery on Orders Over 999 INR
+                            Enjoy Free Delivery on Orders Over 1299 INR
                         </p>
                     </div>
                     <div className="flex flex-row items-center gap-4">
@@ -363,7 +363,7 @@ const Header = () => {
                                     prefetch={false}
                                 >
                                     Categories
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${megaMenu.isOpen && megaMenu.menuName === 'categories' ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${megaMenu.isOpen && megaMenu.menuName === 'categories' ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9" /></svg>
                                 </Link>
                             </li>
                             <li onMouseEnter={() => setMegaMenu({ isOpen: false, menuName: '' })}>
@@ -391,7 +391,7 @@ const Header = () => {
                                     prefetch={false}
                                 >
                                     Brands
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${megaMenu.isOpen && megaMenu.menuName === 'brands' ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${megaMenu.isOpen && megaMenu.menuName === 'brands' ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9" /></svg>
                                 </Link>
                             </li>
                             {/* Other nav items */}
@@ -422,7 +422,7 @@ const Header = () => {
                     <div className="sticky-header-inner">
                         <div className="sticky-strip-item">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
-                            <span>Free Shipping on orders above ₹1499</span>
+                            <span>Free Shipping on orders above ₹1299</span>
                         </div>
                         <div className="sticky-strip-item">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
@@ -463,7 +463,7 @@ const Header = () => {
                             <div className="sticky-nav-dropdown-wrapper">
                                 <Link href="/shop" className="sticky-nav-link sticky-nav-dropdown-trigger">
                                     Shop
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="sticky-chevron"><polyline points="6 9 12 15 18 9"/></svg>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="sticky-chevron"><polyline points="6 9 12 15 18 9" /></svg>
                                 </Link>
                                 <div className="sticky-nav-dropdown">
                                     <Link href="/shop?type=customproduct" className="sticky-dropdown-item">Customise Your Own</Link>

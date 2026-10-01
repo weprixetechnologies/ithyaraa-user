@@ -65,24 +65,38 @@ export default function FloatingCouponWidget() {
 
   return (
     <>
-      {/* Floating Coupon Button - Desktop Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-40 hidden md:block">
+      {/* Floating Coupon Button — icon-only on mobile, full pill on desktop */}
+      <div className="fixed bottom-6 right-4 md:right-6 z-40">
+        {/* Mobile: compact icon button */}
+        <motion.button
+          onClick={() => setIsOpen(true)}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileTap={{ scale: 0.9 }}
+          className="md:hidden relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-rose-500 to-purple-600 text-white shadow-[0_8px_24px_rgba(234,179,8,0.45)] border border-amber-300/40 cursor-pointer overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#fff_360deg)] animate-[spin_4s_linear_infinite] opacity-20" />
+          <Ticket className="relative z-10 w-6 h-6 text-yellow-200 animate-bounce" />
+          {/* Pulse dot */}
+          <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-80"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-300"></span>
+          </span>
+        </motion.button>
+
+        {/* Desktop: full pill */}
         <motion.button
           onClick={() => setIsOpen(true)}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
-          className="relative group flex items-center gap-3 px-5 py-3 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-white font-medium shadow-[0_10px_30px_rgba(234,179,8,0.4)] border border-amber-300/40 cursor-pointer overflow-hidden backdrop-blur-md"
+          className="hidden md:flex relative group items-center gap-3 px-5 py-3 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-white font-medium shadow-[0_10px_30px_rgba(234,179,8,0.4)] border border-amber-300/40 cursor-pointer overflow-hidden backdrop-blur-md"
         >
-          {/* Animated Laser Light Border Glow around Button */}
           <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#fff_360deg)] animate-[spin_4s_linear_infinite] opacity-30 group-hover:opacity-60 transition-opacity" />
-
-          {/* Icon Badge */}
           <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm shadow-inner">
             <Ticket className="w-5 h-5 text-yellow-200 animate-bounce" />
           </div>
-
           <div className="relative z-10 flex flex-col items-start text-left">
             <span className="text-xs uppercase tracking-widest font-extrabold text-amber-200 flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-yellow-300" /> Exclusive Offers
@@ -91,8 +105,6 @@ export default function FloatingCouponWidget() {
               {coupons.length > 0 ? `${coupons.length} Coupon${coupons.length > 1 ? 's' : ''} Available` : 'Claim Coupons'}
             </span>
           </div>
-
-          {/* Pulse ring indicator */}
           <span className="relative z-10 flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-300"></span>

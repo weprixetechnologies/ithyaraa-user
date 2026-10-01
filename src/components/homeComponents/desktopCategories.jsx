@@ -75,23 +75,7 @@ const CategoryCard = ({ category, idx, scrollYProgress, isDesktop, onOpenBrands 
                 </span>
             </Link>
 
-            {/* VIEW BRANDS Button */}
-            <button
-                type="button"
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onOpenBrands(category);
-                }}
-                className={`mt-2 font-semibold text-center text-gray-700 hover:text-white bg-white hover:bg-[#fb4a6f] border border-gray-200 hover:border-[#fb4a6f] rounded-full transition-all duration-200 shadow-sm flex items-center justify-center gap-1 active:scale-95 ${
-                    isDesktop ? 'px-3 py-1 text-[11px]' : 'px-2 py-0.5 text-[9px]'
-                }`}
-            >
-                <span>VIEW BRANDS</span>
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
+
         </motion.div>
     );
 };
