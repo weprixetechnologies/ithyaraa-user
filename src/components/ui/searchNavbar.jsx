@@ -11,20 +11,20 @@ const parseJSON = (val) => {
 };
 
 const getProductHref = (product) => {
-    const id = product?.productID;
+    const identifier = product?.slug || product?.productID;
     const type = product?.type;
-    if (!id) return "/products";
+    if (!identifier) return "/shop";
     switch (type) {
         case 'variable':
-            return `/products/${id}`;
+            return `/products/${identifier}`;
         case 'combo':
-            return `/combo/${id}`;
+            return `/combo/${identifier}`;
         case 'make_combo':
-            return `/make-combo/${id}`;
+            return `/make-combo/${identifier}`;
         case 'customproduct':
-            return `/custom-product/${id}`;
+            return `/custom-product/${identifier}`;
         default:
-            return `/products/${id}`;
+            return `/products/${identifier}`;
     }
 };
 

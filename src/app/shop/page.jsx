@@ -21,10 +21,13 @@ const ShopContent = () => {
     const queryString = useMemo(() => searchParams.toString(), [searchParams]);
 
     useEffect(() => {
+        const controller = new AbortController();
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                const { data } = await axiosInstance.get(`/products/shop?${queryString}`);
+                const { data } = await axiosInstance.get(`/products/shop?${queryString}`, {
+                    signal: controller.signal
+                });
                 if (data?.success) {
                     setProducts(data.data || []);
                     setPagination(data.pagination || null);
@@ -33,14 +36,23 @@ const ShopContent = () => {
                     setPagination(null);
                 }
             } catch (e) {
+                if (e?.name === 'CanceledError' || e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') {
+                    return;
+                }
                 console.error('Failed to load products', e);
                 setProducts([]);
                 setPagination(null);
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
         };
         fetchProducts();
+
+        return () => {
+            controller.abort();
+        };
     }, [queryString]);
 
     return (
@@ -133,12 +145,16 @@ const ShopLoading = () => (
 
                         {/* Product grid skeleton - matches ShopProductGrid layout */}
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                            {Array.from({ length: 8 }).map((_, i) => (
-                                <div key={i} className="border border-gray-200 rounded-lg overflow-hidden">
-                                    <div className="aspect-[2/3] bg-gray-200 animate-pulse" />
-                                    <div className="p-3">
-                                        <div className="h-3 bg-gray-200 rounded w-3/4 mb-2 animate-pulse" />
-                                        <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse" />
+                            {Array.from({ length: 12 }).map((_, i) => (
+                                <div key={i} className="flex-col flex gap-1">
+                                    <div className="h-auto aspect-[2/3] w-full relative bg-gray-200 rounded-lg animate-pulse" />
+                                    <div className="px-[5px] mt-1 space-y-1">
+                                        <div className="h-2.5 bg-gray-200 rounded w-1/3 animate-pulse" />
+                                        <div className="h-3.5 bg-gray-200 rounded w-3/4 animate-pulse" />
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1 px-[5px]">
+                                        <div className="h-4 bg-gray-200 rounded w-12 animate-pulse" />
+                                        <div className="h-3 bg-gray-200 rounded w-10 animate-pulse" />
                                     </div>
                                 </div>
                             ))}

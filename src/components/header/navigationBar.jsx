@@ -29,37 +29,33 @@ const NavigationBar = () => {
                             Home
                         </Link>
                     </li>
-                    <li onMouseEnter={() => setMegaMenu({ isOpen: true, menuName: 'home' })}
-                    >
-                        <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                    <li onMouseEnter={() => setMegaMenu({ isOpen: true, menuName: 'home' })}>
+                        <Link href="/shop" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                             Shop With Us
                         </Link>
                     </li>
                     <li>
-                        <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                        <Link href="/shop?type=combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                             Combo
                         </Link>
                     </li>
                     <li>
-                        <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                        <Link href="/shop?type=combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                             Our Combos
                         </Link>
                     </li>
                     <li>
-                        <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                        <Link href="/shop?type=make_combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                             Make Your Combo
                         </Link>
                     </li>
-
-
                     <li>
-                        <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                        <Link href="/shop?type=customproduct" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                             Customise Your Own
                         </Link>
                     </li>
-
                     <li>
-                        <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                        <Link href="/brands" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                             Brands
                         </Link>
                     </li>

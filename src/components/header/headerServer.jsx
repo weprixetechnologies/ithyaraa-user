@@ -39,11 +39,11 @@ export default function HeaderServer({ megaMenuOpen, megaMenuName }) {
                 <div className="relative flex justify-center">
                     <ul className="flex flex-row items-center gap-10 px-4 min-w-max overflow-x-auto">
                         <li><Link href="/" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Home</Link></li>
-                        <li><Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Shop With Us</Link></li>
-                        <li><Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Combo</Link></li>
-                        <li><Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Our Combos</Link></li>
-                        <li><Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Make Your Combo</Link></li>
-                        <li><Link href="/products" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Customise Your Own</Link></li>
+                        <li><Link href="/shop" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Shop With Us</Link></li>
+                        <li><Link href="/shop?type=combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Combo</Link></li>
+                        <li><Link href="/shop?type=combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Our Combos</Link></li>
+                        <li><Link href="/shop?type=make_combo" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Make Your Combo</Link></li>
+                        <li><Link href="/shop?type=customproduct" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Customise Your Own</Link></li>
                         <li><Link href="/brands" className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">Brands</Link></li>
                     </ul>
 

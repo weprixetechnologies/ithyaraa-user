@@ -96,19 +96,28 @@ export async function generateMetadata({ params }) {
 export default async function ProductDetailPage({ params }) {
     const { productID } = await params;
 
-    // Fetch all initial page data concurrently
-    const [productRes, reviewRes, buyMoreRes, tagSectionsRes] = await Promise.allSettled([
-        axios.get(`${API_BASE}/products/details/${productID}`),
-        axios.get(`${API_BASE}/reviews/product/${productID}/stats`),
+    // Fetch product details first to resolve genuine productID in case route is accessed via slug
+    let productData = null;
+    try {
+        const productRes = await axios.get(`${API_BASE}/products/details/${productID}`);
+        productData = productRes.data?.product || null;
+    } catch {
+        productData = null;
+    }
+
+    if (!productData) {
+        return <p className="text-center mt-10">Product not found</p>;
+    }
+
+    const realProductID = productData.productID;
+
+    // Fetch dependent data concurrently using genuine productID
+    const [reviewRes, buyMoreRes, tagSectionsRes] = await Promise.allSettled([
+        axios.get(`${API_BASE}/reviews/product/${realProductID}/stats`),
         fetchSectionProducts({ limit: 20 }),
         fetchActiveTagSections(12)
     ]);
 
-    if (productRes.status === "rejected" || !productRes.value.data.product) {
-        return <p className="text-center mt-10">Product not found</p>;
-    }
-
-    let productData = productRes.value.data.product;
     ["galleryImage", "featuredImage", "categories", "productAttributes"].forEach((f) => {
         productData[f] = safeParse(productData[f]);
     });
@@ -168,7 +177,7 @@ export default async function ProductDetailPage({ params }) {
                 "@type": "ListItem",
                 "position": 3,
                 "name": productData.name,
-                "item": `https://ithyaraa.com/products/${productID}`
+                "item": `https://ithyaraa.com/products/${productData.slug || realProductID}`
             }
         ]
     };
@@ -191,7 +200,7 @@ export default async function ProductDetailPage({ params }) {
 
             {/* Pass server-fetched data into client component for interactivity */}
             <ProductInteractive
-                productID={productID}
+                productID={realProductID}
                 product={productData}
                 reviewStats={reviewStats}
                 buyMoreProducts={buyMoreProducts}

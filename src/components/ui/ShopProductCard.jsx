@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { TiStarFullOutline } from "react-icons/ti";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -12,13 +13,13 @@ const parseJSON = (val) => {
     try { return typeof val === 'string' ? JSON.parse(val) : (val || []); } catch { return []; }
 };
 
-const ImageWithFallback = ({ src, fallbackSrc, alt, ...props }) => {
+const ImageWithFallback = ({ src, fallbackSrc, alt, priority = false, ...props }) => {
     const [imgSrc, setImgSrc] = useState(src);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!priority);
 
     return (
         <>
-            {loading && (
+            {loading && !priority && (
                 <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg z-10" />
             )}
             <Image
@@ -29,15 +30,17 @@ const ImageWithFallback = ({ src, fallbackSrc, alt, ...props }) => {
                     setImgSrc(fallbackSrc);
                 }}
                 onLoad={() => setLoading(false)}
-                unoptimized={true}
-                className={`${props.className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                priority={priority}
+                loading={priority ? "eager" : "lazy"}
+                className={`${props.className} ${loading && !priority ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             />
         </>
     );
 };
 
-const ShopProductCard = ({ product }) => {
+const ShopProductCard = ({ product, priority = false }) => {
     const [hover, setHover] = useState(false);
+    const [hasHovered, setHasHovered] = useState(false);
     const [toggling, setToggling] = useState(false);
     const { isInWishlist, toggleWishlist } = useWishlist();
     const { getProductBadges } = useProductBadges();
@@ -54,33 +57,35 @@ const ShopProductCard = ({ product }) => {
     const percent = mrp > 0 ? Math.max(0, Math.round(((mrp - sale) / mrp) * 100)) : 0;
 
     const getProductHref = (p) => {
-        const id = p?.productID;
+        const identifier = p?.slug || p?.productID;
         const type = p?.type;
-        if (!id) return "/products";
+        if (!identifier) return "/shop";
         switch (type) {
-            case 'variable':
-                return `/products/${id}`;
             case 'combo':
-                return `/combo/${id}`;
+                return `/combo/${identifier}`;
             case 'make_combo':
-                return `/make-combo/${id}`;
+                return `/make-combo/${identifier}`;
             case 'customproduct':
-                return `/custom-product/${id}`;
+                return `/custom-product/${identifier}`;
+            case 'variable':
             default:
-                return `/products/${id}`;
+                return `/products/${identifier}`;
         }
     };
 
-
+    const handleMouseEnter = () => {
+        setHover(true);
+        if (!hasHovered) setHasHovered(true);
+    };
 
     return (
-        <a href={getProductHref(product)} className="flex-col flex gap-1">
+        <Link href={getProductHref(product)} className="flex-col flex gap-1 group" prefetch={true}>
             <div
                 className="h-auto aspect-[2/3] w-full relative"
-                onMouseEnter={() => setHover(true)}
+                onMouseEnter={handleMouseEnter}
                 onMouseLeave={() => setHover(false)}
             >
-                <div className="absolute inset-0 rounded-lg overflow-hidden group">
+                <div className="absolute inset-0 rounded-lg overflow-hidden">
                     {/* slider */}
                     <div
                         className="absolute inset-0 flex w-[200%] h-full transition-transform duration-500 ease-out will-change-transform"
@@ -93,26 +98,26 @@ const ShopProductCard = ({ product }) => {
                                 fallbackSrc={logo}
                                 alt={product?.name || 'Product'}
                                 fill
-                                sizes="(max-width: 768px) 50vw, 25vw"
+                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                                 className="object-cover"
-                                priority={false}
+                                priority={priority}
                             />
                         </div>
-                        {/* Slide 2 */}
+                        {/* Slide 2 (mounted on hover or once hovered to save mobile bandwidth) */}
                         <div className="relative w-1/2 h-full">
-                            <ImageWithFallback
-                                src={img2}
-                                fallbackSrc={logo}
-                                alt={`${product?.name || 'Product'} - alt`}
-                                fill
-                                sizes="(max-width: 768px) 50vw, 25vw"
-                                className="object-cover"
-                                priority={false}
-                            />
+                            {(hasHovered || hover) && (
+                                <ImageWithFallback
+                                    src={img2}
+                                    fallbackSrc={logo}
+                                    alt={`${product?.name || 'Product'} - alt`}
+                                    fill
+                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                    className="object-cover"
+                                    priority={false}
+                                />
+                            )}
                         </div>
                     </div>
-
-
 
                     {/* Dynamic Product Badges */}
                     {productBadges && productBadges.length > 0 && (
@@ -134,6 +139,7 @@ const ShopProductCard = ({ product }) => {
                     <button
                         onClick={async (e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             if (toggling) return;
                             setToggling(true);
                             try {
@@ -179,10 +185,8 @@ const ShopProductCard = ({ product }) => {
                     </>
                 )}
             </div>
-        </a>
+        </Link>
     );
 };
 
-export default ShopProductCard;
-
-
+export default memo(ShopProductCard);

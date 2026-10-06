@@ -43,13 +43,16 @@ const ShopProductGrid = ({ products = [], loading = false, pagination = null }) 
     if (loading) {
         return (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 w-full">
-                {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="aspect-[2/3] bg-gray-200 animate-pulse" />
-                        <div className="p-3">
-
-                            <div className="h-3 bg-gray-200 rounded w-3/4 mb-2 animate-pulse" />
-                            <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse" />
+                {Array.from({ length: limit || 12 }).map((_, i) => (
+                    <div key={i} className="flex-col flex gap-1">
+                        <div className="h-auto aspect-[2/3] w-full relative bg-gray-200 rounded-lg animate-pulse" />
+                        <div className="px-[5px] mt-1 space-y-1">
+                            <div className="h-2.5 bg-gray-200 rounded w-1/3 animate-pulse" />
+                            <div className="h-3.5 bg-gray-200 rounded w-3/4 animate-pulse" />
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 px-[5px]">
+                            <div className="h-4 bg-gray-200 rounded w-12 animate-pulse" />
+                            <div className="h-3 bg-gray-200 rounded w-10 animate-pulse" />
                         </div>
                     </div>
                 ))}
@@ -72,8 +75,8 @@ const ShopProductGrid = ({ products = [], loading = false, pagination = null }) 
                 <div className="mt-8">
                     <p className="text-sm font-semibold mb-3">You can check the following</p>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                        {suggested.map(p => (
-                            <ShopProductCard key={p.productID} product={p} />
+                        {suggested.map((p, idx) => (
+                            <ShopProductCard key={p.productID} product={p} priority={idx < 4} />
                         ))}
                     </div>
                 </div>
@@ -119,8 +122,8 @@ const ShopProductGrid = ({ products = [], loading = false, pagination = null }) 
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                {products.map(p => (
-                    <ShopProductCard key={p.productID} product={p} />
+                {products.map((p, idx) => (
+                    <ShopProductCard key={p.productID} product={p} priority={idx < 4} />
                 ))}
             </div>
             <Pagination pagination={pagination} />

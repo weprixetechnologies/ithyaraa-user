@@ -63,6 +63,15 @@ const nextConfig = {
         }
         return config;
     },
+    async redirects() {
+        return [
+            {
+                source: '/products',
+                destination: '/shop',
+                permanent: true,
+            },
+        ];
+    },
     async rewrites() {
         return [
             {

@@ -335,7 +335,7 @@ const CategoriesDropdown = () => {
                                                 <div key={product.productID} className="group relative flex flex-col">
                                                     {/* Product Image Container */}
                                                     <Link
-                                                        href={`/products/${product.productID}`}
+                                                        href={`/products/${product.slug || product.productID}`}
                                                         className="relative w-full aspect-[4/4.5] rounded-xl overflow-hidden bg-gray-100 border border-gray-100 shadow-2xs group-hover:shadow-md transition-all block"
                                                     >
                                                         <Image
@@ -366,7 +366,7 @@ const CategoriesDropdown = () => {
                                                     </Link>
 
                                                     {/* Product Details */}
-                                                    <Link href={`/products/${product.productID}`} className="mt-1.5 block">
+                                                    <Link href={`/products/${product.slug || product.productID}`} className="mt-1.5 block">
                                                         <h6 className="text-xs font-medium text-gray-800 truncate group-hover:text-[#fb4a6f] transition-colors">
                                                             {product.name}
                                                         </h6>

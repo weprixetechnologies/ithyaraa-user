@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import axiosInstance from "@/lib/axiosInstance";
 import { motion, AnimatePresence } from "framer-motion";
@@ -175,9 +175,15 @@ const FilterComponent = () => {
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
+    const isClearingRef = useRef(false);
+
     const clearAllFilters = () => {
-        router.replace(pathname, { scroll: false });
+        isClearingRef.current = true;
         setPriceRange([0, 2000]);
+        router.replace(pathname, { scroll: false });
+        setTimeout(() => {
+            isClearingRef.current = false;
+        }, 600);
     };
 
     useEffect(() => {
@@ -205,6 +211,7 @@ const FilterComponent = () => {
 
     // Debounce price slider updates to URL
     useEffect(() => {
+        if (isClearingRef.current) return;
         const timer = setTimeout(() => {
             if (priceRange[0] !== 0 || priceRange[1] !== 2000) {
                 updateParams({ 
@@ -216,7 +223,7 @@ const FilterComponent = () => {
             } else if (searchParams.has('minPrice') || searchParams.has('maxPrice')) {
                 updateParams({ minPrice: '', maxPrice: '', page: 1 });
             }
-        }, 600);
+        }, 400);
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [priceRange]);
