@@ -1,10 +1,31 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "@/lib/axiosInstance";
+import { isUserLoggedIn, addGuestCartItem, getGuestCartCount } from "@/lib/guestCart";
 
 // Add to cart
 export const addCartAsync = createAsyncThunk(
     "cart/addCartAsync",
-    async ({ productID, quantity, variationName, variationID, referBy, customInputs, selectedDressType }) => {
+    async ({ productID, quantity, variationName, variationID, referBy, customInputs, selectedDressType, presaleProductID }) => {
+        // If not logged in, store item in localStorage and return guest success
+        if (!isUserLoggedIn()) {
+            addGuestCartItem({
+                productID,
+                quantity: quantity || 1,
+                variationName,
+                variationID,
+                referBy,
+                customInputs,
+                selectedDressType,
+                presaleProductID
+            });
+            return {
+                success: true,
+                guest: true,
+                message: "Item added to cart (guest)",
+                crossSellProducts: []
+            };
+        }
+
         const response = await axiosInstance.post("/cart/add-cart", {
             productID,
             quantity,
@@ -12,14 +33,31 @@ export const addCartAsync = createAsyncThunk(
             variationID,
             referBy,
             customInputs,
-            selectedDressType
+            selectedDressType,
+            presaleProductID
         });
         return response.data; // available as action.payload
     }
 );
+
 export const addCartComboAsync = createAsyncThunk(
     "cart/addCartComboAsync",
     async ({ mainProductID, quantity, products }) => {
+        // If not logged in, store combo in localStorage and return guest success
+        if (!isUserLoggedIn()) {
+            addGuestCartItem({
+                type: 'combo',
+                mainProductID,
+                quantity: quantity || 1,
+                products
+            });
+            return {
+                success: true,
+                guest: true,
+                message: "Combo added to cart (guest)"
+            };
+        }
+
         const response = await axiosInstance.post("/cart/add-cart-combo", {
             products,
             mainProductID,
@@ -78,16 +116,28 @@ const initialState = {
 const cartSlice = createSlice({
     name: "cart",
     initialState,
-    reducers: {},
+    reducers: {
+        initGuestCart: (state) => {
+            state.cartCount = getGuestCartCount();
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(addCartAsync.fulfilled, (state, action) => {
-                state.cartCount += 1;          // increment counter
-                state.cart = action.payload;   // set cart to API response
+                if (action.payload?.guest) {
+                    state.cartCount = getGuestCartCount();
+                } else {
+                    state.cartCount += 1;          // increment counter
+                    state.cart = action.payload;   // set cart to API response
+                }
             })
             .addCase(addCartComboAsync.fulfilled, (state, action) => {
-                state.cartCount += 1;          // increment counter
-                state.cart = action.payload;   // set cart to API response
+                if (action.payload?.guest) {
+                    state.cartCount = getGuestCartCount();
+                } else {
+                    state.cartCount += 1;          // increment counter
+                    state.cart = action.payload;   // set cart to API response
+                }
             })
             .addCase(getCartAsync.fulfilled, (state, action) => {
                 // console.log(action.payload.items);
@@ -105,5 +155,7 @@ const cartSlice = createSlice({
             });
     },
 });
+
+export const { initGuestCart } = cartSlice.actions;
 
 export default cartSlice.reducer;

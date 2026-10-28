@@ -9,6 +9,7 @@ import {
     clearAllRedirectData
 } from '@/lib/redirectUtils';
 import axiosInstance from '@/lib/axiosInstance';
+import { syncGuestCartToBackend } from '@/lib/guestCart';
 
 const AuthContext = createContext();
 
@@ -59,6 +60,16 @@ export const AuthProvider = ({ children }) => {
         if (pendingRequests.length > 0) {
             console.log('[AuthContext] Retrying pending requests...');
             await retryPendingRequests(pendingRequests);
+        }
+
+        // Post guest cart items stored in localStorage like normal add to cart event
+        try {
+            const { synced } = await syncGuestCartToBackend();
+            if (synced > 0) {
+                console.log(`[AuthContext] Synced ${synced} guest cart items to backend`);
+            }
+        } catch (guestErr) {
+            console.error('[AuthContext] Error syncing guest cart to server:', guestErr);
         }
 
         // Redirect to stored URL or home

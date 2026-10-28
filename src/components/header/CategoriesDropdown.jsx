@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import axiosInstance from "@/lib/axiosInstance";
@@ -114,9 +114,26 @@ const CategoriesDropdown = () => {
         };
     }, [activeCategory, brandsMap, categoryProductsMap]);
 
+    const carouselRef = useRef(null);
+
+    const scrollCarousel = (direction) => {
+        if (carouselRef.current) {
+            const scrollAmount = direction === "left" ? -280 : 280;
+            carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+        }
+    };
+
     const activeCategoryIDStr = activeCategory?.categoryID ? String(activeCategory.categoryID) : "";
-    const rawCategoryBrands = activeCategory && brandsMap ? (brandsMap[activeCategoryIDStr] || brandsMap[activeCategory.categoryID] || []) : [];
-    const activeCategoryProducts = activeCategory && categoryProductsMap ? (categoryProductsMap[activeCategoryIDStr] || []) : [];
+    const categoryData = activeCategory && brandsMap ? (brandsMap[activeCategoryIDStr] || brandsMap[activeCategory.categoryID] || null) : null;
+
+    // Support single JSON format: { brands: [...], products: [...] } as well as legacy array format [...]
+    const rawCategoryBrands = Array.isArray(categoryData)
+        ? categoryData
+        : (categoryData?.brands || []);
+
+    const activeCategoryProducts = (Array.isArray(categoryData?.products) && categoryData.products.length > 0)
+        ? categoryData.products
+        : (categoryProductsMap[activeCategoryIDStr] || []);
 
     // Filter inhouse products (ITHYARAA products)
     const inhouseProducts = activeCategoryProducts.filter((p) => {
@@ -438,39 +455,141 @@ const CategoriesDropdown = () => {
                             )}
                         </div>
 
-                        {/* 3. BOTTOM PROMO BANNER BOX */}
-                        <div className="rounded-xl p-4 bg-[#fffbeb] border border-[#fef3c7] flex items-center justify-between relative overflow-hidden mt-3 shadow-2xs min-h-[100px]">
-                            <div className="z-10 flex flex-col justify-center max-w-[65%]">
-                                <h6 className="text-xs font-bold text-gray-900">
-                                    No partner brands in this category?
-                                </h6>
-                                <p className="text-[11px] text-gray-600 mt-0.5 mb-2.5">
-                                    Explore all ITHYARAA products in this category.
-                                </p>
-                                <Link
-                                    href={`/shop?categoryID=${activeCategory?.categoryID}`}
-                                    className="inline-flex items-center gap-2 bg-gray-900 hover:bg-black text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all shadow-2xs w-fit"
-                                >
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                                        <line x1="3" y1="6" x2="21" y2="6" />
-                                        <path d="M16 10a4 4 0 0 1-8 0" />
-                                    </svg>
-                                    <span>Shop ITHYARAA {activeCategory?.categoryName || "Products"} &rarr;</span>
-                                </Link>
-                            </div>
+                        {/* 2.5 DYNAMIC PRODUCTS CAROUSEL UNDER BRANDS SECTION */}
+                        {activeCategoryProducts.length > 0 && (
+                            <div className="mt-2 mb-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h5 className="text-xs font-bold text-gray-900 tracking-wide flex items-center gap-1.5">
+                                        <span>Featured in {activeCategory?.categoryName || "Category"}</span>
+                                    </h5>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => scrollCarousel("left")}
+                                            className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition cursor-pointer"
+                                            aria-label="Previous"
+                                        >
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="15 18 9 12 15 6" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => scrollCarousel("right")}
+                                            className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition cursor-pointer"
+                                            aria-label="Next"
+                                        >
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="9 18 15 12 9 6" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
 
-                            {/* Right side banner clothing rack image */}
-                            <div className="absolute right-0 top-0 bottom-0 w-[35%] overflow-hidden pointer-events-none">
-                                <Image
-                                    src="/clothing_rack_banner.jpg"
-                                    alt="Clothing Rack"
-                                    fill
-                                    sizes="250px"
-                                    className="object-cover object-center"
-                                />
+                                <div
+                                    ref={carouselRef}
+                                    className="flex gap-2.5 overflow-x-auto no-scrollbar scroll-smooth py-1"
+                                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                                >
+                                    {activeCategoryProducts.map((product) => {
+                                        const imgUrl = getProductImageUrl(product.featuredImage) || logo.src;
+                                        const salePrice = Number(product.salePrice ?? product.regularPrice ?? 0);
+                                        const regPrice = Number(product.regularPrice ?? 0);
+                                        const isWishlisted = isInWishlist(product.productID);
+
+                                        return (
+                                            <div
+                                                key={product.productID}
+                                                className="group relative flex flex-col shrink-0 w-[130px] bg-white rounded-xl border border-gray-150 hover:border-pink-300 hover:shadow-xs transition-all p-2"
+                                            >
+                                                <div className="relative w-full aspect-[4/4.5] rounded-lg overflow-hidden bg-gray-50 mb-1.5">
+                                                    <Image
+                                                        src={imgUrl}
+                                                        alt={product.name || "Product"}
+                                                        fill
+                                                        sizes="130px"
+                                                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            toggleWishlist(product);
+                                                        }}
+                                                        aria-label="Wishlist"
+                                                        className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-white/80 backdrop-blur-xs flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors shadow-2xs z-10"
+                                                    >
+                                                        {isWishlisted ? (
+                                                            <FaHeart className="text-red-500 text-[10px]" />
+                                                        ) : (
+                                                            <FaRegHeart className="text-gray-500 hover:text-red-500 text-[10px]" />
+                                                        )}
+                                                    </button>
+                                                </div>
+
+                                                <Link href={`/products/${product.slug || product.productID}`} className="block">
+                                                    {product.brand && (
+                                                        <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block truncate">
+                                                            {product.brand}
+                                                        </span>
+                                                    )}
+                                                    <h6 className="text-[11px] font-medium text-gray-800 truncate group-hover:text-[#fb4a6f] transition-colors leading-tight">
+                                                        {product.name}
+                                                    </h6>
+                                                    <div className="flex items-center gap-1 mt-0.5">
+                                                        <span className="text-xs font-bold text-gray-900">
+                                                            ₹{salePrice.toLocaleString("en-IN")}
+                                                        </span>
+                                                        {regPrice > salePrice && (
+                                                            <span className="text-[10px] text-gray-400 line-through">
+                                                                ₹{regPrice.toLocaleString("en-IN")}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </Link>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* 3. BOTTOM PROMO BANNER BOX - ONLY SHOWN IF NO PARTNER BRANDS FOUND IN THIS CATEGORY */}
+                        {otherBrandsList.length === 0 && (
+                            <div className="rounded-xl p-4 bg-[#fffbeb] border border-[#fef3c7] flex items-center justify-between relative overflow-hidden mt-3 shadow-2xs min-h-[100px]">
+                                <div className="z-10 flex flex-col justify-center max-w-[65%]">
+                                    <h6 className="text-xs font-bold text-gray-900">
+                                        No partner brands in this category?
+                                    </h6>
+                                    <p className="text-[11px] text-gray-600 mt-0.5 mb-2.5">
+                                        Explore all ITHYARAA products in this category.
+                                    </p>
+                                    <Link
+                                        href={`/shop?categoryID=${activeCategory?.categoryID}`}
+                                        className="inline-flex items-center gap-2 bg-gray-900 hover:bg-black text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all shadow-2xs w-fit"
+                                    >
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                                            <line x1="3" y1="6" x2="21" y2="6" />
+                                            <path d="M16 10a4 4 0 0 1-8 0" />
+                                        </svg>
+                                        <span>Shop ITHYARAA {activeCategory?.categoryName || "Products"} &rarr;</span>
+                                    </Link>
+                                </div>
+
+                                {/* Right side banner clothing rack image */}
+                                <div className="absolute right-0 top-0 bottom-0 w-[35%] overflow-hidden pointer-events-none">
+                                    <Image
+                                        src="/clothing_rack_banner.jpg"
+                                        alt="Clothing Rack"
+                                        fill
+                                        sizes="250px"
+                                        className="object-cover object-center"
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Footer text notice */}
