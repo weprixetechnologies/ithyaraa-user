@@ -22,6 +22,22 @@ import {
 
 import AppliedOffersHeader from './AppliedOffersHeader';
 
+const stripHtml = (html) => {
+    if (!html || typeof html !== 'string') return '';
+    return html
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
 const CartItems = ({ selectedItems = [], onSelectionChange }) => {
     const cartState = useSelector((state) => state.cart.cart)
     const cartDetail = useSelector((state) => state.cart.cartDetail);
@@ -378,7 +394,7 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                         <p className='text-sm font-medium line-clamp-1 md:text-[16px]'>{i.name}</p>
                                         {i.description && (
                                             <p className='text-xs text-gray-500 mt-0.5 line-clamp-2 italic'>
-                                                {i.description}
+                                                {stripHtml(i.description)}
                                             </p>
                                         )}
                                         <div className="cart-pricing flex gap-2 items-center flex-wrap">
@@ -523,7 +539,7 @@ const CartItems = ({ selectedItems = [], onSelectionChange }) => {
                                                     <p className='text-sm font-medium line-clamp-1 md:text-[14px]'>{p.name}</p>
                                                     {p.description && (
                                                         <p className='text-[11px] text-gray-500 mt-0.5 line-clamp-2 italic'>
-                                                            {p.description}
+                                                            {stripHtml(p.description)}
                                                         </p>
                                                     )}
                                                     <div className="cart-pricing flex gap-2 items-center">
