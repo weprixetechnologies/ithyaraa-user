@@ -1,31 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "@/lib/axiosInstance";
-import { isUserLoggedIn, addGuestCartItem, getGuestCartCount } from "@/lib/guestCart";
 
 // Add to cart
 export const addCartAsync = createAsyncThunk(
     "cart/addCartAsync",
     async ({ productID, quantity, variationName, variationID, referBy, customInputs, selectedDressType, presaleProductID }) => {
-        // If not logged in, store item in localStorage and return guest success
-        if (!isUserLoggedIn()) {
-            addGuestCartItem({
-                productID,
-                quantity: quantity || 1,
-                variationName,
-                variationID,
-                referBy,
-                customInputs,
-                selectedDressType,
-                presaleProductID
-            });
-            return {
-                success: true,
-                guest: true,
-                message: "Item added to cart (guest)",
-                crossSellProducts: []
-            };
-        }
-
         const response = await axiosInstance.post("/cart/add-cart", {
             productID,
             quantity,
@@ -43,21 +22,6 @@ export const addCartAsync = createAsyncThunk(
 export const addCartComboAsync = createAsyncThunk(
     "cart/addCartComboAsync",
     async ({ mainProductID, quantity, products }) => {
-        // If not logged in, store combo in localStorage and return guest success
-        if (!isUserLoggedIn()) {
-            addGuestCartItem({
-                type: 'combo',
-                mainProductID,
-                quantity: quantity || 1,
-                products
-            });
-            return {
-                success: true,
-                guest: true,
-                message: "Combo added to cart (guest)"
-            };
-        }
-
         const response = await axiosInstance.post("/cart/add-cart-combo", {
             products,
             mainProductID,
@@ -67,8 +31,7 @@ export const addCartComboAsync = createAsyncThunk(
     }
 );
 
-
-// Get cart
+// Deep JSON parsing helper for attributes like featuredImage
 function deepParseJSON(obj) {
     if (typeof obj === "string") {
         try {
@@ -88,6 +51,7 @@ function deepParseJSON(obj) {
     return obj;
 }
 
+// Get cart
 export const getCartAsync = createAsyncThunk(
     "cart/getCartAsync",
     async () => {
@@ -106,7 +70,6 @@ export const removeCartItemAsync = createAsyncThunk(
     }
 );
 
-
 const initialState = {
     cartCount: 0,
     cart: [],
@@ -117,45 +80,39 @@ const cartSlice = createSlice({
     name: "cart",
     initialState,
     reducers: {
-        initGuestCart: (state) => {
-            state.cartCount = getGuestCartCount();
+        clearCartState: (state) => {
+            state.cartCount = 0;
+            state.cart = [];
+            state.cartDetail = {};
         }
     },
     extraReducers: (builder) => {
         builder
             .addCase(addCartAsync.fulfilled, (state, action) => {
-                if (action.payload?.guest) {
-                    state.cartCount = getGuestCartCount();
-                } else {
-                    state.cartCount += 1;          // increment counter
-                    state.cart = action.payload;   // set cart to API response
+                state.cartCount += 1;
+                if (action.payload?.cartDetail) {
+                    state.cartDetail = action.payload.cartDetail;
                 }
             })
             .addCase(addCartComboAsync.fulfilled, (state, action) => {
-                if (action.payload?.guest) {
-                    state.cartCount = getGuestCartCount();
-                } else {
-                    state.cartCount += 1;          // increment counter
-                    state.cart = action.payload;   // set cart to API response
+                state.cartCount += 1;
+                if (action.payload?.cartDetail) {
+                    state.cartDetail = action.payload.cartDetail;
                 }
             })
             .addCase(getCartAsync.fulfilled, (state, action) => {
-                // console.log(action.payload.items);
-
-                state.cart = action.payload.items;
-                state.cartDetail = action.payload.summary
+                state.cart = action.payload?.items || [];
+                state.cartDetail = action.payload?.summary || {};
                 state.cartCount = action.payload?.items?.length || 0; // set count dynamically
             })
             .addCase(removeCartItemAsync.fulfilled, (state, action) => {
-                if (action.payload.success) {
-                    // Refresh cart data after successful removal
-                    // The cart will be refreshed by calling getCartAsync
+                if (action.payload?.success) {
                     state.cartCount = Math.max(0, state.cartCount - 1);
                 }
             });
     },
 });
 
-export const { initGuestCart } = cartSlice.actions;
+export const { clearCartState } = cartSlice.actions;
 
 export default cartSlice.reducer;

@@ -347,7 +347,11 @@ const ProductDetail = () => {
                 referBy,
                 quantity: count,
                 variationID: selectedVariation.variationID,
-                variationName: selectedVariation.variationName
+                variationName: selectedVariation.variationName,
+                name: presaleProduct?.name || 'Presale Product',
+                salePrice: selectedVariation.variationSalePrice ?? presaleProduct?.salePrice,
+                regularPrice: presaleProduct?.regularPrice,
+                featuredImage: presaleProduct?.featuredImage
             })).unwrap(); // This will throw if the action fails
 
             // Only proceed if cart addition was successful

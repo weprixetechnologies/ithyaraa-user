@@ -309,6 +309,11 @@ const MakeComboInteractive = ({ productID, product: comboData, reviewStats, dyna
                 mainProductID: productID,
                 products: currentProduct.products,
                 quantity: count,
+                name: comboData?.name || 'Custom Combo',
+                salePrice: comboData?.salePrice,
+                regularPrice: comboData?.regularPrice,
+                featuredImage: comboData?.featuredImage,
+                slug: comboData?.slug
             })).unwrap();
             setAddingToCart(false);
             setCartSuccess(true);

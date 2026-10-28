@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 import { getCookie, setCookieEasy } from '@/lib/setCookie';
 import {
     getAndClearRedirectUrl,
@@ -10,6 +11,7 @@ import {
 } from '@/lib/redirectUtils';
 import axiosInstance from '@/lib/axiosInstance';
 import { syncGuestCartToBackend } from '@/lib/guestCart';
+import { getCartAsync } from '@/redux/slices/cartSlice';
 
 const AuthContext = createContext();
 
@@ -26,6 +28,7 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState(null);
     const router = useRouter();
+    const dispatch = useDispatch();
 
     // Check authentication status
     const checkAuthStatus = () => {
@@ -62,14 +65,18 @@ export const AuthProvider = ({ children }) => {
             await retryPendingRequests(pendingRequests);
         }
 
-        // Post guest cart items stored in localStorage like normal add to cart event
+        // Fallback sync for any localStorage items from legacy sessions
         try {
-            const { synced } = await syncGuestCartToBackend();
-            if (synced > 0) {
-                console.log(`[AuthContext] Synced ${synced} guest cart items to backend`);
-            }
+            await syncGuestCartToBackend();
         } catch (guestErr) {
-            console.error('[AuthContext] Error syncing guest cart to server:', guestErr);
+            console.error('[AuthContext] Error syncing legacy guest cart to server:', guestErr);
+        }
+
+        // Fetch newly merged user cart from backend into Redux
+        try {
+            dispatch(getCartAsync());
+        } catch (cartErr) {
+            console.error('[AuthContext] Error fetching merged cart:', cartErr);
         }
 
         // Redirect to stored URL or home

@@ -70,6 +70,11 @@ const ComboInteractive = ({ productID, product, buyMoreProducts, reviewStats }) 
                     mainProductID: productID,
                     products: currentProduct.products,
                     quantity: count,
+                    name: product?.name || 'Combo',
+                    salePrice: product?.salePrice,
+                    regularPrice: product?.regularPrice,
+                    featuredImage: product?.featuredImage,
+                    slug: product?.slug
                 })
             ).unwrap();
         } catch (error) {

@@ -13,7 +13,7 @@ import HamburgerChildMenu from "./hamburgerChildMenu";
 import { IoPersonOutline } from "react-icons/io5";
 import { useRouter, usePathname } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux"
-import { getCartAsync, initGuestCart } from "@/redux/slices/cartSlice"
+import { getCartAsync } from "@/redux/slices/cartSlice"
 import WishlistIcon from "../ui/WishlistIcon"
 import { useAuth } from "@/contexts/AuthContext"
 import CartDrawer from "../ui/CartDrawer"
@@ -236,19 +236,9 @@ const Header = () => {
     const isLoggedIn = isAuthenticated
 
     useEffect(() => {
-        if (isLoggedIn && pathname !== '/login') {
+        if (pathname !== '/login') {
             dispatch(getCartAsync())
-        } else if (!isLoggedIn) {
-            dispatch(initGuestCart())
         }
-
-        const handleGuestCartUpdate = () => {
-            if (!isLoggedIn) {
-                dispatch(initGuestCart())
-            }
-        }
-        window.addEventListener('guest-cart-updated', handleGuestCartUpdate)
-        return () => window.removeEventListener('guest-cart-updated', handleGuestCartUpdate)
     }, [isLoggedIn, dispatch, pathname])
 
     // Scroll detection for sticky header

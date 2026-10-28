@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { getCookie, setCookieEasy } from './setCookie';
+import { getCookie, setCookie } from './setCookie';
+import { getOrCreateGuestToken } from './guestToken';
 import { toast } from 'react-toastify';
 import {
     storeRedirectUrl,
@@ -54,6 +55,13 @@ axiosInstance.interceptors.request.use(
         if (accessToken) {
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
+
+        // Attach anonymous session guest token (stored in cookie)
+        const guestToken = getOrCreateGuestToken();
+        if (guestToken) {
+            config.headers['x-guest-token'] = guestToken;
+        }
+
         return config;
     },
     (error) => {
@@ -79,6 +87,11 @@ function addRefreshSubscriber(callback) {
 axiosInstance.interceptors.response.use(
     (response) => {
         console.log('[Response interceptor] Success:', response.status, response.config.url);
+        // If server surfaced or refreshed guest token, persist it
+        const headerGuestToken = response.headers?.['x-guest-token'];
+        if (headerGuestToken) {
+            setCookie('_guest_token', headerGuestToken, { days: 30 });
+        }
         return response;
     },
     async (error) => {
@@ -104,11 +117,14 @@ axiosInstance.interceptors.response.use(
             console.log('[Response interceptor] Starting token refresh');
 
             const refreshToken = getCookie('_rt');
+            const wasLoggedIn = getCookie('_iil') === 'true';
             console.log('[Response interceptor] Refresh token:', refreshToken ? '[present]' : '[not present]');
 
             if (!refreshToken) {
                 console.log('[Response interceptor] No refresh token found, redirecting to login');
-                toast.error('Session expired. Please login again.');
+                if (wasLoggedIn) {
+                    toast.error('Session expired. Please login again.');
+                }
                 redirectToLogin(originalRequest);
                 return Promise.reject(error);
             }

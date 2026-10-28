@@ -146,6 +146,12 @@ const ProductInteractive = ({ productID, product, reviewStats, buyMoreProducts, 
                 quantity: count,
                 variationID: selectedVariation.variationID,
                 variationName: selectedVariation.variationName,
+                name: product?.name,
+                salePrice: variationSalePrice ?? product?.salePrice,
+                regularPrice: product?.regularPrice,
+                featuredImage: product?.featuredImage,
+                slug: product?.slug,
+                brand: product?.brand
             })).unwrap();
 
             if (cartResult && cartResult.success !== false) {

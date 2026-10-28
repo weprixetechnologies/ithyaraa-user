@@ -5,6 +5,7 @@ import InputPassword from '@/components/ui/inputPassword';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { setCookie } from '../../lib/setCookie'; // import the util
+import { getOrCreateGuestToken, clearGuestToken } from '@/lib/guestToken';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -32,10 +33,14 @@ const LoginAction = () => {
         if (!isActive) return;
 
         try {
+            const guestToken = getOrCreateGuestToken();
             const res = await fetch(`${getApiUrl()}/user/login`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phonenumber: phoneNumber, password }),
+                headers: { 
+                    'Content-Type': 'application/json',
+                    ...(guestToken ? { 'x-guest-token': guestToken } : {})
+                },
+                body: JSON.stringify({ phonenumber: phoneNumber, password, guestToken }),
             });
 
             if (!res.ok) {
@@ -53,7 +58,8 @@ const LoginAction = () => {
                 setCookie('_rt', data.refreshToken, { days: 7 });
                 setCookie('_iil', true, { days: 7 });
 
-                // toast.success('Login Success');
+                // Clear guest token since backend merged guest cart into user account
+                clearGuestToken();
 
                 // Get redirect parameter from URL
                 const redirectParam = searchParams.get('redirect');

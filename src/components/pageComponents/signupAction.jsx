@@ -8,6 +8,7 @@ import { FaPersonRays } from "react-icons/fa6";
 import { toast } from 'react-toastify';
 import EnterOtp from '../ui/enterOtp';
 import { useRouter } from 'next/navigation';
+import { getOrCreateGuestToken } from '@/lib/guestToken';
 
 const SignUpAction = () => {
     const [password, setPassword] = useState('')
@@ -102,9 +103,13 @@ const SignUpAction = () => {
             // toast.success("OTP verified");
 
             // create user
+            const guestToken = getOrCreateGuestToken();
             const createRes = await fetch('https://backend.ithyaraa.com/api/user/create-user', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    ...(guestToken ? { 'x-guest-token': guestToken } : {})
+                },
                 body: JSON.stringify({
                     password,
                     confirmPassword,
@@ -112,7 +117,8 @@ const SignUpAction = () => {
                     email,
                     phonenumber: phoneNumber,
                     referCode,
-                    phoneVerified: true // Mark phone as verified since OTP was verified
+                    phoneVerified: true, // Mark phone as verified since OTP was verified
+                    guestToken
                 })
             });
             const createData = await createRes.json();

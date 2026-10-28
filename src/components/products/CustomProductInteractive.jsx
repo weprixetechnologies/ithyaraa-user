@@ -197,6 +197,12 @@ export default function CustomProductInteractive({ productID, product, customInp
                 customInputs: inputs,
                 selectedDressType,
                 referBy,
+                name: product?.name,
+                salePrice: activePrice,
+                regularPrice: product?.regularPrice,
+                featuredImage: product?.featuredImage,
+                slug: product?.slug,
+                brand: product?.brand
             })).unwrap();
             setShowConfirm(false);
             if (isBuyNow) {

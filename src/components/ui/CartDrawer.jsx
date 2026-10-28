@@ -10,6 +10,7 @@ import { getCartAsync, removeCartItemAsync } from '@/redux/slices/cartSlice';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import axiosInstance from '@/lib/axiosInstance';
+import { isUserLoggedIn } from '@/lib/guestCart';
 import { useRef } from 'react';
 import logo from "../../../public/ithyaraa-logo.png";
 import {
@@ -186,6 +187,11 @@ const CartDrawer = ({ isOpen, onClose }) => {
 
     const handleProceedToCart = () => {
         onClose();
+        if (!isUserLoggedIn()) {
+            toast.info('Please sign in to proceed to checkout');
+            router.push('/login?redirect=/cart');
+            return;
+        }
         router.push('/cart');
     };
 
