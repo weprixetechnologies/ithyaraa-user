@@ -187,11 +187,6 @@ const CartDrawer = ({ isOpen, onClose }) => {
 
     const handleProceedToCart = () => {
         onClose();
-        if (!isUserLoggedIn()) {
-            toast.info('Please sign in to proceed to checkout');
-            router.push('/login?redirect=/cart');
-            return;
-        }
         router.push('/cart');
     };
 

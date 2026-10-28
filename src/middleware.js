@@ -14,7 +14,6 @@ export function middleware(req) {
     // Protected routes that require authentication
     const protectedRoutes = [
         "/profile",
-        "/cart",
         "/wishlist",
         "/orders",
         "/checkout"
@@ -51,7 +50,6 @@ export function middleware(req) {
 export const config = {
     matcher: [
         '/profile/:path*',
-        '/cart/:path*',
         '/wishlist/:path*',
         '/orders/:path*',
         '/checkout/:path*',

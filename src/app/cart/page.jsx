@@ -10,6 +10,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ClipLoader } from "react-spinners";
 import CheckoutLoadingModal from '@/components/ui/CheckoutLoadingModal';
 import StockValidationModal from '@/components/ui/StockValidationModal';
+import LoginModal from '@/components/ui/LoginModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { isUserLoggedIn } from '@/lib/guestCart';
 
 // Lazy load cart components for better performance
 const BreakdownCart = lazy(() => import('@/components/pageComponents/breakdownCart'));
@@ -20,21 +23,23 @@ const ValidateCoupon = lazy(() => import('@/components/pageComponents/validateCo
 
 const Page = () => {
   const dispatch = useDispatch();
+  const { isAuthenticated } = useAuth();
   const cartRedux = useSelector((state) => state.cart);
   const [loading, setLoading] = useState(true);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [selectedAddressID, setSelectedAddressID] = useState(null);
-  const [confirmAddress, setConfirmAddress] = useState(false)
+  const [confirmAddress, setConfirmAddress] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [paymentMode, setPaymentMode] = useState('cod')
-  const [placing, setPlacing] = useState(false)
-  const [placeError, setPlaceError] = useState('')
-  const [appliedCoupon, setAppliedCoupon] = useState(null)
-  const [couponDiscount, setCouponDiscount] = useState(0)
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false)
-  const [walletApplied, setWalletApplied] = useState(0)
-  const [showStockModal, setShowStockModal] = useState(false)
-  const [unavailableItems, setUnavailableItems] = useState([])
+  const [paymentMode, setPaymentMode] = useState('cod');
+  const [placing, setPlacing] = useState(false);
+  const [placeError, setPlaceError] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [walletApplied, setWalletApplied] = useState(0);
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [unavailableItems, setUnavailableItems] = useState([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const steps = [
     { id: 1, label: 'Cart' },
     { id: 2, label: 'Address & Payment' }
@@ -91,11 +96,15 @@ const Page = () => {
       return;
     }
 
-    // First click: move to address/payment confirmation step
+    // First click: move to address/payment confirmation step (requires authentication)
     if (!confirmAddress) {
-      setConfirmAddress(true)
-      setCurrentStep(2)
-      return
+      if (!isAuthenticated && !isUserLoggedIn()) {
+        setShowLoginModal(true);
+        return;
+      }
+      setConfirmAddress(true);
+      setCurrentStep(2);
+      return;
     }
 
     // Require selected address
@@ -152,6 +161,12 @@ const Page = () => {
 
 
 
+  const handleLoginModalSuccess = () => {
+    setShowLoginModal(false);
+    setConfirmAddress(true);
+    setCurrentStep(2);
+  };
+
   useEffect(() => {
     dispatch(getCartAsync())
       .finally(() => setLoading(false));
@@ -177,7 +192,14 @@ const Page = () => {
               {/* Step Circle + Label */}
               <div
                 className="flex items-center cursor-pointer"
-                onClick={() => setCurrentStep(step.id)}
+                onClick={() => {
+                  if (step.id === 2 && !confirmAddress) {
+                    handlePlaceOrder();
+                  } else if (step.id === 1) {
+                    setConfirmAddress(false);
+                    setCurrentStep(1);
+                  }
+                }}
               >
                 <div
                   className={`w-5 h-2 rounded-full transition-all 
@@ -276,18 +298,25 @@ const Page = () => {
             <p className="text-red-600 text-sm mt-1">{placeError}</p>
           )}
           <button onClick={handlePlaceOrder} disabled={placing} className='hidden md:flex text-center text-sm md:text-lg bg-primary-yellow w-full py-3 font-medium mt-4 rounded-lg cursor-pointer justify-center items-center gap-2 disabled:opacity-60'>
-            <RiSecurePaymentLine size={18} />{!confirmAddress ? 'Proceed to Address & Payment' : placing ? 'Placing...' : 'Place Order Now'}
+            <RiSecurePaymentLine size={18} />{!confirmAddress ? 'Proceed to Checkout' : placing ? 'Placing...' : 'Place Order Now'}
           </button>
           <div className="bg-white py-2 px-3 fixed bottom-0 left-1/2 -translate-x-1/2 w-[90%] md:hidden">
             <button onClick={handlePlaceOrder} disabled={placing}
               className="text-center text-sm md:text-lg bg-primary-yellow w-full py-3 font-medium rounded-lg cursor-pointer flex justify-center items-center gap-2 disabled:opacity-60"
             >
               <RiSecurePaymentLine size={18} />
-              {!confirmAddress ? 'Proceed to Address & Payment' : placing ? 'Placing...' : 'Place Order Now'}
+              {!confirmAddress ? 'Proceed to Checkout' : placing ? 'Placing...' : 'Place Order Now'}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Login Modal for Guest Checkout */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={handleLoginModalSuccess}
+      />
 
       {/* Checkout Loading Modal */}
       <CheckoutLoadingModal isOpen={showCheckoutModal} />
